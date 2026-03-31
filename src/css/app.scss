@@ -1,0 +1,52 @@
+// Quasar SCSS variables
+$primary   : #1B7A4A;   // hijau islami
+$secondary : #26A65B;   // hijau muda
+$accent    : #D4AF37;   // emas
+
+$dark      : #1C1C1E;
+$dark-page : #121212;
+
+$positive  : #21BA45;
+$negative  : #C10015;
+$info      : #31CCEC;
+$warning   : #F2C037;
+
+// Tipografi
+$typography-font-family: 'Roboto', 'Segoe UI', sans-serif;
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: $primary;
+  border-radius: 3px;
+}
+
+// Transisi halus global
+.q-page {
+  transition: all 0.3s ease;
+}
+
+// Helper classes
+.text-islami {
+  color: $primary;
+}
+.bg-islami {
+  background-color: $primary;
+}
+.bg-islami-light {
+  background-color: lighten($primary, 55%);
+}
+.rounded-xl {
+  border-radius: 16px;
+}
+.rounded-2xl {
+  border-radius: 24px;
+}
+.shadow-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
