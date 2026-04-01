@@ -5,9 +5,9 @@
       <q-toolbar class="q-px-md" style="min-height: 64px">
         <!-- Logo -->
         <router-link to="/" class="flex items-center no-underline">
-          <q-avatar size="42px" class="q-mr-sm">
-            <q-icon name="mosque" color="primary" size="32px" />
-          </q-avatar>
+<q-avatar size="42px" class="q-mr-sm">
+  <img src="/LOGO MIAS.png" style="width: 42px; height: 42px; object-fit: contain;" />
+</q-avatar>
           <div class="column no-wrap">
             <span class="text-weight-bold text-primary" style="font-size: 13px; line-height: 1.2">
               Masjid Imam Asy Syafi'i

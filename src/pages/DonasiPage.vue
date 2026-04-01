@@ -52,12 +52,23 @@
 
           <q-skeleton v-else height="140px" class="rounded-xl" />
 
-          <!-- QRIS Placeholder -->
-          <q-card flat bordered class="rounded-xl q-mt-md text-center q-pa-md">
-            <q-icon name="qr_code_2" size="80px" color="primary" />
-            <div class="text-weight-bold q-mt-sm">QRIS</div>
-            <div class="text-caption text-grey-6">Scan untuk donasi via semua e-wallet</div>
-          </q-card>
+          <!-- QRIS -->
+          <div v-if="qrisRekening">
+            <q-card flat bordered class="rounded-xl q-mt-md text-center q-pa-md">
+              <div class="text-weight-bold q-mb-sm text-primary">
+                <q-icon name="qr_code_2" class="q-mr-xs" />QRIS
+              </div>
+              <q-img :src="qrisRekening.qrisImage" fit="contain" style="max-height: 200px; max-width: 200px; margin: 0 auto" />
+              <div class="text-caption text-grey-6 q-mt-sm">Scan untuk donasi via semua e-wallet</div>
+            </q-card>
+          </div>
+          <div v-else>
+            <q-card flat bordered class="rounded-xl q-mt-md text-center q-pa-md">
+              <q-icon name="qr_code_2" size="80px" color="primary" />
+              <div class="text-weight-bold q-mt-sm">QRIS</div>
+              <div class="text-caption text-grey-6">Scan untuk donasi via semua e-wallet</div>
+            </q-card>
+          </div>
         </div>
 
         <!-- ─── Form Konfirmasi ─────────────────────────────────────── -->
@@ -166,11 +177,16 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { useDonasiStore } from 'src/stores/donasi';
 
 const donasiStore = useDonasiStore();
 const copied = ref(null);
+
+// Ambil rekening pertama yang punya QRIS untuk ditampilkan
+const qrisRekening = computed(() =>
+  donasiStore.rekeningList.find((r) => r.isActive && r.qrisImage) || null
+);
 
 const form = reactive({
   nama: '',

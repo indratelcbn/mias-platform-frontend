@@ -119,9 +119,9 @@ const loading = ref(false);
 const form = reactive({ nama: '', email: '', subjek: '', pesan: '' });
 
 const contactInfo = [
-  { icon: 'place', label: 'Alamat', value: "Jl. Contoh No. 1\nDepok, Jawa Barat 16400" },
-  { icon: 'phone', label: 'Telepon / WhatsApp', value: '+62 812-3456-7890' },
-  { icon: 'email', label: 'Email', value: 'info@masjidasyafii-depok.id' },
+  { icon: 'place', label: 'Alamat', value: "Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412" },
+  { icon: 'phone', label: 'Telepon / WhatsApp', value: '+62 895 6352 01053' },
+  { icon: 'email', label: 'Email', value: 'info@mias.depok.org' },
   { icon: 'schedule', label: 'Jam Operasional Admin', value: 'Senin – Jumat: 08.00 – 16.00 WIB' },
 ];
 

@@ -12,11 +12,11 @@
     >
       <!-- Logo -->
       <div class="drawer-header flex items-center q-pa-md">
-        <q-icon name="mosque" color="primary" size="32px" />
+        <img src="/LOGO MIAS.png" style="width: 32px; height: 32px; object-fit: contain;" />
         <transition name="fade">
           <div v-if="!miniMode" class="q-ml-sm">
             <div class="text-weight-bold text-primary" style="font-size: 13px; line-height: 1.2">
-              Admin Panel
+              Halaman Admin
             </div>
             <div class="text-grey-6 text-caption">Masjid Asy Syafi'i</div>
           </div>

@@ -6,6 +6,7 @@ export const useDonasiStore = defineStore('donasi', {
   state: () => ({
     list: [],
     rekeningList: [],
+    programList: [],
     summary: null,
     meta: { total: 0, page: 1, limit: 10, totalPages: 1 },
     loading: false,
@@ -19,6 +20,51 @@ export const useDonasiStore = defineStore('donasi', {
         this.rekeningList = data.data;
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal memuat info rekening.' });
+      }
+    },
+
+    async createRekening(payload) {
+      try {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([k, v]) => {
+          if (v !== null && v !== undefined) formData.append(k, v);
+        });
+        const { data } = await api.post('/donasi/rekening', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal menyimpan rekening.' });
+        return false;
+      }
+    },
+
+    async updateRekening(id, payload) {
+      try {
+        const formData = new FormData();
+        Object.entries(payload).forEach(([k, v]) => {
+          if (v !== null && v !== undefined) formData.append(k, v);
+        });
+        const { data } = await api.put(`/donasi/rekening/${id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal memperbarui rekening.' });
+        return false;
+      }
+    },
+
+    async deleteRekening(id) {
+      try {
+        const { data } = await api.delete(`/donasi/rekening/${id}`);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal menghapus rekening.' });
+        return false;
       }
     },
 
@@ -53,7 +99,6 @@ export const useDonasiStore = defineStore('donasi', {
         Object.entries(payload).forEach(([k, v]) => {
           if (v !== null && v !== undefined) formData.append(k, v);
         });
-
         const { data } = await api.post('/donasi', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
@@ -83,5 +128,61 @@ export const useDonasiStore = defineStore('donasi', {
       this.meta.page = page;
       this.fetchAll({ page });
     },
+
+    // ─── Program Donasi ─────────────────────────────────────────────────────
+    async fetchActiveProgram() {
+      try {
+        const { data } = await api.get('/donasi/program');
+        this.programList = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat program donasi.' });
+      }
+    },
+
+    async fetchAllProgram() {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/donasi/program/all');
+        this.programList = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat program donasi.' });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createProgram(payload) {
+      try {
+        const { data } = await api.post('/donasi/program', payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal menyimpan program.' });
+        return false;
+      }
+    },
+
+    async updateProgram(id, payload) {
+      try {
+        const { data } = await api.put(`/donasi/program/${id}`, payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal memperbarui program.' });
+        return false;
+      }
+    },
+
+    async deleteProgram(id) {
+      try {
+        const { data } = await api.delete(`/donasi/program/${id}`);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal menghapus program.' });
+        return false;
+      }
+    },
   },
 });
+

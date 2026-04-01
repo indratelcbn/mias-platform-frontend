@@ -5,16 +5,16 @@
         <!-- Tentang -->
         <div class="col-12 col-sm-6 col-md-4">
           <div class="row items-center q-mb-md">
-            <q-icon name="mosque" color="primary" size="32px" class="q-mr-sm" />
+            <img src="/LOGO MIAS.png" style="width: 32px; height: 32px; object-fit: contain;" class="q-mr-sm" />
             <div>
-              <div class="text-weight-bold" style="font-size: 14px; line-height: 1.2">
+                <div class="text-weight-bold text-white" style="font-size: 14px; line-height: 1.2">
                 Masjid Imam Asy Syafi'i
-              </div>
+                </div>
               <div class="text-grey-5 text-caption">Depok, Jawa Barat</div>
             </div>
           </div>
           <p class="text-grey-5" style="font-size: 13px; line-height: 1.8">
-            Pusat ibadah dan dakwah Islam yang berupaya memakmurkan umat dengan program-program berkualitas.
+            Pusat Kajian Islam Ilmiyyah berdasarkan Al Quran dan As-Sunnah dengan Pemahaman Para Sahabat.
           </p>
           <div class="row q-gutter-sm q-mt-md">
             <q-btn round flat icon="fab fa-facebook" color="grey-5" size="sm" />
@@ -76,12 +76,12 @@ const navLinks = [
   { label: 'Kontak', to: '/kontak' },
 ];
 
-const kegiatan = ['Kajian Ahad Pagi', 'Tahfizh Al-Quran', 'TPA Anak', 'Kajian Remaja', 'Pengajian Ibu-ibu'];
+const kegiatan = ['Kajian Islam Ilmiyyah', 'TPQ Anak', 'Kegiatan Sosial', 'Tahsin', 'Bahasa Arab'];
 
 const contactItems = [
-  { icon: 'place', value: 'Jl. Contoh No. 1, Depok, Jawa Barat 16400' },
-  { icon: 'phone', value: '+62 812-3456-7890' },
-  { icon: 'email', value: 'info@masjidasyafii-depok.id' },
+  { icon: 'place', value: 'Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412' },
+  { icon: 'phone', value: '+62 895 6352 01053' },
+  { icon: 'email', value: 'info@mias.depok.org' },
 ];
 </script>
 
