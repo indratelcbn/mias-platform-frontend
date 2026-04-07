@@ -21,7 +21,7 @@
         <!-- Desktop Nav -->
         <div class="gt-sm row items-center q-gutter-md">
           <q-btn
-            v-for="item in navItems"
+            v-for="item in simpleNavItems"
             :key="item.name"
             flat
             no-caps
@@ -31,6 +31,65 @@
             class="nav-btn"
             :class="{ 'text-primary text-weight-bold': $route.name === item.name }"
           />
+
+          <!-- Dakwah Dropdown -->
+          <q-btn
+            flat
+            no-caps
+            label="Dakwah"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': isDakwahActive }"
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left" class="dakwah-menu">
+              <q-list dense style="min-width: 200px">
+                <q-item
+                  v-for="sub in dakwahSubMenu"
+                  :key="sub.name"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  active-class="text-primary"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" color="primary" size="20px" />
+                  </q-item-section>
+                  <q-item-section>{{ sub.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
+          <!-- Sosial Dropdown -->
+          <q-btn
+            flat
+            no-caps
+            label="Sosial"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': isSosialActive }"
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left">
+              <q-list dense style="min-width: 230px">
+                <q-item
+                  v-for="sub in sosialSubMenu"
+                  :key="sub.to"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  active-class="text-primary"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+                  </q-item-section>
+                  <q-item-section>{{ sub.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
           <q-btn
             unelevated
             no-caps
@@ -77,7 +136,7 @@
         <q-separator />
 
         <q-item
-          v-for="item in navItems"
+          v-for="item in simpleNavItems"
           :key="item.name"
           clickable
           v-ripple
@@ -89,6 +148,52 @@
           </q-item-section>
           <q-item-section>{{ item.label }}</q-item-section>
         </q-item>
+
+        <!-- Dakwah sub-menu in mobile -->
+        <q-expansion-item
+          icon="mosque"
+          label="Dakwah"
+          expand-separator
+          :header-class="isDakwahActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item
+            v-for="sub in dakwahSubMenu"
+            :key="sub.name"
+            clickable
+            v-ripple
+            :to="sub.to"
+            class="q-pl-xl"
+            @click="drawer = false"
+          >
+            <q-item-section avatar>
+              <q-icon :name="sub.icon" color="primary" size="20px" />
+            </q-item-section>
+            <q-item-section>{{ sub.label }}</q-item-section>
+          </q-item>
+        </q-expansion-item>
+
+        <!-- Sosial sub-menu in mobile -->
+        <q-expansion-item
+          icon="diversity_3"
+          label="Sosial"
+          expand-separator
+          :header-class="isSosialActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item
+            v-for="sub in sosialSubMenu"
+            :key="sub.to"
+            clickable
+            v-ripple
+            :to="sub.to"
+            class="q-pl-xl"
+            @click="drawer = false"
+          >
+            <q-item-section avatar>
+              <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+            </q-item-section>
+            <q-item-section>{{ sub.label }}</q-item-section>
+          </q-item>
+        </q-expansion-item>
 
         <q-item clickable v-ripple to="/donasi" @click="drawer = false">
           <q-item-section avatar>
@@ -110,17 +215,38 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import FooterComp from 'src/components/FooterComp.vue';
 
 const drawer = ref(false);
+const route = useRoute();
 
-const navItems = [
+const simpleNavItems = [
   { name: 'home', label: 'Beranda', to: '/', icon: 'home' },
-  { name: 'kajian', label: 'Kajian', to: '/kajian', icon: 'menu_book' },
   { name: 'artikel', label: 'Artikel', to: '/artikel', icon: 'article' },
   { name: 'kontak', label: 'Kontak', to: '/kontak', icon: 'contact_mail' },
 ];
+
+const dakwahSubMenu = [
+  { name: 'kajian', label: 'Kajian Ilmiyyah', to: '/kajian', icon: 'menu_book' },
+  { name: 'mias-tv', label: 'Mias TV', to: '/dakwah/mias-tv', icon: 'live_tv' },
+  { name: 'kegiatan-ramadhan', label: 'Kegiatan Ramadhan', to: '/dakwah/kegiatan-ramadhan', icon: 'auto_awesome' },
+  { name: 'sholat-ied', label: 'Sholat Ied', to: '/dakwah/sholat-ied', icon: 'star' },
+];
+
+const sosialSubMenu = [
+  { label: 'Santunan Anak Yatim',    to: '/sosial/santunan-anak-yatim', icon: 'child_care',        color: 'indigo' },
+  { label: 'Air Galon Gratis',        to: '/sosial/air-galon-gratis',    icon: 'water_drop',        color: 'cyan-8' },
+  { label: 'Layanan Kes. Ibu & Anak', to: '/sosial/layanan-kesehatan',   icon: 'health_and_safety', color: 'green-8' },
+  { label: 'Armalah & Al Miskin',     to: '/sosial/armalah-miskin',      icon: 'handshake',         color: 'purple' },
+  { label: 'Bantuan Pengobatan',      to: '/sosial/bantuan-pengobatan',  icon: 'medication',        color: 'red-8' },
+  { label: 'Zakat Maal',              to: '/sosial/zakat-maal',          icon: 'paid',              color: 'orange-9' },
+];
+
+const dakwahRouteNames = ['kajian', 'kajian-detail', 'mias-tv', 'kegiatan-ramadhan', 'sholat-ied'];
+const isDakwahActive = computed(() => dakwahRouteNames.includes(route.name));
+const isSosialActive = computed(() => route.name === 'sosial-program');
 </script>
 
 <style scoped>

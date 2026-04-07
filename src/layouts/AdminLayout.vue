@@ -138,7 +138,10 @@ const userInitial = computed(() => {
 
 const menuItems = [
   { name: 'admin-dashboard', label: 'Dashboard', to: '/admin/dashboard', icon: 'dashboard' },
-  { name: 'admin-kajian', label: 'Kajian', to: '/admin/kajian', icon: 'menu_book' },
+  { name: 'admin-kajian', label: 'Kajian Ilmiyyah', to: '/admin/kajian', icon: 'menu_book' },
+  { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },
+  { name: 'admin-galeri', label: 'Galeri Foto', to: '/admin/galeri', icon: 'photo_library' },
+  { name: 'admin-sosial', label: 'Program Sosial', to: '/admin/sosial', icon: 'diversity_3' },
   { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Donasi', to: '/admin/donasi', icon: 'volunteer_activism' },
 ];
