@@ -17,10 +17,30 @@
             Pusat Kajian Islam Ilmiyyah berdasarkan Al Quran dan As-Sunnah dengan Pemahaman Para Sahabat.
           </p>
           <div class="row q-gutter-sm q-mt-md">
-            <q-btn round flat icon="fab fa-facebook" color="grey-5" size="sm" />
-            <q-btn round flat icon="fab fa-instagram" color="grey-5" size="sm" />
-            <q-btn round flat icon="fab fa-youtube" color="grey-5" size="sm" />
-            <q-btn round flat icon="fab fa-whatsapp" color="grey-5" size="sm" />
+            <q-btn
+              v-if="setting.data.facebook"
+              round flat icon="fab fa-facebook"
+              color="grey-5" size="sm"
+              :href="setting.data.facebook" target="_blank" type="a"
+            />
+            <q-btn
+              v-if="setting.data.instagram"
+              round flat icon="fab fa-instagram"
+              color="grey-5" size="sm"
+              :href="setting.data.instagram" target="_blank" type="a"
+            />
+            <q-btn
+              v-if="setting.data.youtube"
+              round flat icon="fab fa-youtube"
+              color="grey-5" size="sm"
+              :href="setting.data.youtube" target="_blank" type="a"
+            />
+            <q-btn
+              v-if="setting.data.whatsapp"
+              round flat icon="fab fa-whatsapp"
+              color="grey-5" size="sm"
+              :href="setting.data.whatsapp" target="_blank" type="a"
+            />
           </div>
         </div>
 
@@ -66,7 +86,13 @@
 </template>
 
 <script setup>
+import { computed, onMounted } from 'vue';
+import { useSettingStore } from 'src/stores/setting';
+
 const currentYear = new Date().getFullYear();
+const setting = useSettingStore();
+
+onMounted(() => { setting.fetch(); });
 
 const navLinks = [
   { label: 'Beranda', to: '/' },
@@ -78,11 +104,11 @@ const navLinks = [
 
 const kegiatan = ['Kajian Islam Ilmiyyah', 'TPQ Anak', 'Kegiatan Sosial', 'Tahsin', 'Bahasa Arab'];
 
-const contactItems = [
-  { icon: 'place', value: 'Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412' },
-  { icon: 'phone', value: '+62 895 6352 01053' },
-  { icon: 'email', value: 'info@mias.depok.org' },
-];
+const contactItems = computed(() => [
+  { icon: 'place', value: setting.data.alamat  || 'Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412' },
+  { icon: 'phone', value: setting.data.telepon || '+62 895 6352 01053' },
+  { icon: 'email', value: setting.data.email   || 'info@mias.depok.org' },
+]);
 </script>
 
 <style scoped>

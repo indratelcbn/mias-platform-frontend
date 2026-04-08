@@ -31,10 +31,10 @@
           <div class="q-mt-lg">
             <div class="text-subtitle2 text-weight-bold q-mb-sm">Ikuti Kami</div>
             <div class="row q-gutter-sm">
-              <q-btn round unelevated color="green" icon="fab fa-whatsapp" />
-              <q-btn round unelevated color="blue-9" icon="fab fa-facebook" />
-              <q-btn round unelevated color="pink" icon="fab fa-instagram" />
-              <q-btn round unelevated color="red" icon="fab fa-youtube" />
+              <q-btn v-if="setting.data.whatsapp"  round unelevated color="green"  icon="fab fa-whatsapp"  :href="setting.data.whatsapp"  target="_blank" type="a" />
+              <q-btn v-if="setting.data.facebook"  round unelevated color="blue-9" icon="fab fa-facebook"  :href="setting.data.facebook"  target="_blank" type="a" />
+              <q-btn v-if="setting.data.instagram" round unelevated color="pink"   icon="fab fa-instagram" :href="setting.data.instagram" target="_blank" type="a" />
+              <q-btn v-if="setting.data.youtube"   round unelevated color="red"    icon="fab fa-youtube"   :href="setting.data.youtube"   target="_blank" type="a" />
             </div>
           </div>
         </div>
@@ -110,20 +110,24 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { useSettingStore } from 'src/stores/setting';
 
 const loading = ref(false);
+const setting = useSettingStore();
+
+onMounted(() => { setting.fetch(); });
 
 const form = reactive({ nama: '', email: '', subjek: '', pesan: '' });
 
-const contactInfo = [
-  { icon: 'place', label: 'Alamat', value: "Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412" },
-  { icon: 'phone', label: 'Telepon / WhatsApp', value: '+62 895 6352 01053' },
-  { icon: 'email', label: 'Email', value: 'info@mias.depok.org' },
-  { icon: 'schedule', label: 'Jam Operasional Admin', value: 'Senin – Jumat: 08.00 – 16.00 WIB' },
-];
+const contactInfo = computed(() => [
+  { icon: 'place',    label: 'Alamat',                value: setting.data.alamat         || 'Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412' },
+  { icon: 'phone',    label: 'Telepon / WhatsApp',    value: setting.data.telepon        || '+62 895 6352 01053' },
+  { icon: 'email',    label: 'Email',                 value: setting.data.email          || 'info@mias.depok.org' },
+  { icon: 'schedule', label: 'Jam Operasional Admin', value: setting.data.jamOperasional || 'Senin – Jumat: 08.00 – 16.00 WIB' },
+]);
 
 const submitPesan = async () => {
   loading.value = true;

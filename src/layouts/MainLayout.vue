@@ -61,6 +61,35 @@
             </q-menu>
           </q-btn>
 
+          <!-- Pendidikan Dropdown -->
+          <q-btn
+            flat
+            no-caps
+            label="Pendidikan"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': isPendidikanActive }"
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left">
+              <q-list dense style="min-width: 220px">
+                <q-item
+                  v-for="sub in pendidikanSubMenu"
+                  :key="sub.to"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  active-class="text-primary"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+                  </q-item-section>
+                  <q-item-section>{{ sub.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
           <!-- Sosial Dropdown -->
           <q-btn
             flat
@@ -75,6 +104,64 @@
               <q-list dense style="min-width: 230px">
                 <q-item
                   v-for="sub in sosialSubMenu"
+                  :key="sub.to"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  active-class="text-primary"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+                  </q-item-section>
+                  <q-item-section>{{ sub.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
+          <!-- Profil Dropdown -->
+          <q-btn
+            flat
+            no-caps
+            label="Profil"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': isProfilActive }"
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left">
+              <q-list dense style="min-width: 220px">
+                <q-item
+                  v-for="sub in profilSubMenu"
+                  :key="sub.to"
+                  clickable
+                  v-close-popup
+                  :to="sub.to"
+                  active-class="text-primary"
+                >
+                  <q-item-section avatar>
+                    <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+                  </q-item-section>
+                  <q-item-section>{{ sub.label }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+
+          <!-- Usaha Dropdown -->
+          <q-btn
+            flat
+            no-caps
+            label="Usaha"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': isUsahaActive }"
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left">
+              <q-list dense style="min-width: 200px">
+                <q-item
+                  v-for="sub in usahaSubMenu"
                   :key="sub.to"
                   clickable
                   v-close-popup
@@ -172,6 +259,29 @@
           </q-item>
         </q-expansion-item>
 
+        <!-- Pendidikan sub-menu in mobile -->
+        <q-expansion-item
+          icon="school"
+          label="Pendidikan"
+          expand-separator
+          :header-class="isPendidikanActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item
+            v-for="sub in pendidikanSubMenu"
+            :key="sub.to"
+            clickable
+            v-ripple
+            :to="sub.to"
+            class="q-pl-xl"
+            @click="drawer = false"
+          >
+            <q-item-section avatar>
+              <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+            </q-item-section>
+            <q-item-section>{{ sub.label }}</q-item-section>
+          </q-item>
+        </q-expansion-item>
+
         <!-- Sosial sub-menu in mobile -->
         <q-expansion-item
           icon="diversity_3"
@@ -181,6 +291,52 @@
         >
           <q-item
             v-for="sub in sosialSubMenu"
+            :key="sub.to"
+            clickable
+            v-ripple
+            :to="sub.to"
+            class="q-pl-xl"
+            @click="drawer = false"
+          >
+            <q-item-section avatar>
+              <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+            </q-item-section>
+            <q-item-section>{{ sub.label }}</q-item-section>
+          </q-item>
+        </q-expansion-item>
+
+        <!-- Profil sub-menu in mobile -->
+        <q-expansion-item
+          icon="account_balance"
+          label="Profil"
+          expand-separator
+          :header-class="isProfilActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item
+            v-for="sub in profilSubMenu"
+            :key="sub.to"
+            clickable
+            v-ripple
+            :to="sub.to"
+            class="q-pl-xl"
+            @click="drawer = false"
+          >
+            <q-item-section avatar>
+              <q-icon :name="sub.icon" :color="sub.color" size="20px" />
+            </q-item-section>
+            <q-item-section>{{ sub.label }}</q-item-section>
+          </q-item>
+        </q-expansion-item>
+
+        <!-- Usaha sub-menu in mobile -->
+        <q-expansion-item
+          icon="storefront"
+          label="Usaha"
+          expand-separator
+          :header-class="isUsahaActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item
+            v-for="sub in usahaSubMenu"
             :key="sub.to"
             clickable
             v-ripple
@@ -244,9 +400,33 @@ const sosialSubMenu = [
   { label: 'Zakat Maal',              to: '/sosial/zakat-maal',          icon: 'paid',              color: 'orange-9' },
 ];
 
+const pendidikanSubMenu = [
+  { label: 'Tahsin Ikhwan',      to: '/pendidikan/tahsin-ikhwan',      icon: 'auto_stories', color: 'blue-9'   },
+  { label: 'Tahsin Akhwat',      to: '/pendidikan/tahsin-akhwat',      icon: 'auto_stories', color: 'purple-9' },
+  { label: 'Bahasa Arab Ikhwan', to: '/pendidikan/bahasa-arab-ikhwan', icon: 'translate',    color: 'green-8'  },
+  { label: 'Bahasa Arab Akhwat', to: '/pendidikan/bahasa-arab-akhwat', icon: 'translate',    color: 'red-8'    },
+  { label: 'TPQ',                to: '/pendidikan/tpq',                icon: 'child_care',   color: 'orange-9' },
+];
+
+const usahaSubMenu = [
+  { label: 'Umroh',     to: '/usaha/umroh',     icon: 'flight',     color: 'green-8'  },
+  { label: 'Mias Mart', to: '/usaha/mias-mart', icon: 'storefront', color: 'blue-grey-8' },
+];
+
+const profilSubMenu = [
+  { label: 'Sejarah',             to: '/profil/sejarah',   icon: 'history_edu',  color: 'brown-7'  },
+  { label: 'Visi & Misi',         to: '/profil/visi-misi', icon: 'verified',     color: 'blue-8'   },
+  { label: 'Fasilitas',           to: '/profil/fasilitas', icon: 'apartment',    color: 'blue-grey-7' },
+  { label: 'Struktur Organisasi', to: '/profil/struktur',  icon: 'account_tree', color: 'purple-8' },
+  { label: 'Pemateri',            to: '/profil/pemateri',  icon: 'auto_stories', color: 'deep-orange-8' },
+];
+
 const dakwahRouteNames = ['kajian', 'kajian-detail', 'mias-tv', 'kegiatan-ramadhan', 'sholat-ied'];
 const isDakwahActive = computed(() => dakwahRouteNames.includes(route.name));
-const isSosialActive = computed(() => route.name === 'sosial-program');
+const isPendidikanActive = computed(() => route.name === 'pendidikan');
+const isUsahaActive   = computed(() => ['umroh', 'mias-mart'].includes(route.name));
+const isSosialActive  = computed(() => route.name === 'sosial-program');
+const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','profil-fasilitas','profil-struktur','profil-pemateri'].includes(route.name));
 </script>
 
 <style scoped>

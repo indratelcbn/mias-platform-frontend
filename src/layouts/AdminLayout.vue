@@ -142,6 +142,10 @@ const menuItems = [
   { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },
   { name: 'admin-galeri', label: 'Galeri Foto', to: '/admin/galeri', icon: 'photo_library' },
   { name: 'admin-sosial', label: 'Program Sosial', to: '/admin/sosial', icon: 'diversity_3' },
+  { name: 'admin-pendidikan', label: 'Pendidikan', to: '/admin/pendidikan', icon: 'school' },
+  { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
+  { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
+  { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
   { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Donasi', to: '/admin/donasi', icon: 'volunteer_activism' },
 ];
