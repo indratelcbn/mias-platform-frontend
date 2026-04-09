@@ -62,7 +62,7 @@
       <!-- ─── List Kajian ─────────────────────────────────────────────── -->
       <div v-if="kajianStore.loading" class="row q-col-gutter-md">
         <div v-for="i in 6" :key="i" class="col-12 col-sm-6 col-md-4">
-          <q-skeleton type="rect" height="200px" class="rounded-xl" />
+          <q-skeleton type="rect" height="600px" class="rounded-xl" />
         </div>
       </div>
 

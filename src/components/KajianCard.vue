@@ -6,7 +6,7 @@
         <q-img
           v-if="kajian.thumbnail"
           :src="kajian.thumbnail"
-          height="180px"
+          height="480px"
           fit="cover"
           class="rounded-top"
         />

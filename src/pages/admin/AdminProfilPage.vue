@@ -118,69 +118,155 @@
         <div v-else class="column q-gutter-md">
           <q-card v-for="f in fasStore.list" :key="f.id" flat bordered>
             <q-card-section>
-              <div class="row items-start justify-between q-mb-sm">
-                <div class="column">
-                  <div class="text-subtitle2 text-weight-bold">{{ f.judul }}</div>
-                  <q-badge :color="f.isActive ? 'positive' : 'grey'" :label="f.isActive ? 'Aktif' : 'Nonaktif'" class="q-mt-xs" />
+              <!-- Judul + status + aksi -->
+              <div class="row items-start justify-between q-mb-xs">
+                <div class="col">
+                  <div class="row items-center q-gutter-xs flex-wrap">
+                    <div class="text-subtitle2 text-weight-bold">{{ f.judul }}</div>
+                    <q-badge :color="f.isActive ? 'positive' : 'grey'" :label="f.isActive ? 'Aktif' : 'Nonaktif'" />
+                    <q-badge outline color="grey-7" :label="`${f.foto?.length || 0}/6 foto`" />
+                  </div>
+                  <p v-if="f.deskripsi" class="text-caption text-grey-7 q-mb-none q-mt-xs" style="white-space: pre-line">{{ f.deskripsi }}</p>
                 </div>
-                <div class="row q-gutter-xs">
+                <div class="row q-gutter-xs q-ml-sm">
                   <q-btn flat dense round icon="edit" color="primary" @click="openFasilitasDialog(f)" />
                   <q-btn flat dense round icon="delete" color="negative" @click="confirmDeleteFasilitas(f)" />
                 </div>
               </div>
-              <p v-if="f.deskripsi" class="text-caption text-grey-7 q-mb-md">{{ f.deskripsi }}</p>
 
-              <!-- Foto Gallery -->
-              <div class="text-caption text-weight-medium q-mb-xs">Foto Dokumentasi ({{ f.foto?.length || 0 }})</div>
-              <div class="row q-gutter-xs q-mb-sm flex-wrap">
-                <div v-for="p in f.foto" :key="p.id" class="relative-position">
-                  <q-img :src="p.foto" width="80px" height="60px" fit="cover" class="rounded" />
-                  <q-btn
-                    round unelevated dense icon="close" color="negative" size="xs"
-                    class="absolute-top-right"
-                    @click="deleteFasilitasFoto(f, p)"
-                  />
-                </div>
-                <!-- Upload new foto -->
-                <q-file
-                  v-model="fasUploadFiles[f.id]"
-                  outlined dense
-                  label="+ Foto"
-                  accept="image/*"
-                  style="width: 80px; height: 60px"
-                  @update:model-value="files => uploadFasilitasFoto(f.id, files)"
-                >
-                  <template #default>
-                    <div class="column items-center justify-center full-height cursor-pointer text-grey-6">
-                      <q-icon name="add_photo_alternate" size="22px" />
+              <!-- Grid Foto -->
+              <div class="row q-col-gutter-sm q-mt-md">
+                <div v-for="p in f.foto" :key="p.id" class="col-6 col-sm-4 col-md-2">
+                  <div class="relative-position fas-foto-wrap">
+                    <q-img :src="p.foto" :ratio="4/3" fit="cover" class="rounded" />
+                    <q-btn
+                      round unelevated dense icon="delete" color="negative" size="xs"
+                      class="absolute-top-right q-ma-xs fas-foto-del"
+                      @click="deleteFasilitasFoto(f, p)"
+                    />
+                    <div v-if="p.caption" class="text-caption text-center q-px-xs q-py-xs bg-grey-2" style="border-radius: 0 0 4px 4px; word-break: break-word">
+                      {{ p.caption }}
                     </div>
-                  </template>
-                </q-file>
+                  </div>
+                </div>
+
+                <!-- Slot tambah foto (jika belum 6) -->
+                <div v-if="(f.foto?.length || 0) < 6" class="col-6 col-sm-4 col-md-2">
+                  <q-file
+                    v-model="fasUploadFiles[f.id]"
+                    outlined dense
+                    accept="image/*"
+                    class="full-width"
+                    @update:model-value="file => openFotoUploadDialog(f.id, file)"
+                  >
+                    <template #default>
+                      <div class="column items-center justify-center full-width cursor-pointer text-grey-5 q-pa-sm fas-add-box">
+                        <q-icon name="add_photo_alternate" size="28px" />
+                        <div class="text-caption q-mt-xs">Tambah Foto</div>
+                      </div>
+                    </template>
+                  </q-file>
+                </div>
+                <div v-else class="col-6 col-sm-4 col-md-2">
+                  <div class="column items-center justify-center full-width text-grey-5 q-pa-sm fas-add-box bg-grey-2 rounded">
+                    <q-icon name="photo_library" size="24px" />
+                    <div class="text-caption q-mt-xs">Maks. 6 foto</div>
+                  </div>
+                </div>
               </div>
             </q-card-section>
           </q-card>
+
           <div v-if="!fasStore.list.length" class="text-center q-py-lg text-grey-6">
             Belum ada fasilitas.
           </div>
         </div>
 
-        <!-- Dialog Fasilitas -->
+        <!-- Dialog Tambah/Edit Fasilitas -->
         <q-dialog v-model="fasDialog" persistent>
-          <q-card style="min-width: 380px">
+          <q-card style="min-width: 420px; max-width: 560px">
             <q-card-section class="row items-center q-pb-none">
               <div class="text-h6">{{ fasEdit ? 'Edit Fasilitas' : 'Tambah Fasilitas' }}</div>
               <q-space />
-              <q-btn flat round dense icon="close" v-close-popup />
+              <q-btn flat round dense icon="close" v-close-popup @click="resetFasDialog" />
             </q-card-section>
-            <q-card-section class="q-gutter-md">
+            <q-card-section class="q-gutter-md" style="max-height: 75vh; overflow-y: auto">
               <q-input v-model="fasForm.judul" outlined dense label="Judul Fasilitas *" :rules="[v => !!v || 'Wajib']" />
               <q-input v-model="fasForm.deskripsi" outlined dense label="Deskripsi" type="textarea" rows="3" />
               <q-input v-model.number="fasForm.urutan" outlined dense label="Urutan" type="number" />
               <q-toggle v-model="fasForm.isActive" label="Aktif" color="positive" />
+
+              <!-- Foto awal (hanya saat Tambah baru) -->
+              <template v-if="!fasEdit">
+                <q-separator />
+                <div class="text-caption text-weight-medium text-grey-8">Foto (opsional, maks. 6)</div>
+                <div class="row q-col-gutter-sm">
+                  <div v-for="(item, idx) in fasInitFotos" :key="idx" class="col-6">
+                    <div class="relative-position fas-foto-wrap">
+                      <q-img :src="item.preview" :ratio="4/3" fit="cover" class="rounded" />
+                      <q-btn
+                        round unelevated dense icon="close" color="negative" size="xs"
+                        class="absolute-top-right q-ma-xs"
+                        @click="removeFasInitFoto(idx)"
+                      />
+                    </div>
+                    <q-input
+                      v-model="item.caption"
+                      outlined dense
+                      label="Caption"
+                      class="q-mt-xs"
+                    />
+                  </div>
+
+                  <!-- Tombol tambah foto -->
+                  <div v-if="fasInitFotos.length < 6" class="col-6">
+                    <q-file
+                      v-model="fasInitFileInput"
+                      accept="image/*"
+                      class="hidden"
+                      ref="fasInitFileRef"
+                      @update:model-value="onFasInitFilePicked"
+                    />
+                    <div
+                      class="fas-add-box column items-center justify-center cursor-pointer text-grey-5 q-pa-md"
+                      style="min-height: 90px"
+                      @click="fasInitFileRef.pickFiles()"
+                    >
+                      <q-icon name="add_photo_alternate" size="28px" />
+                      <div class="text-caption q-mt-xs">Tambah Foto</div>
+                    </div>
+                  </div>
+                </div>
+              </template>
             </q-card-section>
             <q-card-actions align="right" class="q-pa-md">
-              <q-btn flat no-caps label="Batal" v-close-popup />
+              <q-btn flat no-caps label="Batal" v-close-popup @click="resetFasDialog" />
               <q-btn unelevated color="primary" no-caps :label="fasEdit ? 'Simpan' : 'Tambah'" :loading="fasSaving" @click="saveFasilitas" />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
+        <!-- Dialog Upload Foto -->
+        <q-dialog v-model="fasPhotoDialog" persistent>
+          <q-card style="min-width: 340px; max-width: 480px">
+            <q-card-section class="row items-center q-pb-none">
+              <div class="text-h6">Tambah Foto Fasilitas</div>
+              <q-space />
+              <q-btn flat round dense icon="close" @click="closeFotoDialog" />
+            </q-card-section>
+            <q-card-section class="q-gutter-sm">
+              <q-img
+                v-if="fasPhotoPreview"
+                :src="fasPhotoPreview"
+                :ratio="4/3"
+                fit="cover"
+                class="rounded q-mb-sm"
+              />
+              <q-input v-model="fasPhotoCaption" outlined dense label="Caption / Keterangan (opsional)" />
+            </q-card-section>
+            <q-card-actions align="right" class="q-pa-md">
+              <q-btn flat no-caps label="Batal" @click="closeFotoDialog" />
+              <q-btn unelevated color="primary" no-caps icon="upload" label="Upload" :loading="fasPhotoUploading" @click="confirmFotoUpload" />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -264,6 +350,26 @@
                 <q-badge :color="props.value === 'RUTIN' ? 'primary' : 'deep-orange'" :label="props.value" />
               </q-td>
             </template>
+            <template #body-cell-waktu="props">
+              <q-td class="text-center">
+                {{ props.row.jenis === 'RUTIN' ? (props.value || '-') : '-' }}
+              </q-td>
+            </template>
+            <template #body-cell-jam="props">
+              <q-td class="text-center">
+                {{ props.row.jenis === 'RUTIN' ? (props.value || '-') : '-' }}
+              </q-td>
+            </template>
+            <template #body-cell-kitab="props">
+              <q-td style="white-space: pre-line; max-width: 200px">
+                {{ props.value || '-' }}
+              </q-td>
+            </template>
+            <template #body-cell-keterangan="props">
+              <q-td style="white-space: pre-line; max-width: 200px">
+                {{ props.value || '-' }}
+              </q-td>
+            </template>
             <template #body-cell-isActive="props">
               <q-td>
                 <q-badge :color="props.value ? 'positive' : 'grey'" :label="props.value ? 'Aktif' : 'Nonaktif'" />
@@ -296,6 +402,26 @@
                 emit-value map-options
                 :rules="[v => !!v || 'Wajib']"
               />
+              <template v-if="pmForm.jenis === 'RUTIN'">
+                <q-select
+                  v-model="pmForm.waktu"
+                  outlined dense
+                  label="Waktu"
+                  :options="waktuOptions"
+                  emit-value map-options
+                  multiple
+                  use-chips
+                  clearable
+                />
+                <q-select
+                  v-model="pmForm.jam"
+                  outlined dense
+                  label="Jam"
+                  :options="jamOptions"
+                  emit-value map-options
+                  clearable
+                />
+              </template>
               <q-input
                 v-model="pmForm.kitab"
                 outlined dense
@@ -367,6 +493,11 @@ watch(tab, (t) => {
   if (t === 'pemateri')                         pemateriStore.fetchAdmin();
 }, { immediate: true });
 
+// Reactive forms (declared before watches that reference them)
+const sejarahForm    = reactive({ konten: '' });
+const vmForm         = reactive({ visi: '', misi: '' });
+const strukturForm   = reactive({ keterangan: '' });
+
 // Watch store data → populate local forms
 watch(() => sejarahStore.data, (v) => { if (v) sejarahForm.konten = v.konten || ''; }, { immediate: true });
 watch(() => vmStore.data, (v) => { if (v) { vmForm.visi = v.visi || ''; vmForm.misi = v.misi || ''; } }, { immediate: true });
@@ -375,7 +506,6 @@ watch(() => strukturStore.data, (v) => { if (v) strukturForm.keterangan = v.kete
 // ══════════════════════════════════════════════════════════════════════════════
 // TAB 1: SEJARAH
 // ══════════════════════════════════════════════════════════════════════════════
-const sejarahForm    = reactive({ konten: '' });
 const sejarahFotoFile = ref(null);
 const sejarahPreview  = ref('');
 
@@ -403,7 +533,6 @@ async function saveSejarah() {
 // ══════════════════════════════════════════════════════════════════════════════
 // TAB 2: VISI MISI
 // ══════════════════════════════════════════════════════════════════════════════
-const vmForm = reactive({ visi: '', misi: '' });
 
 async function saveVisiMisi() {
   try {
@@ -423,14 +552,48 @@ const fasSaving    = ref(false);
 const fasForm      = reactive({ judul: '', deskripsi: '', urutan: 0, isActive: true });
 const fasUploadFiles = reactive({});
 
+// Foto awal saat Tambah baru
+const fasInitFotos    = ref([]); // [{ file, preview, caption }]
+const fasInitFileInput = ref(null);
+const fasInitFileRef   = ref(null);
+
+// Photo upload state
+const fasPhotoDialog     = ref(false);
+const fasPhotoCaption    = ref('');
+const fasPhotoPreview    = ref('');
+const fasPhotoUploading  = ref(false);
+const fasCurrentUploadId = ref('');
+const fasCurrentFile     = ref(null);
+
 function openFasilitasDialog(row = null) {
   fasEdit.value = row;
+  fasInitFotos.value = [];
+  fasInitFileInput.value = null;
   if (row) {
     Object.assign(fasForm, { judul: row.judul, deskripsi: row.deskripsi || '', urutan: row.urutan || 0, isActive: row.isActive });
   } else {
     Object.assign(fasForm, { judul: '', deskripsi: '', urutan: fasStore.list.length + 1, isActive: true });
   }
   fasDialog.value = true;
+}
+
+function resetFasDialog() {
+  fasInitFotos.value = [];
+  fasInitFileInput.value = null;
+}
+
+function onFasInitFilePicked(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    fasInitFotos.value.push({ file, preview: e.target.result, caption: '' });
+  };
+  reader.readAsDataURL(file);
+  fasInitFileInput.value = null;
+}
+
+function removeFasInitFoto(idx) {
+  fasInitFotos.value.splice(idx, 1);
 }
 
 async function saveFasilitas() {
@@ -440,9 +603,17 @@ async function saveFasilitas() {
     if (fasEdit.value) {
       await fasStore.update(fasEdit.value.id, { judul: fasForm.judul, deskripsi: fasForm.deskripsi, urutan: fasForm.urutan, isActive: fasForm.isActive });
     } else {
-      await fasStore.create({ judul: fasForm.judul, deskripsi: fasForm.deskripsi, urutan: fasForm.urutan, isActive: fasForm.isActive });
+      const created = await fasStore.create({ judul: fasForm.judul, deskripsi: fasForm.deskripsi, urutan: fasForm.urutan, isActive: fasForm.isActive });
+      // Upload foto awal satu per satu
+      for (const item of fasInitFotos.value) {
+        const fd = new FormData();
+        fd.append('foto', item.file);
+        if (item.caption) fd.append('caption', item.caption);
+        await fasStore.addFoto(created.id, fd);
+      }
     }
     fasDialog.value = false;
+    fasInitFotos.value = [];
     $q.notify({ type: 'positive', message: fasEdit.value ? 'Fasilitas diperbarui.' : 'Fasilitas ditambahkan.' });
   } catch {
     $q.notify({ type: 'negative', message: 'Gagal menyimpan fasilitas.' });
@@ -461,17 +632,41 @@ function confirmDeleteFasilitas(row) {
     });
 }
 
-async function uploadFasilitasFoto(fasId, file) {
+function openFotoUploadDialog(fasId, file) {
   if (!file) return;
+  fasCurrentUploadId.value = fasId;
+  fasCurrentFile.value = file;
+  fasPhotoCaption.value = '';
+  const reader = new FileReader();
+  reader.onload = e => { fasPhotoPreview.value = e.target.result; };
+  reader.readAsDataURL(file);
+  fasPhotoDialog.value = true;
+}
+
+function closeFotoDialog() {
+  fasPhotoDialog.value = false;
+  fasPhotoPreview.value = '';
+  fasPhotoCaption.value = '';
+  fasCurrentFile.value = null;
+  if (fasCurrentUploadId.value) fasUploadFiles[fasCurrentUploadId.value] = null;
+}
+
+async function confirmFotoUpload() {
+  if (!fasCurrentFile.value) return;
+  fasPhotoUploading.value = true;
   const fd = new FormData();
-  fd.append('foto', file);
+  fd.append('foto', fasCurrentFile.value);
+  if (fasPhotoCaption.value) fd.append('caption', fasPhotoCaption.value);
   try {
-    await fasStore.addFoto(fasId, fd);
-    fasUploadFiles[fasId] = null;
+    await fasStore.addFoto(fasCurrentUploadId.value, fd);
+    fasUploadFiles[fasCurrentUploadId.value] = null;
+    fasPhotoDialog.value = false;
+    fasPhotoPreview.value = '';
+    fasPhotoCaption.value = '';
     $q.notify({ type: 'positive', message: 'Foto ditambahkan.' });
-  } catch {
-    $q.notify({ type: 'negative', message: 'Gagal upload foto.' });
-  }
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e?.response?.data?.message || 'Gagal upload foto.' });
+  } finally { fasPhotoUploading.value = false; }
 }
 
 function deleteFasilitasFoto(fasilitas, foto) {
@@ -489,7 +684,6 @@ function deleteFasilitasFoto(fasilitas, foto) {
 // ══════════════════════════════════════════════════════════════════════════════
 // TAB 4: STRUKTUR
 // ══════════════════════════════════════════════════════════════════════════════
-const strukturForm     = reactive({ keterangan: '' });
 const strukturFotoFile = ref(null);
 const strukturPreview  = ref('');
 
@@ -523,7 +717,7 @@ const pmSaving  = ref(false);
 const pmFotoFile = ref(null);
 const pmPreview  = ref('');
 const pmForm = reactive({
-  nama: '', jenis: 'RUTIN', kitab: '', keterangan: '', urutan: 0, isActive: true, fotoExisting: ''
+  nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', urutan: 0, isActive: true, fotoExisting: ''
 });
 
 const jenisPemateriOptions = [
@@ -531,12 +725,30 @@ const jenisPemateriOptions = [
   { label: 'Kajian Tematik', value: 'TEMATIK' },
 ];
 
+const waktuOptions = [
+  { label: 'Pekan 1', value: 'Pekan 1' },
+  { label: 'Pekan 2', value: 'Pekan 2' },
+  { label: 'Pekan 3', value: 'Pekan 3' },
+  { label: 'Pekan 4', value: 'Pekan 4' },
+  { label: 'Pekan 5', value: 'Pekan 5' },
+];
+
+const jamOptions = [
+  { label: '09.00 - 12.00 WIB',         value: '09.00 - 12.00 WIB' },
+  { label: "Ba'da Shubuh - Selesai",     value: "Ba'da Shubuh - Selesai" },
+  { label: "Ba'da Maghrib - Selesai",    value: "Ba'da Maghrib - Selesai" },
+];
+
 const pemateriCols = [
-  { name: 'foto',      label: 'Foto',     field: 'foto',      align: 'center' },
-  { name: 'nama',      label: 'Nama',     field: 'nama',      align: 'left', sortable: true },
-  { name: 'jenis',     label: 'Jenis',    field: 'jenis',     align: 'center' },
-  { name: 'isActive',  label: 'Status',   field: 'isActive',  align: 'center' },
-  { name: 'actions',   label: 'Aksi',     field: 'id',        align: 'center' },
+  { name: 'foto',       label: 'Foto',       field: 'foto',       align: 'center' },
+  { name: 'nama',       label: 'Nama',       field: 'nama',       align: 'left', sortable: true },
+  { name: 'jenis',      label: 'Jenis',      field: 'jenis',      align: 'center' },
+  { name: 'waktu',      label: 'Waktu',      field: 'waktu',      align: 'center' },
+  { name: 'jam',        label: 'Jam',        field: 'jam',        align: 'center' },
+  { name: 'kitab',      label: 'Kitab',      field: 'kitab',      align: 'left' },
+  { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
+  { name: 'isActive',   label: 'Status',     field: 'isActive',   align: 'center' },
+  { name: 'actions',    label: 'Aksi',       field: 'id',         align: 'center' },
 ];
 
 function openPemateriDialog(row = null) {
@@ -545,12 +757,16 @@ function openPemateriDialog(row = null) {
   pmPreview.value  = '';
   if (row) {
     Object.assign(pmForm, {
-      nama: row.nama, jenis: row.jenis, kitab: row.kitab || '', keterangan: row.keterangan || '',
+      nama: row.nama, jenis: row.jenis,
+      waktu: row.waktu ? row.waktu.split(', ') : [],
+      jam: row.jam || null,
+      kitab: row.kitab || '', keterangan: row.keterangan || '',
       urutan: row.urutan || 0, isActive: row.isActive, fotoExisting: row.foto || '',
     });
   } else {
     Object.assign(pmForm, {
-      nama: '', jenis: 'RUTIN', kitab: '', keterangan: '', urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
+      nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '',
+      urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
     });
   }
   pmDialog.value = true;
@@ -569,6 +785,10 @@ async function savePemateri() {
   const fd = new FormData();
   fd.append('nama', pmForm.nama);
   fd.append('jenis', pmForm.jenis);
+  if (pmForm.jenis === 'RUTIN') {
+    if (pmForm.waktu.length) fd.append('waktu', pmForm.waktu.join(', '));
+    if (pmForm.jam)   fd.append('jam', pmForm.jam);
+  }
   fd.append('kitab', pmForm.kitab);
   fd.append('keterangan', pmForm.keterangan);
   fd.append('urutan', pmForm.urutan);
@@ -603,3 +823,14 @@ onMounted(() => {
   sejarahStore.fetch();
 });
 </script>
+
+<style scoped>
+.fas-foto-wrap { border-radius: 6px; overflow: hidden; }
+.fas-foto-del { opacity: 0; transition: opacity .15s; }
+.fas-foto-wrap:hover .fas-foto-del { opacity: 1; }
+.fas-add-box {
+  border: 2px dashed #bdbdbd;
+  border-radius: 6px;
+  min-height: 80px;
+}
+</style>

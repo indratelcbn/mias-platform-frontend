@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { buildFormData } from 'src/utils/formData';
 
 export const useSosialStore = defineStore('sosial', {
   state: () => ({
@@ -40,8 +41,7 @@ export const useSosialStore = defineStore('sosial', {
 
     async create(payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.post('/sosial', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;
@@ -53,8 +53,7 @@ export const useSosialStore = defineStore('sosial', {
 
     async update(id, payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.put(`/sosial/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;

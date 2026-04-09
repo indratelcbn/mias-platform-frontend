@@ -57,7 +57,8 @@
               :src="produk.foto"
               :ratio="1"
               fit="cover"
-              class="produk-foto"
+              class="produk-foto cursor-pointer"
+              @click="open(produk.foto, produk.nama)"
             >
               <template #loading>
                 <div class="absolute-full flex flex-center bg-grey-2">
@@ -129,14 +130,19 @@
       </div>
 
     </div>
+
+    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useMartStore } from 'src/stores/usaha';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
 const store = useMartStore();
+const { open } = useLightbox();
 const search = ref('');
 
 const filteredList = computed(() => {

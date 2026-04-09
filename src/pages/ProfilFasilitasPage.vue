@@ -6,7 +6,7 @@
       <p class="text-body1 opacity-80">Fasilitas yang tersedia di Masjid Imam Asy Syafi'i</p>
     </div>
 
-    <div class="q-px-md q-py-xl" style="max-width: 1100px; margin: 0 auto">
+    <div class="q-px-md q-py-xl" style="max-width: 1200px; margin: 0 auto">
       <div v-if="store.loading" class="text-center q-py-xl">
         <q-spinner-dots color="primary" size="48px" />
       </div>
@@ -14,68 +14,63 @@
         <q-icon name="apartment" size="72px" color="grey-4" />
         <div class="q-mt-md">Belum ada data fasilitas.</div>
       </div>
-      <div v-else class="column q-gutter-xl">
-        <div v-for="f in store.list" :key="f.id">
-          <!-- Header -->
-          <div class="row items-center q-mb-md">
-            <q-icon name="meeting_room" color="primary" size="28px" class="q-mr-sm" />
-            <div class="text-h6 text-weight-bold">{{ f.judul }}</div>
-          </div>
-          <p v-if="f.deskripsi" class="text-body2 text-grey-7 q-mb-md" style="white-space: pre-line">{{ f.deskripsi }}</p>
+      <div v-else class="column q-gutter-lg">
+        <q-card v-for="f in store.list" :key="f.id" flat bordered class="fasilitas-card">
+          <!-- Card Header -->
+          <q-card-section class="fasilitas-header row items-center q-py-md q-px-lg">
+            <q-icon name="meeting_room" color="primary" size="26px" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bold">{{ f.judul }}</div>
+          </q-card-section>
+
+          <q-separator v-if="f.deskripsi || (f.foto && f.foto.length)" />
+
+          <!-- Deskripsi -->
+          <q-card-section v-if="f.deskripsi" class="q-px-lg q-pt-md q-pb-sm">
+            <p class="text-body2 text-grey-8 q-mb-none" style="white-space: pre-line; line-height: 1.7">{{ f.deskripsi }}</p>
+          </q-card-section>
 
           <!-- Photo gallery -->
-          <div v-if="f.foto && f.foto.length" class="row q-col-gutter-sm">
-            <div
-              v-for="p in f.foto"
-              :key="p.id"
-              class="col-6 col-sm-4 col-md-3"
-            >
-              <q-img
-                :src="p.foto"
-                :ratio="4/3"
-                class="rounded-lg cursor-pointer foto-thumb"
-                @click="openGallery(f, p)"
+          <q-card-section v-if="f.foto && f.foto.length" class="q-px-lg q-pt-sm q-pb-lg">
+            <div class="row q-col-gutter-sm">
+              <div
+                v-for="p in f.foto"
+                :key="p.id"
+                class="col-6 col-sm-4 col-md-2"
               >
-                <div v-if="p.caption" class="absolute-bottom text-caption text-center bg-black-5 q-px-xs q-py-xs">
-                  {{ p.caption }}
-                </div>
-              </q-img>
+                <q-img
+                  :src="p.foto"
+                  fit="contain"
+                  class="rounded-lg cursor-pointer foto-thumb fasilitas-img"
+                  @click="openGallery(f, p)"
+                >
+                  <div v-if="p.caption" class="absolute-bottom text-caption text-center q-px-xs q-py-xs" style="background: rgba(0,0,0,0.55)">
+                    {{ p.caption }}
+                  </div>
+                </q-img>
+              </div>
             </div>
-          </div>
-          <q-separator class="q-mt-lg" />
-        </div>
+          </q-card-section>
+        </q-card>
       </div>
     </div>
 
-    <!-- Lightbox dialog -->
-    <q-dialog v-model="lightbox">
-      <q-card style="max-width: 90vw; background: #000">
-        <q-bar class="bg-grey-10 text-white">
-          <span class="text-caption">{{ activeCaption }}</span>
-          <q-space />
-          <q-btn dense flat icon="close" v-close-popup />
-        </q-bar>
-        <q-img :src="activeSrc" style="max-height: 80vh" fit="contain" />
-      </q-card>
-    </q-dialog>
+    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
 import { useProfilFasilitasStore } from 'src/stores/profil';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
 const store = useProfilFasilitasStore();
 onMounted(() => store.fetchPublic());
 
-const lightbox    = ref(false);
-const activeSrc   = ref('');
-const activeCaption = ref('');
+const { open } = useLightbox();
 
 function openGallery(f, p) {
-  activeSrc.value = p.foto;
-  activeCaption.value = p.caption || f.judul;
-  lightbox.value = true;
+  open(p.foto, p.caption || f.judul);
 }
 </script>
 
@@ -84,7 +79,29 @@ function openGallery(f, p) {
   background: linear-gradient(135deg, #37474F 0%, #546E7A 100%);
   padding: 80px 0;
 }
+.fasilitas-card {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  transition: box-shadow .2s;
+}
+.fasilitas-card:hover {
+  box-shadow: 0 4px 18px rgba(0,0,0,0.11);
+}
+.fasilitas-header {
+  background: #f9fafb;
+}
 .rounded-lg { border-radius: 8px; overflow: hidden; }
+.fasilitas-img {
+  height: 160px;
+  background: #f4f6f8;
+}
 .foto-thumb { transition: transform .15s; }
-.foto-thumb:hover { transform: scale(1.03); }
+.foto-thumb:hover { transform: scale(1.04); }
+
+@media (max-width: 599px) {
+  .fasilitas-img {
+    height: 130px;
+  }
+}
 </style>

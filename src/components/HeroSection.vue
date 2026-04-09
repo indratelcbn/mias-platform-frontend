@@ -67,9 +67,9 @@
 
 <script setup>
 const stats = [
-  { value: '15+', label: 'Tahun Berdiri' },
+  { value: '2012', label: 'Tahun Berdiri' },
   { value: '500+', label: 'Jamaah Tetap' },
-  { value: '50+', label: 'Program Tahunan' },
+  { value: '5+', label: 'Jadwal Kajian' },
   { value: '200+', label: 'Santri Tahfizh' },
 ];
 </script>

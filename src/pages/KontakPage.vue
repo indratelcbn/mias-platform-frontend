@@ -75,6 +75,27 @@
                   </div>
                 </div>
 
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-sm-6">
+                    <q-input v-model="form.noHp" outlined label="No. Handphone *" :rules="[v => !!v || 'No. Handphone harus diisi']">
+                      <template #prepend><q-icon name="phone" /></template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="form.kategori"
+                      outlined
+                      emit-value
+                      map-options
+                      label="Tujuan Pesan *"
+                      :options="kategoriOptions"
+                      :rules="[v => !!v || 'Tujuan pesan harus dipilih']"
+                    >
+                      <template #prepend><q-icon name="category" /></template>
+                    </q-select>
+                  </div>
+                </div>
+
                 <q-input v-model="form.subjek" outlined label="Subjek">
                   <template #prepend><q-icon name="subject" /></template>
                 </q-input>
@@ -120,7 +141,17 @@ const setting = useSettingStore();
 
 onMounted(() => { setting.fetch(); });
 
-const form = reactive({ nama: '', email: '', subjek: '', pesan: '' });
+const kategoriOptions = [
+  { label: 'Fasilitas', value: 'FASILITAS' },
+  { label: 'Divisi Dakwah', value: 'DIVISI_DAKWAH' },
+  { label: 'Divisi Pendidikan', value: 'DIVISI_PENDIDIKAN' },
+  { label: 'Divisi Sosial', value: 'DIVISI_SOSIAL' },
+  { label: 'Umroh', value: 'UMROH' },
+  { label: 'Pembelian Produk MIAS Mart', value: 'PEMBELIAN_PRODUK_MIAS_MART' },
+  { label: 'Lain-Lain', value: 'LAIN_LAIN' },
+];
+
+const form = reactive({ nama: '', email: '', noHp: '', kategori: '', subjek: '', pesan: '' });
 
 const contactInfo = computed(() => [
   { icon: 'place',    label: 'Alamat',                value: setting.data.alamat         || 'Jl. Persahabatan RT 01/10 No. 69. Raden Saleh, Sukmajaya, Depok 16412' },
@@ -134,7 +165,7 @@ const submitPesan = async () => {
   try {
     await api.post('/pesan', form);
     Notify.create({ type: 'positive', message: 'Pesan berhasil dikirim! Kami akan segera merespons.' });
-    Object.assign(form, { nama: '', email: '', subjek: '', pesan: '' });
+    Object.assign(form, { nama: '', email: '', noHp: '', kategori: '', subjek: '', pesan: '' });
   } catch {
     Notify.create({ type: 'negative', message: 'Gagal mengirim pesan, coba lagi.' });
   } finally {

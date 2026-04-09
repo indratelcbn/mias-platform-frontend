@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { buildFormData } from 'src/utils/formData';
 
 export const useGaleriStore = defineStore('galeri', {
   state: () => ({
@@ -12,10 +13,12 @@ export const useGaleriStore = defineStore('galeri', {
   }),
 
   actions: {
-    async fetchByKategori(kategori) {
+    async fetchByKategori(kategori, tahun) {
       this.loading = true;
       try {
-        const { data } = await api.get('/galeri', { params: { kategori } });
+        const params = { kategori };
+        if (tahun) params.tahun = tahun;
+        const { data } = await api.get('/galeri', { params });
         if (kategori === 'RAMADHAN') this.ramadhan = data.data;
         else if (kategori === 'SHOLAT_IED') this.sholatIed = data.data;
       } catch {
@@ -40,8 +43,7 @@ export const useGaleriStore = defineStore('galeri', {
 
     async create(payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.post('/galeri', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;
@@ -53,8 +55,7 @@ export const useGaleriStore = defineStore('galeri', {
 
     async update(id, payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.put(`/galeri/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;

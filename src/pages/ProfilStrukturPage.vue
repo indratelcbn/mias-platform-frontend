@@ -14,9 +14,10 @@
         <q-img
           v-if="store.data.foto"
           :src="store.data.foto"
-          class="rounded-xl"
+          class="rounded-xl cursor-pointer foto-lightbox"
           fit="contain"
           style="max-height: 700px"
+          @click="open(store.data.foto, 'Struktur Organisasi')"
         />
         <div v-else class="text-center q-py-xl text-grey-6">
           <q-icon name="account_tree" size="72px" color="grey-4" />
@@ -27,15 +28,21 @@
         </p>
       </template>
     </div>
+
+    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import { useProfilStrukturStore } from 'src/stores/profil';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
 const store = useProfilStrukturStore();
 onMounted(() => store.fetch());
+
+const { open } = useLightbox();
 </script>
 
 <style scoped>
@@ -44,4 +51,6 @@ onMounted(() => store.fetch());
   padding: 80px 0;
 }
 .rounded-xl { border-radius: 12px; overflow: hidden; }
+.foto-lightbox { transition: transform .15s; }
+.foto-lightbox:hover { transform: scale(1.01); box-shadow: 0 4px 24px rgba(0,0,0,.2); }
 </style>

@@ -40,6 +40,9 @@
             <q-icon :name="item.icon" />
           </q-item-section>
           <q-item-section>{{ item.label }}</q-item-section>
+          <q-item-section v-if="item.name === 'admin-pesan' && unresolvedPesanCount > 0" side>
+            <q-badge color="negative" rounded :label="unresolvedPesanCount" />
+          </q-item-section>
           <q-tooltip v-if="miniMode" anchor="center right" self="center left">
             {{ item.label }}
           </q-tooltip>
@@ -121,11 +124,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Notify } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
+import { usePesanStore } from 'src/stores/pesan';
+import { useInactivityTimer } from 'src/composables/useInactivityTimer';
 
 const authStore = useAuthStore();
+const pesanStore = usePesanStore();
 const router = useRouter();
 
 const leftDrawerOpen = ref(true);
@@ -136,24 +143,41 @@ const userInitial = computed(() => {
   return name.charAt(0).toUpperCase();
 });
 
+const unresolvedPesanCount = computed(() => pesanStore.summary?.belumDitindaklanjuti || 0);
+
 const menuItems = [
   { name: 'admin-dashboard', label: 'Dashboard', to: '/admin/dashboard', icon: 'dashboard' },
+  { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
   { name: 'admin-kajian', label: 'Kajian Ilmiyyah', to: '/admin/kajian', icon: 'menu_book' },
   { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },
-  { name: 'admin-galeri', label: 'Galeri Foto', to: '/admin/galeri', icon: 'photo_library' },
+  { name: 'admin-galeri', label: 'Ied Mubarok', to: '/admin/galeri', icon: 'celebration' },
   { name: 'admin-sosial', label: 'Program Sosial', to: '/admin/sosial', icon: 'diversity_3' },
   { name: 'admin-pendidikan', label: 'Pendidikan', to: '/admin/pendidikan', icon: 'school' },
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
-  { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
-  { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
-  { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
+    { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Donasi', to: '/admin/donasi', icon: 'volunteer_activism' },
+  { name: 'admin-pesan', label: 'Pesan', to: '/admin/pesan', icon: 'mark_email_unread' },
+    { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
 ];
 
 const handleLogout = () => {
   authStore.logout();
   router.push({ name: 'admin-login' });
 };
+
+// Auto-logout setelah 30 menit tidak ada aktivitas
+useInactivityTimer(() => {
+  Notify.create({
+    type: 'warning',
+    message: 'Sesi Anda berakhir karena tidak ada aktivitas selama 30 menit.',
+    timeout: 5000,
+  });
+  handleLogout();
+});
+
+onMounted(() => {
+  pesanStore.fetchSummary();
+});
 </script>
 
 <style scoped>

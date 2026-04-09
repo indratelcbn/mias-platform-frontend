@@ -95,8 +95,8 @@
             <q-input
               v-model="form.judul"
               outlined
-              label="Judul Foto *"
-              :rules="[v => !!v || 'Wajib diisi']"
+              :label="isBatchCreate ? 'Judul Dasar (opsional untuk batch)' : 'Judul Foto *'"
+              :rules="[v => isBatchCreate || !!v || 'Wajib diisi']"
             />
 
             <q-select
@@ -140,12 +140,18 @@
             <q-file
               v-model="form.fotoFile"
               outlined
-              :label="isEdit ? 'Ganti Foto (opsional)' : 'File Foto *'"
+              :multiple="!isEdit"
+              use-chips
+              :label="isEdit ? 'Ganti Foto (opsional)' : 'Pilih Satu / Banyak Foto *'"
               accept="image/*"
-              :rules="isEdit ? [] : [v => !!v || 'Foto wajib diunggah']"
+              :rules="isEdit ? [] : [v => normalizeFiles(v).length > 0 || 'Foto wajib diunggah']"
             >
               <template #prepend><q-icon name="photo_camera" /></template>
             </q-file>
+
+            <div v-if="isBatchCreate" class="text-caption text-grey-6">
+              Jika judul dasar dikosongkan, judul tiap foto akan otomatis mengikuti nama file. Urutan tampil akan bertambah otomatis.
+            </div>
 
             <!-- Preview -->
             <div v-if="previewUrl" class="q-mt-sm">
@@ -217,6 +223,11 @@ const previewUrl = computed(() => {
   if (form.fotoFile instanceof File) return URL.createObjectURL(form.fotoFile);
   return null;
 });
+const normalizeFiles = (value) => {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+};
+const isBatchCreate = computed(() => !isEdit.value && normalizeFiles(form.fotoFile).length > 1);
 
 const setFilter = (val) => {
   filterKategori.value = val;
@@ -256,7 +267,7 @@ const openDialog = (row = null) => {
 const save = async () => {
   saving.value = true;
   const payload = { judul: form.judul, kategori: form.kategori, tahun: form.tahun, deskripsi: form.deskripsi, urutan: form.urutan };
-  if (form.fotoFile) payload.foto = form.fotoFile;
+  if (normalizeFiles(form.fotoFile).length) payload.foto = normalizeFiles(form.fotoFile);
 
   const result = isEdit.value
     ? await sosialStore.update(editId.value, payload)

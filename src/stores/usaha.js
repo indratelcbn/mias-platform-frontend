@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { Notify } from 'quasar';
+import { buildFormData } from 'src/utils/formData';
 
 // ── Umroh Store ───────────────────────────────────────────────────────────────
 export const useUmrohStore = defineStore('umroh', {
@@ -39,8 +40,7 @@ export const useUmrohStore = defineStore('umroh', {
 
     async create(payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.post('/usaha/umroh', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;
@@ -52,8 +52,7 @@ export const useUmrohStore = defineStore('umroh', {
 
     async update(id, payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.put(`/usaha/umroh/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;
@@ -113,8 +112,7 @@ export const useMartStore = defineStore('mart', {
 
     async create(payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.post('/usaha/mart', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;
@@ -126,8 +124,7 @@ export const useMartStore = defineStore('mart', {
 
     async update(id, payload) {
       try {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== null && v !== undefined) fd.append(k, v); });
+        const fd = buildFormData(payload);
         const { data } = await api.put(`/usaha/mart/${id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
         Notify.create({ type: 'positive', message: data.message });
         return data.data;

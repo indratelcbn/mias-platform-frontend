@@ -10,6 +10,11 @@
     </div>
 
     <div class="q-pa-lg q-pa-md-xl" style="max-width: 1200px; margin: 0 auto">
+      <div v-if="availableYears.length" class="q-mb-lg">
+        <q-tabs v-model="activeYear" align="left" active-color="primary" indicator-color="primary" no-caps>
+          <q-tab v-for="year in availableYears" :key="year" :name="year" :label="`Tahun ${year}`" />
+        </q-tabs>
+      </div>
 
       <!-- Loading -->
       <div v-if="galeriStore.loading" class="row q-col-gutter-md">
@@ -19,10 +24,10 @@
       </div>
 
       <!-- Grid Foto -->
-      <template v-else-if="galeriStore.sholatIed.length">
+      <template v-else-if="filteredPhotos.length">
         <div class="row q-col-gutter-md">
           <div
-            v-for="item in galeriStore.sholatIed"
+            v-for="item in filteredPhotos"
             :key="item.id"
             class="col-12 col-sm-6 col-md-4"
           >
@@ -44,8 +49,9 @@
                 <div v-if="item.keterangan" class="text-caption text-grey-6 ellipsis-2-lines">
                   {{ item.keterangan }}
                 </div>
-                <div class="text-caption text-grey-5 q-mt-xs">
-                  {{ formatDate(item.createdAt) }}
+                <div class="row items-center q-gutter-xs q-mt-xs">
+                  <q-badge outline color="positive" :label="`Tahun ${item.tahun}`" />
+                  <span class="text-caption text-grey-5">{{ formatDate(item.createdAt) }}</span>
                 </div>
               </q-card-section>
             </q-card>
@@ -98,16 +104,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { useGaleriStore } from 'src/stores/galeri';
 
 const galeriStore = useGaleriStore();
 const lightbox = ref(false);
 const selectedFoto = ref(null);
+const activeYear = ref(null);
 
 onMounted(() => {
   galeriStore.fetchByKategori('SHOLAT_IED');
 });
+
+const availableYears = computed(() => [...new Set(galeriStore.sholatIed.map((item) => item.tahun).filter(Boolean))].sort((a, b) => b - a));
+const filteredPhotos = computed(() => {
+  if (!activeYear.value) return galeriStore.sholatIed;
+  return galeriStore.sholatIed.filter((item) => item.tahun === activeYear.value);
+});
+
+watch(availableYears, (years) => {
+  if (!years.length) {
+    activeYear.value = null;
+    return;
+  }
+  if (!years.includes(activeYear.value)) {
+    activeYear.value = years[0];
+  }
+}, { immediate: true });
 
 const imgUrl = (path) => path;
 

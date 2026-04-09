@@ -272,8 +272,8 @@
             <q-input
               v-model="fotoForm.judul"
               outlined
-              label="Judul Foto *"
-              :rules="[v => !!v || 'Wajib diisi']"
+              :label="isFotoBatchCreate ? 'Judul Dasar (opsional untuk batch)' : 'Judul Foto *'"
+              :rules="[v => isFotoBatchCreate || !!v || 'Wajib diisi']"
             />
 
             <q-select
@@ -317,12 +317,18 @@
             <q-file
               v-model="fotoForm.fotoFile"
               outlined
-              :label="isFotoEdit ? 'Ganti Foto (opsional)' : 'File Foto *'"
+              :multiple="!isFotoEdit"
+              use-chips
+              :label="isFotoEdit ? 'Ganti Foto (opsional)' : 'Pilih Satu / Banyak Foto *'"
               accept="image/*"
-              :rules="isFotoEdit ? [] : [v => !!v || 'Foto wajib diunggah']"
+              :rules="isFotoEdit ? [] : [v => normalizeFiles(v).length > 0 || 'Foto wajib diunggah']"
             >
               <template #prepend><q-icon name="photo_camera" /></template>
             </q-file>
+
+            <div v-if="isFotoBatchCreate" class="text-caption text-grey-6">
+              Jika judul dasar dikosongkan, judul tiap foto akan otomatis mengikuti nama file. Urutan tampil akan bertambah otomatis.
+            </div>
 
             <!-- Preview -->
             <div v-if="fotoPreviewUrl" class="q-mt-sm">
@@ -482,6 +488,11 @@ const fotoPreviewUrl = computed(() => {
   if (fotoForm.fotoFile instanceof File) return URL.createObjectURL(fotoForm.fotoFile);
   return null;
 });
+const normalizeFiles = (value) => {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+};
+const isFotoBatchCreate = computed(() => !isFotoEdit.value && normalizeFiles(fotoForm.fotoFile).length > 1);
 
 const openFotoDialog = (row = null) => {
   if (row) {
@@ -512,7 +523,7 @@ const saveFoto = async () => {
     keterangan: fotoForm.keterangan || undefined,
     urutan: fotoForm.urutan,
   };
-  if (fotoForm.fotoFile) payload.foto = fotoForm.fotoFile;
+  if (normalizeFiles(fotoForm.fotoFile).length) payload.foto = normalizeFiles(fotoForm.fotoFile);
 
   const result = isFotoEdit.value
     ? await store.updateFoto(editFotoId.value, payload)

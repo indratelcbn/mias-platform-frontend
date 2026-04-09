@@ -36,7 +36,8 @@
               :src="program.flyer"
               :ratio="3/4"
               fit="cover"
-              class="umroh-flyer"
+              class="umroh-flyer cursor-pointer"
+              @click="open(program.flyer, program.judul)"
             >
               <template #loading>
                 <div class="absolute-full flex flex-center bg-grey-2">
@@ -114,6 +115,8 @@
         />
       </div>
     </section>
+
+    <AppLightbox />
   </q-page>
 </template>
 
@@ -121,9 +124,12 @@
 import { onMounted } from 'vue';
 import { useUmrohStore } from 'src/stores/usaha';
 import { useRouter } from 'vue-router';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
 const store = useUmrohStore();
 const router = useRouter();
+const { open } = useLightbox();
 
 const formatRupiah = (val) => {
   const num = Number(val);

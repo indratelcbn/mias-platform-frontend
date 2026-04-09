@@ -14,8 +14,9 @@
         <q-img
           v-if="store.data.foto"
           :src="store.data.foto"
-          class="rounded-xl q-mb-xl"
+          class="rounded-xl q-mb-xl cursor-pointer foto-lightbox"
           style="max-height: 420px; object-fit: cover"
+          @click="open(store.data.foto, 'Foto Masjid')"
         />
         <div
           v-if="store.data.konten"
@@ -25,15 +26,21 @@
         <div v-else class="text-grey-6 text-center q-py-xl">Konten belum tersedia.</div>
       </template>
     </div>
+
+    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
 import { onMounted } from 'vue';
 import { useProfilSejarahStore } from 'src/stores/profil';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
 const store = useProfilSejarahStore();
 onMounted(() => store.fetch());
+
+const { open } = useLightbox();
 </script>
 
 <style scoped>
@@ -42,4 +49,6 @@ onMounted(() => store.fetch());
   padding: 80px 0;
 }
 .rounded-xl { border-radius: 12px; overflow: hidden; }
+.foto-lightbox { transition: transform .15s; }
+.foto-lightbox:hover { transform: scale(1.01); }
 </style>

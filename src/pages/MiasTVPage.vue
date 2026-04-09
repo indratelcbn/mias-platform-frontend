@@ -2,8 +2,8 @@
   <q-page class="mias-tv-page">
     <!-- ─── Hero ──────────────────────────────────────────────────────────── -->
     <div class="tv-hero q-pa-xl text-center text-white">
-      <div class="text-overline q-mb-xs" style="letter-spacing: 3px; opacity: .7">DAKWAH DIGITAL</div>
-      <div class="text-h3 text-weight-bold q-mb-sm">MIAS TV</div>
+      <div class="text-overline q-mb-sm" style="letter-spacing: 3px; opacity: .7">DAKWAH DIGITAL</div>
+      <img src="/LOGO MIAS TV.png" alt="MIAS TV" class="mias-tv-logo q-mb-sm" />
       <div class="text-subtitle1" style="opacity: .85">
         Saksikan kajian, ceramah, dan siaran langsung Masjid Imam Asy Syafi'i
       </div>
@@ -14,12 +14,37 @@
       <!-- ─── Live Streaming Section ─────────────────────────────────────── -->
       <div class="q-mb-xl" style="max-width: 900px; margin: 0 auto">
         <!-- Loading -->
-        <div v-if="streamingStore.loading" class="text-center q-py-xl">
+        <div v-if="streamingStore.loading || ytLiveLoading" class="text-center q-py-xl">
           <q-spinner-audio color="primary" size="48px" />
           <div class="q-mt-md text-grey">Memuat siaran...</div>
         </div>
 
-        <!-- Live Streaming Player -->
+        <!-- ① YouTube Auto-detected Live (prioritas tertinggi) -->
+        <template v-else-if="ytLive">
+          <q-card flat bordered class="q-mb-lg player-card">
+            <div class="live-badge-wrap q-pa-md row items-center q-gutter-sm">
+              <q-badge color="red" class="live-badge">
+                <q-icon name="fiber_manual_record" size="10px" class="q-mr-xs" /> LIVE
+              </q-badge>
+              <span class="text-h6 text-weight-bold">{{ ytLive.title }}</span>
+              <q-space />
+              <q-badge outline color="red" label="YouTube Live" />
+            </div>
+            <q-card-section class="q-pa-none">
+              <div class="video-wrapper">
+                <iframe
+                  :src="ytLive.embedUrl"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  class="video-iframe"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </template>
+
+        <!-- ② Streaming manual dari DB (fallback) -->
         <template v-else-if="streamingStore.active">
           <q-card flat bordered class="q-mb-lg player-card">
             <div class="live-badge-wrap q-pa-md row items-center q-gutter-sm">
@@ -45,7 +70,7 @@
           </q-card>
         </template>
 
-        <!-- No Active Streaming -->
+        <!-- ③ Tidak ada siaran -->
         <template v-else>
           <q-banner rounded class="bg-blue-1 text-blue-9 q-mb-lg">
             <template #avatar><q-icon name="info" /></template>
@@ -176,8 +201,25 @@ import { api } from 'src/boot/axios';
 
 const streamingStore = useStreamingStore();
 
-// ─── Streaming ──────────────────────────────────────────────────────────────
+// ─── YouTube Live Auto-detect ───────────────────────────────────────────
+const ytLive        = ref(null);
+const ytLiveLoading = ref(false);
+
+async function checkYouTubeLive() {
+  ytLiveLoading.value = true;
+  try {
+    const res = await api.get('/youtube/live');
+    ytLive.value = res.data.data; // null jika tidak ada live
+  } catch {
+    ytLive.value = null;
+  } finally {
+    ytLiveLoading.value = false;
+  }
+}
+
+// ─── Streaming ──────────────────────────────────────────────────────────
 onMounted(() => {
+  checkYouTubeLive();
   streamingStore.fetchActive();
   loadVideos();
 });
@@ -249,6 +291,17 @@ function openVideo(v) {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.mias-tv-logo {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,.35));
+  display: block;
+  margin: 0 auto;
+}
+@media (max-width: 599px) {
+  .mias-tv-logo { height: 60px; }
 }
 .player-card {
   border-radius: 12px;

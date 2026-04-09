@@ -162,11 +162,11 @@
         />
         <!-- Image -->
         <div class="lightbox-img-wrap" @click.stop>
-          <q-img
+          <img
             v-if="lightboxFotos[lightboxIdx]"
             :src="lightboxFotos[lightboxIdx].foto"
-            fit="contain"
-            style="max-height: 85vh; max-width: 88vw; border-radius: 12px"
+            class="lightbox-img"
+            alt=""
           />
           <div class="lightbox-caption text-white text-center q-mt-sm">
             <span class="text-subtitle2 text-weight-bold">{{ lightboxFotos[lightboxIdx]?.judul }}</span>
@@ -483,6 +483,14 @@ watch(() => route.params.slug, loadFotos);
   flex-direction: column;
   align-items: center;
   cursor: default;
+}
+.lightbox-img {
+  max-width: 92vw;
+  max-height: calc(100vh - 100px);
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  display: block;
 }
 .lightbox-close {
   position: absolute;

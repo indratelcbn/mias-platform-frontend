@@ -167,8 +167,8 @@
             <q-input
               v-model="umrohForm.judul"
               outlined
-              label="Judul Program *"
-              :rules="[v => !!v || 'Wajib diisi']"
+              :label="isUmrohBatchCreate ? 'Judul Dasar (opsional untuk batch)' : 'Judul Program *'"
+              :rules="[v => isUmrohBatchCreate || !!v || 'Wajib diisi']"
             />
 
             <q-input
@@ -205,12 +205,18 @@
             <q-file
               v-model="umrohForm.flyerFile"
               outlined
-              :label="isUmrohEdit ? 'Ganti Flyer (opsional)' : 'File Flyer *'"
+              :multiple="!isUmrohEdit"
+              use-chips
+              :label="isUmrohEdit ? 'Ganti Flyer (opsional)' : 'Pilih Satu / Banyak Flyer *'"
               accept="image/*"
-              :rules="isUmrohEdit ? [] : [v => !!v || 'Flyer wajib diunggah']"
+              :rules="isUmrohEdit ? [] : [v => normalizeFiles(v).length > 0 || 'Flyer wajib diunggah']"
             >
               <template #prepend><q-icon name="image" /></template>
             </q-file>
+
+            <div v-if="isUmrohBatchCreate" class="text-caption text-grey-6">
+              Jika judul dasar dikosongkan, setiap program akan memakai nama file flyer. Deskripsi, harga, status, dan urutan dasar diterapkan ke semua flyer.
+            </div>
 
             <!-- Preview -->
             <div v-if="umrohPreviewUrl" class="q-mt-sm">
@@ -244,8 +250,8 @@
             <q-input
               v-model="martForm.nama"
               outlined
-              label="Nama Produk *"
-              :rules="[v => !!v || 'Wajib diisi']"
+              :label="isMartBatchCreate ? 'Nama Dasar (opsional untuk batch)' : 'Nama Produk *'"
+              :rules="[v => isMartBatchCreate || !!v || 'Wajib diisi']"
             />
 
             <q-input
@@ -296,12 +302,18 @@
             <q-file
               v-model="martForm.fotoFile"
               outlined
-              :label="isMartEdit ? 'Ganti Foto Produk (opsional)' : 'Foto Produk *'"
+              :multiple="!isMartEdit"
+              use-chips
+              :label="isMartEdit ? 'Ganti Foto Produk (opsional)' : 'Pilih Satu / Banyak Foto Produk *'"
               accept="image/*"
-              :rules="isMartEdit ? [] : [v => !!v || 'Foto wajib diunggah']"
+              :rules="isMartEdit ? [] : [v => normalizeFiles(v).length > 0 || 'Foto wajib diunggah']"
             >
               <template #prepend><q-icon name="photo_camera" /></template>
             </q-file>
+
+            <div v-if="isMartBatchCreate" class="text-caption text-grey-6">
+              Jika nama dasar dikosongkan, nama produk akan mengikuti nama file. Harga, stok, link beli, status, dan urutan dasar diterapkan ke semua produk batch.
+            </div>
 
             <!-- Preview -->
             <div v-if="martPreviewUrl" class="q-mt-sm">
@@ -357,6 +369,11 @@ const umrohPreviewUrl = computed(() => {
   if (umrohForm.flyerFile instanceof File) return URL.createObjectURL(umrohForm.flyerFile);
   return null;
 });
+const normalizeFiles = (value) => {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+};
+const isUmrohBatchCreate = computed(() => !isUmrohEdit.value && normalizeFiles(umrohForm.flyerFile).length > 1);
 
 const loadUmroh = (page = umrohPage.value) => {
   umrohPage.value = page;
@@ -392,7 +409,7 @@ const saveUmroh = async () => {
     isActive: umrohForm.isActive,
   };
   if (umrohForm.harga) payload.harga = umrohForm.harga;
-  if (umrohForm.flyerFile) payload.flyer = umrohForm.flyerFile;
+  if (normalizeFiles(umrohForm.flyerFile).length) payload.flyer = normalizeFiles(umrohForm.flyerFile);
 
   const result = isUmrohEdit.value
     ? await umrohStore.update(editUmrohId.value, payload)
@@ -447,6 +464,7 @@ const martPreviewUrl = computed(() => {
   if (martForm.fotoFile instanceof File) return URL.createObjectURL(martForm.fotoFile);
   return null;
 });
+const isMartBatchCreate = computed(() => !isMartEdit.value && normalizeFiles(martForm.fotoFile).length > 1);
 
 const loadMart = (page = martPage.value) => {
   martPage.value = page;
@@ -486,7 +504,7 @@ const saveMart = async () => {
     urutan: martForm.urutan,
     isActive: martForm.isActive,
   };
-  if (martForm.fotoFile) payload.foto = martForm.fotoFile;
+  if (normalizeFiles(martForm.fotoFile).length) payload.foto = normalizeFiles(martForm.fotoFile);
 
   const result = isMartEdit.value
     ? await martStore.update(editMartId.value, payload)
