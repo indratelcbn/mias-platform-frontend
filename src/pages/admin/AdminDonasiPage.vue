@@ -38,6 +38,7 @@
     <q-tabs v-model="tab" align="left" class="q-mb-md" active-color="primary" indicator-color="primary">
       <q-tab name="donasi" label="Data Donasi" icon="list_alt" no-caps />
       <q-tab name="program" label="Program Donasi" icon="flag" no-caps />
+      <q-tab name="wakaf" label="Program Wakaf" icon="mosque" no-caps />
       <q-tab name="rekening" label="Rekening" icon="account_balance" no-caps />
     </q-tabs>
 
@@ -94,7 +95,10 @@
       <q-tab-panel name="program" class="q-pa-none">
         <div class="row items-center justify-between q-mb-md">
           <div class="text-subtitle1 text-weight-bold">Daftar Program Donasi</div>
-          <q-btn unelevated color="primary" icon="add" label="Tambah Program" no-caps @click="openProgramDialog()" />
+          <div class="row q-gutter-sm">
+            <q-btn outline color="secondary" icon="sync" label="Hitung Ulang Terkumpul" no-caps size="sm" @click="recalcTerkumpul" :loading="recalcLoading" />
+            <q-btn unelevated color="primary" icon="add" label="Tambah Program" no-caps @click="openProgramDialog()" />
+          </div>
         </div>
         <q-card flat bordered class="rounded-xl">
           <q-table :rows="donasiStore.programList" :columns="programColumns" row-key="id" flat :loading="donasiStore.loading">
@@ -116,6 +120,41 @@
               <q-td>
                 <q-btn flat dense round icon="edit" color="primary" size="sm" @click="openProgramDialog(props.row)" />
                 <q-btn flat dense round icon="delete" color="negative" size="sm" class="q-ml-xs" @click="confirmDeleteProgram(props.row)" />
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
+      </q-tab-panel>
+
+      <!-- ══════════════════════ TAB PROGRAM WAKAF ═══════════════════════ -->
+      <q-tab-panel name="wakaf" class="q-pa-none">
+        <div class="row items-center justify-between q-mb-md">
+          <div class="text-subtitle1 text-weight-bold">Daftar Program Wakaf</div>
+          <div class="row q-gutter-sm">
+            <q-btn outline color="secondary" icon="sync" label="Hitung Ulang Terkumpul" no-caps size="sm" @click="recalcTerkumpul" :loading="recalcLoading" />
+            <q-btn unelevated color="primary" icon="add" label="Tambah Program Wakaf" no-caps @click="openWakafDialog()" />
+          </div>
+        </div>
+        <q-card flat bordered class="rounded-xl">
+          <q-table :rows="donasiStore.wakafList" :columns="wakafColumns" row-key="id" flat :loading="donasiStore.loading">
+            <template #body-cell-target="props">
+              <q-td>{{ formatCurrency(props.value) }}</q-td>
+            </template>
+            <template #body-cell-terkumpul="props">
+              <q-td>
+                <div>{{ formatCurrency(props.value) }}</div>
+                <q-linear-progress rounded size="6px"
+                  :value="props.row.target > 0 ? Math.min(Number(props.row.terkumpul) / Number(props.row.target), 1) : 0"
+                  color="primary" track-color="grey-3" class="q-mt-xs" />
+              </q-td>
+            </template>
+            <template #body-cell-isActive="props">
+              <q-td><q-badge :color="props.value ? 'positive' : 'grey'" :label="props.value ? 'Aktif' : 'Nonaktif'" /></q-td>
+            </template>
+            <template #body-cell-actions="props">
+              <q-td>
+                <q-btn flat dense round icon="edit" color="primary" size="sm" @click="openWakafDialog(props.row)" />
+                <q-btn flat dense round icon="delete" color="negative" size="sm" class="q-ml-xs" @click="confirmDeleteWakaf(props.row)" />
               </q-td>
             </template>
           </q-table>
@@ -183,14 +222,38 @@
         <q-card-section>
           <q-form @submit="saveProgram" class="q-gutter-md">
             <q-input v-model="editProgram.judul" outlined label="Judul Program *" :rules="[v => !!v || 'Judul wajib diisi']" />
-            <q-input v-model="editProgram.deskripsi" outlined label="Deskripsi" type="textarea" autogrow />
-            <q-input v-model="editProgram.target" outlined label="Target Donasi (Rp) *" type="number" min="0" :rules="[v => !!v || 'Target wajib diisi']" />
-            <q-input v-model="editProgram.terkumpul" outlined label="Dana Terkumpul (Rp)" type="number" min="0" />
+            <q-input v-model="editProgram.kode" outlined label="Kode Program" />
+            <q-input v-model="editProgram.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
+            <q-input v-model="editProgram.target" outlined label="Target Donasi (Rp)" type="number" min="0" />
             <q-input v-model="editProgram.urutan" outlined label="Urutan Tampil" type="number" min="0" />
             <q-toggle v-model="editProgram.isActive" label="Tampilkan di website" color="primary" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat no-caps label="Batal" v-close-popup />
               <q-btn unelevated color="primary" no-caps :label="editProgram.id ? 'Simpan' : 'Tambah'" type="submit" />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog Program Wakaf -->
+    <q-dialog v-model="wakafDialog" persistent>
+      <q-card style="min-width: 360px; width: 90vw; max-width: 500px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">{{ editWakaf.id ? 'Edit' : 'Tambah' }} Program Wakaf</div>
+          <q-space /><q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section>
+          <q-form @submit="saveWakaf" class="q-gutter-md">
+            <q-input v-model="editWakaf.kegiatan" outlined label="Kegiatan *" :rules="[v => !!v || 'Kegiatan wajib diisi']" />
+            <q-input v-model="editWakaf.kode" outlined label="Kode Program" />
+            <q-input v-model="editWakaf.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
+            <q-input v-model="editWakaf.target" outlined label="Target Wakaf (Rp)" type="number" min="0" />
+            <q-input v-model="editWakaf.urutan" outlined label="Urutan Tampil" type="number" min="0" />
+            <q-toggle v-model="editWakaf.isActive" label="Tampilkan di website" color="primary" />
+            <div class="row justify-end q-gutter-sm q-mt-md">
+              <q-btn flat no-caps label="Batal" v-close-popup />
+              <q-btn unelevated color="primary" no-caps :label="editWakaf.id ? 'Simpan' : 'Tambah'" type="submit" />
             </div>
           </q-form>
         </q-card-section>
@@ -268,7 +331,7 @@ const editProgram = ref({});
 const openProgramDialog = (row = null) => {
   editProgram.value = row
     ? { ...row, target: Number(row.target), terkumpul: Number(row.terkumpul) }
-    : { judul: '', deskripsi: '', target: '', terkumpul: 0, urutan: 0, isActive: true };
+    : { judul: '', kode: '', deskripsi: '', target: '', terkumpul: 0, urutan: 0, isActive: true };
   programDialog.value = true;
 };
 
@@ -347,6 +410,8 @@ const columns = [
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left', sortable: true },
   { name: 'jumlah', label: 'Jumlah', field: 'jumlah', align: 'right', sortable: true },
   { name: 'telepon', label: 'Telepon', field: 'telepon', align: 'left' },
+  { name: 'jenisProgram', label: 'Jenis', field: 'jenisProgram', align: 'center' },
+  { name: 'namaProgram', label: 'Program', field: 'namaProgram', align: 'left' },
   { name: 'buktiTransfer', label: 'Bukti', field: 'buktiTransfer', align: 'center' },
   { name: 'createdAt', label: 'Tanggal', field: 'createdAt', align: 'left', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
@@ -354,7 +419,8 @@ const columns = [
 ];
 
 const programColumns = [
-  { name: 'judul', label: 'Judul Program', field: 'judul', align: 'left', sortable: true },
+  { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
+  { name: 'judul', label: 'Kegiatan', field: 'judul', align: 'left', sortable: true },
   { name: 'target', label: 'Target', field: 'target', align: 'right' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
@@ -376,9 +442,64 @@ const filterByStatus = (status) => {
   donasiStore.fetchAll({ status: status || undefined, page: 1 });
 };
 
+// ─── Program Wakaf ───────────────────────────────────────────────────────────
+const wakafDialog = ref(false);
+const editWakaf = ref({});
+
+const wakafColumns = [
+  { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
+  { name: 'kegiatan', label: 'Kegiatan', field: 'kegiatan', align: 'left', sortable: true },
+  { name: 'target', label: 'Target', field: 'target', align: 'right' },
+  { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
+  { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
+  { name: 'isActive', label: 'Status', field: 'isActive', align: 'center' },
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
+];
+
+const openWakafDialog = (row = null) => {
+  editWakaf.value = row
+    ? { ...row, target: Number(row.target || 0) }
+    : { kode: '', kegiatan: '', deskripsi: '', target: '', urutan: 0, isActive: true };
+  wakafDialog.value = true;
+};
+
+const saveWakaf = async () => {
+  const ok = editWakaf.value.id
+    ? await donasiStore.updateWakaf(editWakaf.value.id, editWakaf.value)
+    : await donasiStore.createWakaf(editWakaf.value);
+  if (ok) { wakafDialog.value = false; donasiStore.fetchAllWakaf(); }
+};
+
+const confirmDeleteWakaf = (row) => {
+  $q.dialog({
+    title: 'Hapus Program Wakaf',
+    message: `Hapus program wakaf "${row.kegiatan}"?`,
+    cancel: true,
+    ok: { label: 'Hapus', color: 'negative', unelevated: true },
+  }).onOk(async () => {
+    const ok = await donasiStore.deleteWakaf(row.id);
+    if (ok) donasiStore.fetchAllWakaf();
+  });
+};
+
+const recalcLoading = ref(false);
+const recalcTerkumpul = async () => {
+  recalcLoading.value = true;
+  const ok = await donasiStore.recalcTerkumpul();
+  if (ok) {
+    await Promise.all([donasiStore.fetchAllProgram(), donasiStore.fetchAllWakaf()]);
+  }
+  recalcLoading.value = false;
+};
+
 const updateStatus = async (id, status) => {
   const ok = await donasiStore.updateStatus(id, status);
-  if (ok) { donasiStore.fetchAll({ page: 1 }); donasiStore.fetchSummary(); }
+  if (ok) {
+    donasiStore.fetchAll({ page: 1 });
+    donasiStore.fetchSummary();
+    donasiStore.fetchAllProgram();
+    donasiStore.fetchAllWakaf();
+  }
 };
 
 const showBukti = (url) => {
@@ -391,6 +512,7 @@ onMounted(async () => {
     donasiStore.fetchAll(),
     donasiStore.fetchSummary(),
     donasiStore.fetchAllProgram(),
+    donasiStore.fetchAllWakaf(),
     donasiStore.fetchRekening(),
   ]);
 });

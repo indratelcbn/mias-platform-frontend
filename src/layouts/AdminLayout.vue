@@ -152,6 +152,7 @@ const menuItems = [
   { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },
   { name: 'admin-galeri', label: 'Ied Mubarok', to: '/admin/galeri', icon: 'celebration' },
   { name: 'admin-sosial', label: 'Program Sosial', to: '/admin/sosial', icon: 'diversity_3' },
+  { name: 'admin-mustahik', label: 'Data Mustahik', to: '/admin/mustahik', icon: 'people_alt' },
   { name: 'admin-pendidikan', label: 'Pendidikan', to: '/admin/pendidikan', icon: 'school' },
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
     { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },

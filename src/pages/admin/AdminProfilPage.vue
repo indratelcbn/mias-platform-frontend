@@ -431,6 +431,9 @@
                 hint="Satu kitab per baris (Enter)"
               />
               <q-input v-model="pmForm.keterangan" outlined dense label="Keterangan" type="textarea" rows="2" />
+              <q-input v-model="pmForm.youtube" outlined dense label="Link YouTube" placeholder="https://youtube.com/...">
+                <template #prepend><q-icon name="fab fa-youtube" color="red" /></template>
+              </q-input>
               <q-input v-model.number="pmForm.urutan" outlined dense label="Urutan" type="number" />
               <q-toggle v-model="pmForm.isActive" label="Aktif" color="positive" />
               <div>
@@ -717,7 +720,7 @@ const pmSaving  = ref(false);
 const pmFotoFile = ref(null);
 const pmPreview  = ref('');
 const pmForm = reactive({
-  nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', urutan: 0, isActive: true, fotoExisting: ''
+  nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: ''
 });
 
 const jenisPemateriOptions = [
@@ -760,12 +763,12 @@ function openPemateriDialog(row = null) {
       nama: row.nama, jenis: row.jenis,
       waktu: row.waktu ? row.waktu.split(', ') : [],
       jam: row.jam || null,
-      kitab: row.kitab || '', keterangan: row.keterangan || '',
+      kitab: row.kitab || '', keterangan: row.keterangan || '', youtube: row.youtube || '',
       urutan: row.urutan || 0, isActive: row.isActive, fotoExisting: row.foto || '',
     });
   } else {
     Object.assign(pmForm, {
-      nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '',
+      nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', youtube: '',
       urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
     });
   }
@@ -791,6 +794,7 @@ async function savePemateri() {
   }
   fd.append('kitab', pmForm.kitab);
   fd.append('keterangan', pmForm.keterangan);
+  fd.append('youtube', pmForm.youtube);
   fd.append('urutan', pmForm.urutan);
   fd.append('isActive', pmForm.isActive);
   if (pmFotoFile.value) fd.append('foto', pmFotoFile.value);

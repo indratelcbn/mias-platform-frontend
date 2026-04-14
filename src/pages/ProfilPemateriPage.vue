@@ -6,7 +6,7 @@
       <p class="text-body1 opacity-80">Para ustadz pengajar di Masjid Imam Asy Syafi'i</p>
     </div>
 
-    <div class="q-px-md q-py-xl" style="max-width: 1200px; margin: 0 auto">
+    <div class="q-px-md q-py-xl" style="max-width: 1600px; margin: 0 auto">
       <!-- Filter tabs -->
       <div class="row justify-center q-mb-xl">
         <q-tabs v-model="tab" dense indicator-color="primary" active-color="primary">
@@ -80,6 +80,15 @@
               {{ props.value || '-' }}
             </q-td>
           </template>
+          <template #body-cell-youtube="props">
+            <q-td class="text-center">
+              <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" class="youtube-link">
+                <q-icon name="fab fa-youtube" color="red" size="20px" />
+                <q-tooltip>Buka YouTube</q-tooltip>
+              </a>
+              <span v-else class="text-grey-5">-</span>
+            </q-td>
+          </template>
         </q-table>
       </q-card>
     </div>
@@ -131,6 +140,7 @@ const columns = [
   { name: 'jam',        label: 'Jam',        field: 'jam',        align: 'center', sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi', field: 'kitab',  align: 'left' },
   { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
+  { name: 'youtube',    label: 'Playlist YouTube',    field: 'youtube',    align: 'center' },
 ];
 
 function kitabList(kitab) {

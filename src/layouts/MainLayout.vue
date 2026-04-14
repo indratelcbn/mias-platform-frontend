@@ -196,12 +196,25 @@
           <q-btn
             unelevated
             no-caps
-            label="Donasi"
-            to="/donasi"
+            label="Yuk Berinfaq"
             color="primary"
             class="q-px-md"
             style="border-radius: 8px"
-          />
+          >
+            <q-icon name="arrow_drop_down" size="20px" class="q-ml-xs" />
+            <q-menu anchor="bottom left" self="top left">
+              <q-list dense style="min-width: 220px">
+                <q-item clickable v-close-popup to="/donasi/program-donasi" active-class="text-primary">
+                  <q-item-section avatar><q-icon name="volunteer_activism" color="green-8" size="20px" /></q-item-section>
+                  <q-item-section>Program Donasi</q-item-section>
+                </q-item>
+                <q-item clickable v-close-popup to="/donasi/program-wakaf" active-class="text-primary">
+                  <q-item-section avatar><q-icon name="mosque" color="blue-8" size="20px" /></q-item-section>
+                  <q-item-section>Program Wakaf</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </div>
 
         <!-- Dark Mode Toggle -->
@@ -400,12 +413,21 @@
           <q-item-section>Artikel</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple to="/donasi" @click="drawer = false">
-          <q-item-section avatar>
-            <q-icon name="volunteer_activism" color="primary" />
-          </q-item-section>
-          <q-item-section class="text-primary text-weight-bold">Donasi</q-item-section>
-        </q-item>
+        <q-expansion-item
+          icon="volunteer_activism"
+          label="Yuk Berinfaq"
+          expand-separator
+          :header-class="isInfaqActive ? 'text-primary text-weight-bold' : ''"
+        >
+          <q-item clickable v-ripple to="/donasi/program-donasi" class="q-pl-xl" @click="drawer = false">
+            <q-item-section avatar><q-icon name="volunteer_activism" color="green-8" size="20px" /></q-item-section>
+            <q-item-section>Program Donasi</q-item-section>
+          </q-item>
+          <q-item clickable v-ripple to="/donasi/program-wakaf" class="q-pl-xl" @click="drawer = false">
+            <q-item-section avatar><q-icon name="mosque" color="blue-8" size="20px" /></q-item-section>
+            <q-item-section>Program Wakaf</q-item-section>
+          </q-item>
+        </q-expansion-item>
       </q-list>
     </q-drawer>
 
@@ -548,6 +570,7 @@ const isDakwahActive = computed(() => dakwahRouteNames.includes(route.name));
 const isPendidikanActive = computed(() => route.name === 'pendidikan');
 const isUsahaActive   = computed(() => ['umroh', 'mias-mart'].includes(route.name));
 const isSosialActive  = computed(() => route.name === 'sosial-program');
+const isInfaqActive   = computed(() => ['program-donasi', 'program-wakaf', 'donasi'].includes(route.name));
 const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','profil-fasilitas','profil-struktur','profil-pemateri'].includes(route.name));
 </script>
 

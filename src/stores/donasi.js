@@ -7,6 +7,7 @@ export const useDonasiStore = defineStore('donasi', {
     list: [],
     rekeningList: [],
     programList: [],
+    wakafList: [],
     summary: null,
     meta: { total: 0, page: 1, limit: 10, totalPages: 1 },
     loading: false,
@@ -180,6 +181,73 @@ export const useDonasiStore = defineStore('donasi', {
         return true;
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal menghapus program.' });
+        return false;
+      }
+    },
+
+    // ─── Program Wakaf ─────────────────────────────────────────────────────
+    async fetchActiveWakaf() {
+      try {
+        const { data } = await api.get('/donasi/wakaf');
+        this.wakafList = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat program wakaf.' });
+      }
+    },
+
+    async fetchAllWakaf() {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/donasi/wakaf/all');
+        this.wakafList = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat program wakaf.' });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createWakaf(payload) {
+      try {
+        const { data } = await api.post('/donasi/wakaf', payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal menyimpan program wakaf.' });
+        return false;
+      }
+    },
+
+    async updateWakaf(id, payload) {
+      try {
+        const { data } = await api.put(`/donasi/wakaf/${id}`, payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal memperbarui program wakaf.' });
+        return false;
+      }
+    },
+
+    async deleteWakaf(id) {
+      try {
+        const { data } = await api.delete(`/donasi/wakaf/${id}`);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal menghapus program wakaf.' });
+        return false;
+      }
+    },
+
+    // ─── Recalculate Terkumpul ──────────────────────────────────────────────
+    async recalcTerkumpul() {
+      try {
+        const { data } = await api.post('/donasi/recalc-terkumpul');
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal menghitung ulang terkumpul.' });
         return false;
       }
     },

@@ -43,25 +43,105 @@
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pt-md">
-          <q-form @submit="saveKajian" class="q-gutter-md">
-            <q-input v-model="form.judul" outlined label="Judul Kajian *" :rules="[v => !!v || 'Wajib diisi']" />
-            <q-input v-model="form.ustadz" outlined label="Nama Ustadz *" :rules="[v => !!v || 'Wajib diisi']" />
-            <div class="row q-col-gutter-md">
-              <div class="col-6">
-                <q-input v-model="form.tanggal" outlined label="Tanggal *" type="date" :rules="[v => !!v || 'Wajib diisi']" />
+        <q-card-section class="q-pt-md q-pb-lg q-px-lg">
+          <q-form @submit="saveKajian">
+            <!-- Judul -->
+            <q-input
+              v-model="form.judul"
+              outlined dense
+              label="Judul Kajian *"
+              :rules="[v => !!v || 'Wajib diisi']"
+            />
+
+            <!-- Ustadz -->
+            <div class="row q-col-gutter-sm q-mt-sm">
+              <div :class="selectedUstadz === 'Lainnya' ? 'col-6' : 'col-12'">
+                <q-select
+                  v-model="selectedUstadz"
+                  outlined dense
+                  label="Nama Ustadz *"
+                  :options="filteredUstadzOptions"
+                  :loading="loadingPemateri"
+                  use-input
+                  input-debounce="200"
+                  @filter="filterUstadz"
+                  @update:model-value="onUstadzChange"
+                  :rules="[() => !!form.ustadz || 'Wajib diisi']"
+                >
+                  <template #no-option>
+                    <q-item><q-item-section class="text-grey">Tidak ditemukan</q-item-section></q-item>
+                  </template>
+                </q-select>
               </div>
-              <div class="col-6">
-                <q-input v-model="form.waktu" outlined label="Waktu *" placeholder="19:30 - 21:00 WIB" :rules="[v => !!v || 'Wajib diisi']" />
+              <div v-if="selectedUstadz === 'Lainnya'" class="col-6">
+                <q-input
+                  v-model="form.ustadz"
+                  outlined dense
+                  label="Ketik Nama Ustadz *"
+                  :rules="[v => !!v || 'Wajib diisi']"
+                />
               </div>
             </div>
-            <q-input v-model="form.lokasi" outlined label="Lokasi" />
-            <q-input v-model="form.deskripsi" outlined label="Deskripsi" type="textarea" rows="4" />
-            <q-file v-model="form.thumbnailFile" outlined label="Thumbnail (opsional)" accept="image/*">
+
+            <!-- Tanggal & Waktu -->
+            <div class="row q-col-gutter-sm q-mt-sm">
+              <div class="col-6">
+                <q-input
+                  v-model="form.tanggal"
+                  outlined dense
+                  label="Tanggal *"
+                  type="date"
+                  :rules="[v => !!v || 'Wajib diisi']"
+                />
+              </div>
+              <div class="col-6">
+                <q-select
+                  v-model="selectedWaktu"
+                  outlined dense
+                  label="Waktu *"
+                  :options="waktuOptions"
+                  :rules="[() => !!form.waktu || 'Wajib diisi']"
+                  @update:model-value="onWaktuChange"
+                />
+              </div>
+            </div>
+
+            <!-- Waktu manual -->
+            <q-input
+              v-if="selectedWaktu === 'Lainnya'"
+              v-model="form.waktu"
+              outlined dense
+              label="Isi Waktu Manual *"
+              placeholder="Contoh: 19:30 - 21:00 WIB"
+              :rules="[v => !!v || 'Wajib diisi']"
+              class="q-mt-sm"
+            />
+
+            <!-- Deskripsi -->
+            <q-input
+              v-model="form.deskripsi"
+              outlined dense
+              label="Deskripsi"
+              type="textarea"
+              rows="12"
+              class="q-mt-sm"
+            />
+
+            <!-- Thumbnail -->
+            <q-file
+              v-model="form.thumbnailFile"
+              outlined dense
+              label="Thumbnail (opsional)"
+              accept="image/*"
+              class="q-mt-sm"
+            >
               <template #prepend><q-icon name="image" /></template>
             </q-file>
-            <q-toggle v-model="form.isPublished" label="Tampilkan ke publik" color="primary" />
 
+            <!-- Toggle -->
+            <q-toggle v-model="form.isPublished" label="Tampilkan ke publik" color="primary" class="q-mt-xs" />
+
+            <!-- Actions -->
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat no-caps label="Batal" v-close-popup />
               <q-btn unelevated color="primary" no-caps type="submit" :label="isEdit ? 'Simpan Perubahan' : 'Tambah'" :loading="saving" />
@@ -76,6 +156,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useKajianStore } from 'src/stores/kajian';
+import { api } from 'src/boot/axios';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
@@ -86,8 +167,51 @@ const isEdit = ref(false);
 const saving = ref(false);
 const editId = ref(null);
 
+const ustadzRaw = ref([]);           // raw pemateri from API
+const filteredUstadzOptions = ref([]); // filtered for q-select
+const loadingPemateri = ref(false);
+const selectedUstadz = ref(null);
+const selectedWaktu = ref(null);
+const waktuOptions = ['09.00-12.00 WIB', "Ba'da Maghrib - Selesai", "Ba'da Shubuh - Selesai", 'Lainnya'];
+
+const buildUstadzList = () => ustadzRaw.value.map(p => p.nama).concat('Lainnya');
+
+const fetchPemateri = async () => {
+  loadingPemateri.value = true;
+  try {
+    const { data } = await api.get('/profil/pemateri');
+    ustadzRaw.value = data.data || [];
+  } catch { ustadzRaw.value = []; }
+  finally { loadingPemateri.value = false; }
+};
+
+const filterUstadz = (val, update) => {
+  update(() => {
+    const list = buildUstadzList();
+    if (!val) { filteredUstadzOptions.value = list; return; }
+    const q = val.toLowerCase();
+    filteredUstadzOptions.value = list.filter(n => n.toLowerCase().includes(q));
+  });
+};
+
+const onUstadzChange = (val) => {
+  if (val !== 'Lainnya') {
+    form.ustadz = val;
+  } else {
+    form.ustadz = '';
+  }
+};
+
+const onWaktuChange = (val) => {
+  if (val !== 'Lainnya') {
+    form.waktu = val;
+  } else {
+    form.waktu = '';
+  }
+};
+
 const emptyForm = () => ({
-  judul: '', ustadz: '', tanggal: '', waktu: '', lokasi: '', deskripsi: '',
+  judul: '', ustadz: '', tanggal: '', waktu: '', deskripsi: '',
   thumbnailFile: null, isPublished: true,
 });
 const form = reactive(emptyForm());
@@ -112,7 +236,6 @@ const openDialog = (row = null) => {
       ustadz: row.ustadz,
       tanggal: row.tanggal?.slice(0, 10),
       waktu: row.waktu,
-      lokasi: row.lokasi || '',
       deskripsi: row.deskripsi || '',
       thumbnailFile: null,
       isPublished: row.isPublished,
@@ -121,6 +244,21 @@ const openDialog = (row = null) => {
     isEdit.value = false;
     editId.value = null;
     Object.assign(form, emptyForm());
+    selectedWaktu.value = null;
+    selectedUstadz.value = null;
+  }
+  // set selectedWaktu
+  if (form.waktu && waktuOptions.includes(form.waktu)) {
+    selectedWaktu.value = form.waktu;
+  } else if (form.waktu) {
+    selectedWaktu.value = 'Lainnya';
+  }
+  // set selectedUstadz
+  const names = buildUstadzList();
+  if (form.ustadz && names.includes(form.ustadz)) {
+    selectedUstadz.value = form.ustadz;
+  } else if (form.ustadz) {
+    selectedUstadz.value = 'Lainnya';
   }
   dialog.value = true;
 };
@@ -156,5 +294,6 @@ const confirmDelete = (row) => {
 
 onMounted(() => {
   kajianStore.fetchAll({ page: 1, limit: 100 });
+  fetchPemateri();
 });
 </script>

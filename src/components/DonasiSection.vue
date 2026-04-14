@@ -23,6 +23,7 @@
 
       <!-- Program Donasi dari API -->
       <template v-if="programs.length">
+        <div class="text-subtitle1 text-weight-bold q-mb-sm" style="opacity: 0.9">Program Donasi</div>
         <q-card
           v-for="prog in programs"
           :key="prog.id"
@@ -45,8 +46,33 @@
         </q-card>
       </template>
 
+      <!-- Program Wakaf dari API -->
+      <template v-if="wakafPrograms.length">
+        <div class="text-subtitle1 text-weight-bold q-mb-sm q-mt-lg" style="opacity: 0.9">Program Wakaf</div>
+        <q-card
+          v-for="prog in wakafPrograms"
+          :key="prog.id"
+          flat class="rounded-xl bg-white text-dark q-pa-lg q-mb-md"
+        >
+          <div class="row items-center justify-between q-mb-sm">
+            <span class="text-subtitle2 text-weight-bold text-primary">{{ prog.kegiatan }}</span>
+            <span class="text-caption text-grey-6">{{ progressPercent(prog) }}%</span>
+          </div>
+          <q-linear-progress
+            rounded size="12px"
+            :value="progressValue(prog)"
+            color="teal" track-color="grey-3"
+          />
+          <div class="row justify-between q-mt-sm">
+            <span class="text-caption text-grey-6">Terkumpul: {{ formatCurrency(prog.terkumpul) }}</span>
+            <span class="text-caption text-grey-6">Target: {{ formatCurrency(prog.target) }}</span>
+          </div>
+          <div v-if="prog.deskripsi" class="text-caption text-grey-7 q-mt-xs text-left">{{ prog.deskripsi }}</div>
+        </q-card>
+      </template>
+
       <!-- Fallback jika belum ada program -->
-      <q-card v-else flat class="rounded-xl bg-white text-dark q-pa-lg">
+      <q-card v-if="!programs.length && !wakafPrograms.length" flat class="rounded-xl bg-white text-dark q-pa-lg">
         <div class="row items-center justify-between q-mb-sm">
           <span class="text-subtitle2 text-weight-bold text-primary">Program Donasi</span>
           <span class="text-caption text-grey-6">-</span>
@@ -65,6 +91,7 @@ import { ref, onMounted } from 'vue';
 import { api } from 'src/boot/axios';
 
 const programs = ref([]);
+const wakafPrograms = ref([]);
 
 const formatCurrency = (val) =>
   new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
@@ -77,8 +104,12 @@ const progressPercent = (prog) =>
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/donasi/program');
-    programs.value = data.data;
+    const [donasiRes, wakafRes] = await Promise.all([
+      api.get('/donasi/program'),
+      api.get('/donasi/wakaf'),
+    ]);
+    programs.value = donasiRes.data.data;
+    wakafPrograms.value = wakafRes.data.data;
   } catch {
     // tampilkan fallback
   }

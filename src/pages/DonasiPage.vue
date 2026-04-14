@@ -4,19 +4,58 @@
     <div class="page-hero q-py-xl text-center text-white">
       <div class="q-px-md">
         <q-icon name="volunteer_activism" size="56px" class="q-mb-md" />
-        <h1 class="text-h4 text-weight-bold q-mb-sm">Donasi & Infaq</h1>
+        <h1 class="text-h4 text-weight-bold q-mb-sm">Donasi & Wakaf</h1>
         <p class="text-body1 opacity-85">
           "Orang yang menginfakkan hartanya di jalan Allah seperti biji yang menumbuhkan tujuh tangkai" – QS. Al-Baqarah: 261
         </p>
       </div>
     </div>
 
-    <div class="q-px-md q-py-xl" style="max-width: 900px; margin: 0 auto">
-      <div class="row q-col-gutter-xl">
-        <!-- ─── Rekening & QRIS ──────────────────────────────────────── -->
-        <div class="col-12 col-md-5">
+    <div class="q-px-md q-py-xl" style="max-width: 1200px; margin: 0 auto">
+      <div class="row q-col-gutter-lg">
+        <!-- ─── Daftar Program (Kiri) ────────────────────────────────── -->
+        <div class="col-12 col-md-3">
           <div class="text-h6 text-weight-bold q-mb-md text-primary">
-            <q-icon name="account_balance" class="q-mr-sm" />Rekening Donasi
+            <q-icon name="list_alt" class="q-mr-sm" />Daftar Program
+          </div>
+
+          <q-card v-if="donasiStore.programList.length" flat bordered class="rounded-xl q-mb-md">
+            <q-card-section class="q-pb-none">
+              <div class="text-subtitle2 text-weight-bold text-primary">Program Donasi</div>
+            </q-card-section>
+            <q-list dense separator>
+              <q-item v-for="p in donasiStore.programList" :key="p.id">
+                <q-item-section side>
+                  <q-badge color="primary" :label="p.kode || '-'" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ p.judul }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card>
+
+          <q-card v-if="donasiStore.wakafList.length" flat bordered class="rounded-xl">
+            <q-card-section class="q-pb-none">
+              <div class="text-subtitle2 text-weight-bold text-teal">Program Wakaf</div>
+            </q-card-section>
+            <q-list dense separator>
+              <q-item v-for="p in donasiStore.wakafList" :key="p.id">
+                <q-item-section side>
+                  <q-badge color="teal" :label="p.kode || '-'" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ p.kegiatan }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-card>
+        </div>
+
+        <!-- ─── Rekening & QRIS (Tengah) ─────────────────────────────── -->
+        <div class="col-12 col-md-4">
+          <div class="text-h6 text-weight-bold q-mb-md text-primary">
+            <q-icon name="account_balance" class="q-mr-sm" />Rekening Donasi & Wakaf
           </div>
 
           <div v-if="donasiStore.rekeningList.length">
@@ -71,8 +110,8 @@
           </div>
         </div>
 
-        <!-- ─── Form Konfirmasi ─────────────────────────────────────── -->
-        <div class="col-12 col-md-7">
+        <!-- ─── Form Konfirmasi (Kanan) ──────────────────────────────── -->
+        <div class="col-12 col-md-5">
           <div class="text-h6 text-weight-bold q-mb-md text-primary">
             <q-icon name="check_circle" class="q-mr-sm" />Konfirmasi Transfer
           </div>
@@ -106,6 +145,32 @@
                 >
                   <template #prepend><q-icon name="phone" /></template>
                 </q-input>
+
+                <q-select
+                  v-model="form.jenisProgram"
+                  outlined
+                  label="Jenis Program (opsional)"
+                  :options="jenisOptions"
+                  emit-value
+                  map-options
+                  clearable
+                  @update:model-value="onJenisChange"
+                >
+                  <template #prepend><q-icon name="category" /></template>
+                </q-select>
+
+                <q-select
+                  v-if="form.jenisProgram"
+                  v-model="form.namaProgram"
+                  outlined
+                  :label="form.jenisProgram === 'DONASI' ? 'Pilih Program Donasi' : 'Pilih Program Wakaf'"
+                  :options="programOptions"
+                  emit-value
+                  map-options
+                  clearable
+                >
+                  <template #prepend><q-icon name="list_alt" /></template>
+                </q-select>
 
                 <q-input
                   v-model.number="form.jumlah"
@@ -192,10 +257,37 @@ const form = reactive({
   nama: '',
   email: '',
   telepon: '',
+  jenisProgram: null,
+  namaProgram: null,
   jumlah: null,
   buktiTransfer: null,
   pesan: '',
 });
+
+const jenisOptions = [
+  { label: 'Program Donasi', value: 'DONASI' },
+  { label: 'Program Wakaf', value: 'WAKAF' },
+];
+
+const programOptions = computed(() => {
+  if (form.jenisProgram === 'DONASI') {
+    return donasiStore.programList.map(p => ({
+      label: p.kode ? `[${p.kode}] ${p.judul}` : p.judul,
+      value: p.kode ? `[${p.kode}] ${p.judul}` : p.judul,
+    }));
+  }
+  if (form.jenisProgram === 'WAKAF') {
+    return donasiStore.wakafList.map(p => ({
+      label: p.kode ? `[${p.kode}] ${p.kegiatan}` : p.kegiatan,
+      value: p.kode ? `[${p.kode}] ${p.kegiatan}` : p.kegiatan,
+    }));
+  }
+  return [];
+});
+
+const onJenisChange = () => {
+  form.namaProgram = null;
+};
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000];
 
@@ -214,6 +306,8 @@ const submitDonasi = async () => {
     form.nama = '';
     form.email = '';
     form.telepon = '';
+    form.jenisProgram = null;
+    form.namaProgram = null;
     form.jumlah = null;
     form.buktiTransfer = null;
     form.pesan = '';
@@ -222,6 +316,8 @@ const submitDonasi = async () => {
 
 onMounted(() => {
   donasiStore.fetchRekening();
+  donasiStore.fetchActiveProgram();
+  donasiStore.fetchActiveWakaf();
 });
 </script>
 

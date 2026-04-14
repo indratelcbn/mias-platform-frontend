@@ -32,6 +32,27 @@
             </p>
           </q-card-section>
         </q-card>
+
+        <!-- Share -->
+        <div class="q-mt-lg text-center">
+          <div class="text-subtitle2 text-grey-7 q-mb-sm">Bagikan Kajian Ini</div>
+          <div class="row justify-center q-gutter-sm">
+            <q-btn round unelevated color="green" @click="shareWhatsApp">
+              <span style="font-size: 20px; line-height: 1">💬</span>
+              <q-tooltip>WhatsApp</q-tooltip>
+            </q-btn>
+            <q-btn round unelevated color="blue-6" @click="shareTelegram">
+              <span style="font-size: 20px; line-height: 1">✈️</span>
+              <q-tooltip>Telegram</q-tooltip>
+            </q-btn>
+            <q-btn round unelevated color="grey-8" icon="content_copy" @click="copyLink">
+              <q-tooltip>Salin Link</q-tooltip>
+            </q-btn>
+            <q-btn v-if="hasNativeShare" round unelevated color="primary" icon="share" @click="nativeShare">
+              <q-tooltip>Bagikan</q-tooltip>
+            </q-btn>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -47,9 +68,11 @@
 import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useKajianStore } from 'src/stores/kajian';
+import { Notify } from 'quasar';
 
 const route = useRoute();
 const kajianStore = useKajianStore();
+const hasNativeShare = !!navigator.share;
 
 const heroStyle = computed(() => {
   if (kajianStore.current?.thumbnail) {
@@ -66,6 +89,36 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('id-ID', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
+};
+
+const shareUrl = () => `${window.location.origin}/kajian/${kajianStore.current.id}`;
+
+const shareText = () => {
+  const k = kajianStore.current;
+  return `📖 *${k.judul}*\n👤 ${k.ustadz}\n📅 ${formatDate(k.tanggal)}\n🕐 ${k.waktu}\n\n${k.deskripsi || ''}`;
+};
+
+const shareWhatsApp = () => {
+  const k = kajianStore.current;
+  const thumb = k.thumbnail ? `${window.location.origin}${k.thumbnail}\n\n` : '';
+  const text = `${thumb}📖 *${k.judul}*\n👤 ${k.ustadz}\n📅 ${formatDate(k.tanggal)}\n🕐 ${k.waktu}\n\n${k.deskripsi || ''}\n\n${shareUrl()}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+};
+
+const shareTelegram = () => {
+  const text = shareText();
+  window.open(`https://t.me/share/url?url=${encodeURIComponent(shareUrl())}&text=${encodeURIComponent(text)}`, '_blank');
+};
+
+const copyLink = () => {
+  navigator.clipboard.writeText(shareUrl());
+  Notify.create({ type: 'positive', message: 'Link berhasil disalin', position: 'top' });
+};
+
+const nativeShare = async () => {
+  try {
+    await navigator.share({ title: kajianStore.current.judul, text: shareText(), url: shareUrl() });
+  } catch { /* user cancelled */ }
 };
 
 onMounted(() => {
