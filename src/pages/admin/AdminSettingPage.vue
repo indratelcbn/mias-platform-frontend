@@ -117,6 +117,33 @@
 
       </div>
 
+      <!-- ─── Banner Hero Section ────────────────────────────────────── -->
+      <div class="row q-col-gutter-lg q-mt-sm">
+        <div class="col-12">
+          <q-card flat bordered>
+            <q-card-section class="row items-center">
+              <div>
+                <div class="text-subtitle1 text-weight-medium">
+                  <q-icon name="panorama" color="primary" class="q-mr-sm" />Banner Hero Section
+                </div>
+                <div class="text-caption text-grey q-mt-xs">
+                  Kelola gambar slideshow di hero section halaman utama (maks 5 gambar)
+                </div>
+              </div>
+              <q-space />
+              <q-btn
+                color="primary"
+                icon="panorama"
+                label="Kelola Banner"
+                no-caps
+                unelevated
+                to="/admin/hero-banner"
+              />
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
       <div class="q-mt-lg">
         <q-btn
           type="submit"

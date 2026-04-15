@@ -165,6 +165,7 @@ const allMenuItems = [
 const menuItems = computed(() => {
   return allMenuItems.filter((item) => {
     if (item.superadminOnly) return authStore.isSuperadmin;
+    if (item.parent) return authStore.hasPermission(item.parent);
     return authStore.hasPermission(item.name);
   });
 });

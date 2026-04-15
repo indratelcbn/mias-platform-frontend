@@ -60,6 +60,7 @@ const routes = [
       { path: 'usaha', component: () => import('pages/admin/AdminUsahaPage.vue'), name: 'admin-usaha', meta: { menuKey: 'admin-usaha' } },
       { path: 'profil', component: () => import('pages/admin/AdminProfilPage.vue'), name: 'admin-profil', meta: { menuKey: 'admin-profil' } },
       { path: 'setting', component: () => import('pages/admin/AdminSettingPage.vue'), name: 'admin-setting', meta: { menuKey: 'admin-setting' } },
+      { path: 'hero-banner', component: () => import('pages/admin/AdminHeroBannerPage.vue'), name: 'admin-hero-banner', meta: { menuKey: 'admin-setting' } },
       { path: 'users', component: () => import('pages/admin/AdminUsersPage.vue'), name: 'admin-users', meta: { menuKey: 'admin-users', superadminOnly: true } },
     ],
   },
