@@ -145,7 +145,7 @@ const userInitial = computed(() => {
 
 const unresolvedPesanCount = computed(() => pesanStore.summary?.belumDitindaklanjuti || 0);
 
-const menuItems = [
+const allMenuItems = [
   { name: 'admin-dashboard', label: 'Dashboard', to: '/admin/dashboard', icon: 'dashboard' },
   { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
   { name: 'admin-kajian', label: 'Kajian Ilmiyyah', to: '/admin/kajian', icon: 'menu_book' },
@@ -155,11 +155,19 @@ const menuItems = [
   { name: 'admin-mustahik', label: 'Data Mustahik', to: '/admin/mustahik', icon: 'people_alt' },
   { name: 'admin-pendidikan', label: 'Pendidikan', to: '/admin/pendidikan', icon: 'school' },
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
-    { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
+  { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Donasi', to: '/admin/donasi', icon: 'volunteer_activism' },
   { name: 'admin-pesan', label: 'Pesan', to: '/admin/pesan', icon: 'mark_email_unread' },
-    { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
+  { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
+  { name: 'admin-users', label: 'Pengguna', to: '/admin/users', icon: 'manage_accounts', superadminOnly: true },
 ];
+
+const menuItems = computed(() => {
+  return allMenuItems.filter((item) => {
+    if (item.superadminOnly) return authStore.isSuperadmin;
+    return authStore.hasPermission(item.name);
+  });
+});
 
 const handleLogout = () => {
   authStore.logout();

@@ -46,20 +46,21 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       { path: '', redirect: '/admin/dashboard' },
-      { path: 'dashboard', component: () => import('pages/admin/DashboardPage.vue'), name: 'admin-dashboard' },
-      { path: 'kajian', component: () => import('pages/admin/AdminKajianPage.vue'), name: 'admin-kajian' },
-      { path: 'artikel', component: () => import('pages/admin/AdminArtikelPage.vue'), name: 'admin-artikel' },
-      { path: 'donasi', component: () => import('pages/admin/AdminDonasiPage.vue'), name: 'admin-donasi' },
-      { path: 'pesan', component: () => import('pages/admin/AdminPesanPage.vue'), name: 'admin-pesan' },
+      { path: 'dashboard', component: () => import('pages/admin/DashboardPage.vue'), name: 'admin-dashboard', meta: { menuKey: 'admin-dashboard' } },
+      { path: 'kajian', component: () => import('pages/admin/AdminKajianPage.vue'), name: 'admin-kajian', meta: { menuKey: 'admin-kajian' } },
+      { path: 'artikel', component: () => import('pages/admin/AdminArtikelPage.vue'), name: 'admin-artikel', meta: { menuKey: 'admin-artikel' } },
+      { path: 'donasi', component: () => import('pages/admin/AdminDonasiPage.vue'), name: 'admin-donasi', meta: { menuKey: 'admin-donasi' } },
+      { path: 'pesan', component: () => import('pages/admin/AdminPesanPage.vue'), name: 'admin-pesan', meta: { menuKey: 'admin-pesan' } },
       { path: 'qurban', redirect: '/admin/galeri' },
-      { path: 'galeri', component: () => import('pages/admin/AdminGaleriPage.vue'), name: 'admin-galeri' },
-      { path: 'streaming', component: () => import('pages/admin/AdminStreamingPage.vue'), name: 'admin-streaming' },
-      { path: 'sosial', component: () => import('pages/admin/AdminSosialPage.vue'), name: 'admin-sosial' },
-      { path: 'mustahik', component: () => import('pages/admin/AdminMustahikPage.vue'), name: 'admin-mustahik' },
-      { path: 'pendidikan', component: () => import('pages/admin/AdminPendidikanPage.vue'), name: 'admin-pendidikan' },
-      { path: 'usaha', component: () => import('pages/admin/AdminUsahaPage.vue'), name: 'admin-usaha' },
-      { path: 'profil', component: () => import('pages/admin/AdminProfilPage.vue'), name: 'admin-profil' },
-      { path: 'setting', component: () => import('pages/admin/AdminSettingPage.vue'), name: 'admin-setting' },
+      { path: 'galeri', component: () => import('pages/admin/AdminGaleriPage.vue'), name: 'admin-galeri', meta: { menuKey: 'admin-galeri' } },
+      { path: 'streaming', component: () => import('pages/admin/AdminStreamingPage.vue'), name: 'admin-streaming', meta: { menuKey: 'admin-streaming' } },
+      { path: 'sosial', component: () => import('pages/admin/AdminSosialPage.vue'), name: 'admin-sosial', meta: { menuKey: 'admin-sosial' } },
+      { path: 'mustahik', component: () => import('pages/admin/AdminMustahikPage.vue'), name: 'admin-mustahik', meta: { menuKey: 'admin-mustahik' } },
+      { path: 'pendidikan', component: () => import('pages/admin/AdminPendidikanPage.vue'), name: 'admin-pendidikan', meta: { menuKey: 'admin-pendidikan' } },
+      { path: 'usaha', component: () => import('pages/admin/AdminUsahaPage.vue'), name: 'admin-usaha', meta: { menuKey: 'admin-usaha' } },
+      { path: 'profil', component: () => import('pages/admin/AdminProfilPage.vue'), name: 'admin-profil', meta: { menuKey: 'admin-profil' } },
+      { path: 'setting', component: () => import('pages/admin/AdminSettingPage.vue'), name: 'admin-setting', meta: { menuKey: 'admin-setting' } },
+      { path: 'users', component: () => import('pages/admin/AdminUsersPage.vue'), name: 'admin-users', meta: { menuKey: 'admin-users', superadminOnly: true } },
     ],
   },
 
@@ -87,12 +88,26 @@ export default route(function ({ store /*, ssrContext */ }) {
   Router.beforeEach((to, from, next) => {
     const authStore = useAuthStore(store);
 
+    // Must be logged in for requiresAuth routes
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
       return next({ name: 'admin-login' });
     }
 
+    // Redirect logged-in users away from guest-only pages
     if (to.meta.guestOnly && authStore.isLoggedIn) {
       return next({ name: 'admin-dashboard' });
+    }
+
+    // SUPERADMIN-only routes
+    if (to.meta.superadminOnly && !authStore.isSuperadmin) {
+      return next({ name: 'admin-dashboard' });
+    }
+
+    // Permission-based guard for admin menu pages
+    if (to.meta.menuKey && authStore.isLoggedIn) {
+      if (!authStore.hasPermission(to.meta.menuKey)) {
+        return next({ name: 'admin-dashboard' });
+      }
     }
 
     next();
