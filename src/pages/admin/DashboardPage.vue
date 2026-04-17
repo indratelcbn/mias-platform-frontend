@@ -26,14 +26,14 @@
 
     <!-- Recent -->
     <div class="row q-col-gutter-lg">
-      <!-- Donasi Pending -->
+      <!-- Infaq Pending -->
       <div class="col-12 col-md-6">
         <q-card flat bordered class="rounded-xl">
           <q-card-section>
             <div class="row items-center justify-between">
               <div class="text-subtitle1 text-weight-bold">
                 <q-icon name="volunteer_activism" color="primary" class="q-mr-sm" />
-                Donasi Menunggu Konfirmasi
+                Infaq Menunggu Konfirmasi
               </div>
               <q-btn flat no-caps label="Lihat Semua" to="/admin/donasi" color="primary" size="sm" />
             </div>
@@ -124,13 +124,13 @@ const stats = computed(() => [
     color: 'teal',
   },
   {
-    label: 'Total Donasi',
-    value: formatCurrency(donasiStore.summary?.totalDonasi || 0),
+    label: 'Total Infaq',
+    value: formatCurrency(donasiStore.summary?.totalInfaq || 0),
     icon: 'volunteer_activism',
     color: 'positive',
   },
   {
-    label: 'Donasi Pending',
+    label: 'Infaq Pending',
     value: donasiStore.summary?.pendingKonfirmasi || 0,
     icon: 'pending',
     color: 'warning',

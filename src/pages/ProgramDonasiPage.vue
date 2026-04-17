@@ -4,7 +4,7 @@
     <div class="page-hero q-py-xl text-center text-white">
       <div class="q-px-md">
         <q-icon name="volunteer_activism" size="56px" class="q-mb-md" />
-        <h1 class="text-h4 text-weight-bold q-mb-sm">Program Donasi</h1>
+        <h1 class="text-h4 text-weight-bold q-mb-sm">Program Infaq</h1>
         <p class="text-body1 opacity-85">
           "Orang yang menginfakkan hartanya di jalan Allah seperti biji yang menumbuhkan tujuh tangkai" – QS. Al-Baqarah: 261
         </p>
@@ -17,7 +17,7 @@
       </div>
       <div v-else-if="!donasiStore.programList.length" class="text-center q-py-xl text-grey-6">
         <q-icon name="info" size="72px" color="grey-4" />
-        <div class="q-mt-md">Belum ada program donasi.</div>
+        <div class="q-mt-md">Belum ada program infaq.</div>
       </div>
 
       <q-card v-else flat bordered class="rounded-xl">
@@ -44,14 +44,14 @@
         </q-table>
       </q-card>
 
-      <!-- Link ke halaman donasi / konfirmasi transfer -->
+      <!-- Link ke halaman infaq / konfirmasi transfer -->
       <div class="text-center q-mt-xl">
         <q-btn
           unelevated
           color="primary"
           no-caps
           icon="volunteer_activism"
-          label="Konfirmasi Donasi"
+          label="Konfirmasi Infaq"
           to="/donasi"
           size="lg"
           style="border-radius: 12px"

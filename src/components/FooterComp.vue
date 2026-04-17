@@ -98,7 +98,7 @@ const navLinks = [
   { label: 'Beranda', to: '/' },
   { label: 'Kajian', to: '/kajian' },
   { label: 'Artikel', to: '/artikel' },
-  { label: 'Donasi', to: '/donasi' },
+  { label: 'Infaq', to: '/donasi' },
   { label: 'Kontak', to: '/kontak' },
 ];
 

@@ -2,7 +2,7 @@
   <q-page class="q-pa-lg">
     <div class="row items-center justify-between q-mb-lg">
       <div class="text-h5 text-weight-bold">
-        <q-icon name="volunteer_activism" color="primary" class="q-mr-sm" />Manajemen Donasi
+        <q-icon name="volunteer_activism" color="primary" class="q-mr-sm" />Manajemen Infaq
       </div>
     </div>
 
@@ -10,9 +10,9 @@
     <div class="row q-col-gutter-md q-mb-lg">
       <div class="col-12 col-sm-4">
         <q-card flat bordered class="rounded-xl text-center q-pa-md">
-          <div class="text-caption text-grey-6">Total Donasi Masuk</div>
+          <div class="text-caption text-grey-6">Total Infaq Masuk</div>
           <div class="text-h5 text-weight-bold text-positive q-mt-xs">
-            {{ formatCurrency(donasiStore.summary?.totalDonasi || 0) }}
+            {{ formatCurrency(donasiStore.summary?.totalInfaq || 0) }}
           </div>
         </q-card>
       </div>
@@ -36,15 +36,15 @@
 
     <!-- Tabs -->
     <q-tabs v-model="tab" align="left" class="q-mb-md" active-color="primary" indicator-color="primary">
-      <q-tab name="donasi" label="Data Donasi" icon="list_alt" no-caps />
-      <q-tab name="program" label="Program Donasi" icon="flag" no-caps />
+      <q-tab name="donasi" label="Data Infaq" icon="list_alt" no-caps />
+      <q-tab name="program" label="Program Infaq" icon="flag" no-caps />
       <q-tab name="wakaf" label="Program Wakaf" icon="mosque" no-caps />
       <q-tab name="rekening" label="Rekening" icon="account_balance" no-caps />
     </q-tabs>
 
     <q-tab-panels v-model="tab" animated>
 
-      <!-- ══════════════════════ TAB DATA DONASI ══════════════════════════ -->
+      <!-- ══════════════════════ TAB DATA INFAQ ══════════════════════════ -->
       <q-tab-panel name="donasi" class="q-pa-none">
         <div class="row q-col-gutter-sm q-mb-md">
           <q-btn
@@ -91,10 +91,10 @@
         </q-card>
       </q-tab-panel>
 
-      <!-- ══════════════════════ TAB PROGRAM DONASI ═══════════════════════ -->
+      <!-- ══════════════════════ TAB PROGRAM INFAQ ═══════════════════════ -->
       <q-tab-panel name="program" class="q-pa-none">
         <div class="row items-center justify-between q-mb-md">
-          <div class="text-subtitle1 text-weight-bold">Daftar Program Donasi</div>
+          <div class="text-subtitle1 text-weight-bold">Daftar Program Infaq</div>
           <div class="row q-gutter-sm">
             <q-btn outline color="secondary" icon="sync" label="Hitung Ulang Terkumpul" no-caps size="sm" @click="recalcTerkumpul" :loading="recalcLoading" />
             <q-btn unelevated color="primary" icon="add" label="Tambah Program" no-caps @click="openProgramDialog()" />
@@ -164,7 +164,7 @@
       <!-- ══════════════════════ TAB REKENING ════════════════════════════ -->
       <q-tab-panel name="rekening" class="q-pa-none">
         <div class="row items-center justify-between q-mb-md">
-          <div class="text-subtitle1 text-weight-bold">Rekening Donasi</div>
+          <div class="text-subtitle1 text-weight-bold">Rekening Infaq</div>
           <q-btn unelevated color="primary" icon="add" label="Tambah Rekening" no-caps @click="openRekeningDialog()" />
         </div>
         <div class="row q-col-gutter-md">
@@ -212,11 +212,11 @@
       </q-card>
     </q-dialog>
 
-    <!-- Dialog Program Donasi -->
+    <!-- Dialog Program Infaq -->
     <q-dialog v-model="programDialog" persistent>
       <q-card style="min-width: 360px; width: 90vw; max-width: 500px">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ editProgram.id ? 'Edit' : 'Tambah' }} Program Donasi</div>
+          <div class="text-h6">{{ editProgram.id ? 'Edit' : 'Tambah' }} Program Infaq</div>
           <q-space /><q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
         <q-card-section>
@@ -224,7 +224,7 @@
             <q-input v-model="editProgram.judul" outlined label="Judul Program *" :rules="[v => !!v || 'Judul wajib diisi']" />
             <q-input v-model="editProgram.kode" outlined label="Kode Program" />
             <q-input v-model="editProgram.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
-            <q-input v-model="editProgram.target" outlined label="Target Donasi (Rp)" type="number" min="0" />
+            <q-input v-model="editProgram.target" outlined label="Target Infaq (Rp)" type="number" min="0" />
             <q-input v-model="editProgram.urutan" outlined label="Urutan Tampil" type="number" min="0" />
             <q-toggle v-model="editProgram.isActive" label="Tampilkan di website" color="primary" />
             <div class="row justify-end q-gutter-sm q-mt-md">
@@ -324,7 +324,7 @@ const activeStatus = ref('');
 const buktiDialog = ref(false);
 const buktiUrl = ref('');
 
-// ─── Program Donasi ──────────────────────────────────────────────────────────
+// ─── Program Infaq ───────────────────────────────────────────────────────────
 const programDialog = ref(false);
 const editProgram = ref({});
 
@@ -398,7 +398,7 @@ const confirmDeleteRekening = (row) => {
   });
 };
 
-// ─── Data Donasi ─────────────────────────────────────────────────────────────
+// ─── Data Infaq ──────────────────────────────────────────────────────────────
 const statusFilter = [
   { value: '', label: 'Semua', color: 'grey' },
   { value: 'PENDING', label: 'Pending', color: 'warning' },

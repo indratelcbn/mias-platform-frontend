@@ -32,14 +32,14 @@
         />
       </q-card>
 
-      <!-- Link ke halaman donasi / konfirmasi transfer -->
+      <!-- Link ke halaman infaq / konfirmasi transfer -->
       <div class="text-center q-mt-xl">
         <q-btn
           unelevated
           color="primary"
           no-caps
           icon="volunteer_activism"
-          label="Konfirmasi Donasi"
+          label="Konfirmasi Infaq"
           to="/donasi"
           size="lg"
           style="border-radius: 12px"

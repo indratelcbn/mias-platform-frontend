@@ -106,6 +106,10 @@
                 <q-item-section avatar><q-icon name="open_in_new" /></q-item-section>
                 <q-item-section>Lihat Website</q-item-section>
               </q-item>
+              <q-item clickable v-close-popup @click="pwdDialog = true">
+                <q-item-section avatar><q-icon name="lock" /></q-item-section>
+                <q-item-section>Ganti Password</q-item-section>
+              </q-item>
               <q-item clickable v-close-popup class="text-negative" @click="handleLogout">
                 <q-item-section avatar><q-icon name="logout" color="negative" /></q-item-section>
                 <q-item-section>Keluar</q-item-section>
@@ -120,16 +124,83 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- Dialog Ganti Password -->
+    <q-dialog v-model="pwdDialog" persistent>
+      <q-card style="min-width: 360px; max-width: 440px; width: 90vw">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6"><q-icon name="lock" class="q-mr-sm" />Ganti Password</div>
+          <q-space /><q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section>
+          <q-form @submit="submitChangePassword" class="q-gutter-md">
+            <q-input
+              v-model="pwdForm.oldPassword"
+              outlined
+              label="Password Lama *"
+              :type="showOldPwd ? 'text' : 'password'"
+              :rules="[v => !!v || 'Password lama wajib diisi']"
+            >
+              <template #prepend><q-icon name="lock_outline" /></template>
+              <template #append>
+                <q-icon :name="showOldPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="showOldPwd = !showOldPwd" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-model="pwdForm.newPassword"
+              outlined
+              label="Password Baru *"
+              :type="showNewPwd ? 'text' : 'password'"
+              :rules="passwordRules"
+            >
+              <template #prepend><q-icon name="lock" /></template>
+              <template #append>
+                <q-icon :name="showNewPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="showNewPwd = !showNewPwd" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-model="pwdForm.confirmPassword"
+              outlined
+              label="Konfirmasi Password Baru *"
+              :type="showConfirmPwd ? 'text' : 'password'"
+              :rules="[v => !!v || 'Konfirmasi password wajib diisi', v => v === pwdForm.newPassword || 'Password tidak cocok']"
+            >
+              <template #prepend><q-icon name="lock_outline" /></template>
+              <template #append>
+                <q-icon :name="showConfirmPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="showConfirmPwd = !showConfirmPwd" />
+              </template>
+            </q-input>
+
+            <!-- Password strength hints -->
+            <div class="text-caption q-mt-none">
+              <div :class="pwdForm.newPassword?.length >= 8 ? 'text-positive' : 'text-grey-5'"><q-icon :name="pwdForm.newPassword?.length >= 8 ? 'check_circle' : 'radio_button_unchecked'" size="16px" class="q-mr-xs" />Minimal 8 karakter</div>
+              <div :class="/[a-z]/.test(pwdForm.newPassword) ? 'text-positive' : 'text-grey-5'"><q-icon :name="/[a-z]/.test(pwdForm.newPassword) ? 'check_circle' : 'radio_button_unchecked'" size="16px" class="q-mr-xs" />Huruf kecil (a-z)</div>
+              <div :class="/[A-Z]/.test(pwdForm.newPassword) ? 'text-positive' : 'text-grey-5'"><q-icon :name="/[A-Z]/.test(pwdForm.newPassword) ? 'check_circle' : 'radio_button_unchecked'" size="16px" class="q-mr-xs" />Huruf besar (A-Z)</div>
+              <div :class="/[0-9]/.test(pwdForm.newPassword) ? 'text-positive' : 'text-grey-5'"><q-icon :name="/[0-9]/.test(pwdForm.newPassword) ? 'check_circle' : 'radio_button_unchecked'" size="16px" class="q-mr-xs" />Angka (0-9)</div>
+              <div :class="/[^a-zA-Z0-9]/.test(pwdForm.newPassword) ? 'text-positive' : 'text-grey-5'"><q-icon :name="/[^a-zA-Z0-9]/.test(pwdForm.newPassword) ? 'check_circle' : 'radio_button_unchecked'" size="16px" class="q-mr-xs" />Simbol (!@#$%...)</div>
+            </div>
+
+            <div class="row justify-end q-gutter-sm q-mt-md">
+              <q-btn flat no-caps label="Batal" v-close-popup />
+              <q-btn unelevated color="primary" no-caps label="Simpan" type="submit" :loading="pwdLoading" />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Notify } from 'quasar';
 import { useAuthStore } from 'src/stores/auth';
 import { usePesanStore } from 'src/stores/pesan';
 import { useInactivityTimer } from 'src/composables/useInactivityTimer';
+import { api } from 'src/boot/axios';
 
 const authStore = useAuthStore();
 const pesanStore = usePesanStore();
@@ -156,7 +227,7 @@ const allMenuItems = [
   { name: 'admin-pendidikan', label: 'Pendidikan', to: '/admin/pendidikan', icon: 'school' },
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
   { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
-  { name: 'admin-donasi', label: 'Donasi', to: '/admin/donasi', icon: 'volunteer_activism' },
+  { name: 'admin-donasi', label: 'Infaq', to: '/admin/donasi', icon: 'volunteer_activism' },
   { name: 'admin-pesan', label: 'Pesan', to: '/admin/pesan', icon: 'mark_email_unread' },
   { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
   { name: 'admin-users', label: 'Pengguna', to: '/admin/users', icon: 'manage_accounts', superadminOnly: true },
@@ -173,6 +244,47 @@ const menuItems = computed(() => {
 const handleLogout = () => {
   authStore.logout();
   router.push({ name: 'admin-login' });
+};
+
+// ─── Ganti Password ──────────────────────────────────────────────────────────
+const pwdDialog = ref(false);
+const pwdLoading = ref(false);
+const showOldPwd = ref(false);
+const showNewPwd = ref(false);
+const showConfirmPwd = ref(false);
+
+const pwdForm = reactive({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+});
+
+const passwordRules = [
+  v => !!v || 'Password baru wajib diisi',
+  v => v.length >= 8 || 'Minimal 8 karakter',
+  v => /[a-z]/.test(v) || 'Harus mengandung huruf kecil',
+  v => /[A-Z]/.test(v) || 'Harus mengandung huruf besar',
+  v => /[0-9]/.test(v) || 'Harus mengandung angka',
+  v => /[^a-zA-Z0-9]/.test(v) || 'Harus mengandung simbol',
+];
+
+const submitChangePassword = async () => {
+  pwdLoading.value = true;
+  try {
+    const { data } = await api.put('/auth/change-password', {
+      oldPassword: pwdForm.oldPassword,
+      newPassword: pwdForm.newPassword,
+    });
+    Notify.create({ type: 'positive', message: data.message });
+    pwdDialog.value = false;
+    pwdForm.oldPassword = '';
+    pwdForm.newPassword = '';
+    pwdForm.confirmPassword = '';
+  } catch (err) {
+    Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal mengubah password.' });
+  } finally {
+    pwdLoading.value = false;
+  }
 };
 
 // Auto-logout setelah 30 menit tidak ada aktivitas

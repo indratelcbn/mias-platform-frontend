@@ -11,7 +11,7 @@
 
       <div class="row q-gutter-md justify-center q-mb-xl">
         <q-btn
-          unelevated size="lg" no-caps label="Donasi Sekarang" to="/donasi"
+          unelevated size="lg" no-caps label="Infaq Sekarang" to="/donasi"
           color="white" text-color="primary" class="q-px-xl"
           style="border-radius: 10px; font-weight: 700" icon="volunteer_activism"
         />
@@ -21,9 +21,9 @@
         />
       </div>
 
-      <!-- Program Donasi dari API -->
+      <!-- Program Infaq dari API -->
       <template v-if="programs.length">
-        <div class="text-subtitle1 text-weight-bold q-mb-sm" style="opacity: 0.9">Program Donasi</div>
+        <div class="text-subtitle1 text-weight-bold q-mb-sm" style="opacity: 0.9">Program Infaq</div>
         <q-card
           v-for="prog in programs"
           :key="prog.id"
@@ -74,7 +74,7 @@
       <!-- Fallback jika belum ada program -->
       <q-card v-if="!programs.length && !wakafPrograms.length" flat class="rounded-xl bg-white text-dark q-pa-lg">
         <div class="row items-center justify-between q-mb-sm">
-          <span class="text-subtitle2 text-weight-bold text-primary">Program Donasi</span>
+          <span class="text-subtitle2 text-weight-bold text-primary">Program Infaq</span>
           <span class="text-caption text-grey-6">-</span>
         </div>
         <q-linear-progress rounded size="12px" :value="0" color="primary" track-color="grey-3" />

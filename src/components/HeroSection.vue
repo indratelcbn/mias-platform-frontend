@@ -59,7 +59,7 @@
         class="q-mb-xl opacity-85 animate-fade-up delay-1"
         style="font-size: clamp(14px, 2vw, 20px); max-width: 600px; line-height: 1.8"
       >
-        Pusat ibadah, dakwah, dan pendidikan Islam yang memakmurkan umat
+        Pusat Kajian Islam Ilmiyyah sesuai Al-Qur'an dan As-Sunnah dengan Pemahaman para Sahabat yang memakmurkan umat
         di Kota Depok, Jawa Barat.
       </p>
 
@@ -79,7 +79,7 @@
           outline
           size="lg"
           no-caps
-          label="Donasi"
+          label="Infaq"
           to="/donasi"
           color="white"
           class="q-px-xl hero-btn"
@@ -109,9 +109,9 @@ import axios from 'axios';
 
 const stats = [
   { value: '2012', label: 'Tahun Berdiri' },
-  { value: '500+', label: 'Jamaah Tetap' },
+  { value: '40+', label: 'Jamaah Tetap' },
   { value: '5+', label: 'Jadwal Kajian' },
-  { value: '200+', label: 'Santri Tahfizh' },
+  { value: '10+', label: 'Santri Tahfizh' },
 ];
 
 const banners = ref([]);

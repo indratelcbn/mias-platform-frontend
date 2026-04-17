@@ -153,7 +153,7 @@ const allMenuOptions = [
   { value: 'admin-pendidikan', label: 'Pendidikan' },
   { value: 'admin-usaha', label: 'Usaha' },
   { value: 'admin-artikel', label: 'Artikel' },
-  { value: 'admin-donasi', label: 'Donasi' },
+  { value: 'admin-donasi', label: 'Infaq' },
   { value: 'admin-pesan', label: 'Pesan' },
   { value: 'admin-setting', label: 'Pengaturan' },
   { value: 'admin-qurban', label: 'Qurban' },

@@ -193,6 +193,17 @@
             :class="{ 'text-primary text-weight-bold': $route.name === 'artikel' }"
           />
 
+          <!-- Kontak -->
+          <q-btn
+            flat
+            no-caps
+            label="Kontak"
+            to="/kontak"
+            color="dark"
+            class="nav-btn"
+            :class="{ 'text-primary text-weight-bold': $route.name === 'kontak' }"
+          />
+
           <q-btn
             unelevated
             no-caps
@@ -206,7 +217,7 @@
               <q-list dense style="min-width: 220px">
                 <q-item clickable v-close-popup to="/donasi/program-donasi" active-class="text-primary">
                   <q-item-section avatar><q-icon name="volunteer_activism" color="green-8" size="20px" /></q-item-section>
-                  <q-item-section>Program Donasi</q-item-section>
+                  <q-item-section>Program Infaq</q-item-section>
                 </q-item>
                 <q-item clickable v-close-popup to="/donasi/program-wakaf" active-class="text-primary">
                   <q-item-section avatar><q-icon name="mosque" color="blue-8" size="20px" /></q-item-section>
@@ -413,6 +424,14 @@
           <q-item-section>Artikel</q-item-section>
         </q-item>
 
+        <!-- Kontak -->
+        <q-item clickable v-ripple to="/kontak" @click="drawer = false">
+          <q-item-section avatar>
+            <q-icon name="mail" color="primary" />
+          </q-item-section>
+          <q-item-section>Kontak</q-item-section>
+        </q-item>
+
         <q-expansion-item
           icon="volunteer_activism"
           label="Yuk Berinfaq"
@@ -421,7 +440,7 @@
         >
           <q-item clickable v-ripple to="/donasi/program-donasi" class="q-pl-xl" @click="drawer = false">
             <q-item-section avatar><q-icon name="volunteer_activism" color="green-8" size="20px" /></q-item-section>
-            <q-item-section>Program Donasi</q-item-section>
+            <q-item-section>Program Infaq</q-item-section>
           </q-item>
           <q-item clickable v-ripple to="/donasi/program-wakaf" class="q-pl-xl" @click="drawer = false">
             <q-item-section avatar><q-icon name="mosque" color="blue-8" size="20px" /></q-item-section>

@@ -78,7 +78,7 @@ export const useDonasiStore = defineStore('donasi', {
         this.list = data.data;
         this.meta = data.meta;
       } catch {
-        Notify.create({ type: 'negative', message: 'Gagal memuat data donasi.' });
+        Notify.create({ type: 'negative', message: 'Gagal memuat data infaq.' });
       } finally {
         this.loading = false;
       }
@@ -117,7 +117,7 @@ export const useDonasiStore = defineStore('donasi', {
     async updateStatus(id, status) {
       try {
         await api.put(`/donasi/${id}/status`, { status });
-        Notify.create({ type: 'positive', message: 'Status donasi diperbarui.' });
+        Notify.create({ type: 'positive', message: 'Status infaq diperbarui.' });
         return true;
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal memperbarui status.' });
@@ -130,13 +130,13 @@ export const useDonasiStore = defineStore('donasi', {
       this.fetchAll({ page });
     },
 
-    // ─── Program Donasi ─────────────────────────────────────────────────────
+    // ─── Program Infaq ─────────────────────────────────────────────────────
     async fetchActiveProgram() {
       try {
         const { data } = await api.get('/donasi/program');
         this.programList = data.data;
       } catch {
-        Notify.create({ type: 'negative', message: 'Gagal memuat program donasi.' });
+        Notify.create({ type: 'negative', message: 'Gagal memuat program infaq.' });
       }
     },
 
@@ -146,7 +146,7 @@ export const useDonasiStore = defineStore('donasi', {
         const { data } = await api.get('/donasi/program/all');
         this.programList = data.data;
       } catch {
-        Notify.create({ type: 'negative', message: 'Gagal memuat program donasi.' });
+        Notify.create({ type: 'negative', message: 'Gagal memuat program infaq.' });
       } finally {
         this.loading = false;
       }

@@ -4,7 +4,7 @@
     <div class="page-hero q-py-xl text-center text-white">
       <div class="q-px-md">
         <q-icon name="volunteer_activism" size="56px" class="q-mb-md" />
-        <h1 class="text-h4 text-weight-bold q-mb-sm">Donasi & Wakaf</h1>
+        <h1 class="text-h4 text-weight-bold q-mb-sm">Infaq & Wakaf</h1>
         <p class="text-body1 opacity-85">
           "Orang yang menginfakkan hartanya di jalan Allah seperti biji yang menumbuhkan tujuh tangkai" – QS. Al-Baqarah: 261
         </p>
@@ -21,7 +21,7 @@
 
           <q-card v-if="donasiStore.programList.length" flat bordered class="rounded-xl q-mb-md">
             <q-card-section class="q-pb-none">
-              <div class="text-subtitle2 text-weight-bold text-primary">Program Donasi</div>
+              <div class="text-subtitle2 text-weight-bold text-primary">Program Infaq</div>
             </q-card-section>
             <q-list dense separator>
               <q-item v-for="p in donasiStore.programList" :key="p.id">
@@ -55,7 +55,7 @@
         <!-- ─── Rekening & QRIS (Tengah) ─────────────────────────────── -->
         <div class="col-12 col-md-4">
           <div class="text-h6 text-weight-bold q-mb-md text-primary">
-            <q-icon name="account_balance" class="q-mr-sm" />Rekening Donasi & Wakaf
+            <q-icon name="account_balance" class="q-mr-sm" />Rekening Infaq & Wakaf
           </div>
 
           <div v-if="donasiStore.rekeningList.length">
@@ -98,14 +98,14 @@
                 <q-icon name="qr_code_2" class="q-mr-xs" />QRIS
               </div>
               <q-img :src="qrisRekening.qrisImage" fit="contain" style="max-height: 200px; max-width: 200px; margin: 0 auto" />
-              <div class="text-caption text-grey-6 q-mt-sm">Scan untuk donasi via semua e-wallet</div>
+              <div class="text-caption text-grey-6 q-mt-sm">Scan untuk infaq via semua e-wallet</div>
             </q-card>
           </div>
           <div v-else>
             <q-card flat bordered class="rounded-xl q-mt-md text-center q-pa-md">
               <q-icon name="qr_code_2" size="80px" color="primary" />
               <div class="text-weight-bold q-mt-sm">QRIS</div>
-              <div class="text-caption text-grey-6">Scan untuk donasi via semua e-wallet</div>
+              <div class="text-caption text-grey-6">Scan untuk infaq via semua e-wallet</div>
             </q-card>
           </div>
         </div>
@@ -163,7 +163,7 @@
                   v-if="form.jenisProgram"
                   v-model="form.namaProgram"
                   outlined
-                  :label="form.jenisProgram === 'DONASI' ? 'Pilih Program Donasi' : 'Pilih Program Wakaf'"
+                  :label="form.jenisProgram === 'DONASI' ? 'Pilih Program Infaq' : 'Pilih Program Wakaf'"
                   :options="programOptions"
                   emit-value
                   map-options
@@ -175,10 +175,10 @@
                 <q-input
                   v-model.number="form.jumlah"
                   outlined
-                  label="Jumlah Donasi *"
+                  label="Jumlah Infaq *"
                   type="number"
                   prefix="Rp"
-                  :rules="[val => val > 0 || 'Jumlah donasi harus diisi']"
+                  :rules="[val => val > 0 || 'Jumlah infaq harus diisi']"
                 >
                   <template #prepend><q-icon name="payments" /></template>
                 </q-input>
@@ -265,7 +265,7 @@ const form = reactive({
 });
 
 const jenisOptions = [
-  { label: 'Program Donasi', value: 'DONASI' },
+  { label: 'Program Infaq', value: 'DONASI' },
   { label: 'Program Wakaf', value: 'WAKAF' },
 ];
 

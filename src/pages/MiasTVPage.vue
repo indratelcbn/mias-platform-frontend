@@ -155,12 +155,12 @@
           <div class="col-12 col-sm-4 text-center">
             <q-icon name="live_tv" color="primary" size="32px" />
             <div class="text-subtitle2 q-mt-xs text-weight-bold">Siaran Langsung</div>
-            <div class="text-caption text-grey-6">Kajian & ceramah masjid</div>
+            <div class="text-caption text-grey-6">Kajian Islam Ilmiyyah</div>
           </div>
           <div class="col-12 col-sm-4 text-center">
             <q-icon name="schedule" color="positive" size="32px" />
             <div class="text-subtitle2 q-mt-xs text-weight-bold">Jadwal Rutin</div>
-            <div class="text-caption text-grey-6">Setiap selesai sholat Subuh & Isya</div>
+            <div class="text-caption text-grey-6">Setiap Selasa, Rabu, Kamis, Sabtu dan Ahad</div>
           </div>
           <div class="col-12 col-sm-4 text-center">
             <q-icon name="notifications_active" color="orange" size="32px" />
