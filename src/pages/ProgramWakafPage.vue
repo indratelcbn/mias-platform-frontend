@@ -29,7 +29,19 @@
           hide-pagination
           :rows-per-page-options="[0]"
           :pagination="{ rowsPerPage: 0 }"
-        />
+        >
+          <template #body-cell-target="props">
+            <q-td>{{ formatCurrency(props.value) }}</q-td>
+          </template>
+          <template #body-cell-terkumpul="props">
+            <q-td>
+              <div>{{ formatCurrency(props.value) }}</div>
+              <q-linear-progress rounded size="6px"
+                :value="props.row.target > 0 ? Math.min(Number(props.row.terkumpul) / Number(props.row.target), 1) : 0"
+                color="primary" track-color="grey-3" class="q-mt-xs" style="max-width: 120px" />
+            </q-td>
+          </template>
+        </q-table>
       </q-card>
 
       <!-- Link ke halaman infaq / konfirmasi transfer -->
@@ -62,7 +74,13 @@ onMounted(() => {
 const columns = [
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'kegiatan', label: 'Kegiatan', field: 'kegiatan', align: 'left', sortable: true },
+  { name: 'deskripsi', label: 'Deskripsi', field: 'deskripsi', align: 'left' },
+  { name: 'target', label: 'Target', field: 'target', align: 'left' },
+  { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
 ];
+
+const formatCurrency = (val) =>
+  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 </script>
 
 <style scoped>

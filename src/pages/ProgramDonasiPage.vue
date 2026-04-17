@@ -74,7 +74,8 @@ onMounted(() => {
 const columns = [
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'judul', label: 'Kegiatan', field: 'judul', align: 'left', sortable: true },
-  { name: 'target', label: 'Target', field: 'target', align: 'right' },
+  {name: 'deskripsi', label: 'Deskripsi', field: 'deskripsi', align: 'left' },
+  { name: 'target', label: 'Target', field: 'target', align: 'left' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
 ];
 
