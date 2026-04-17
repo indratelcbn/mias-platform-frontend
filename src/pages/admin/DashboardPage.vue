@@ -1,6 +1,29 @@
 <template>
   <q-page class="q-pa-lg">
-    <div class="text-h5 text-weight-bold q-mb-lg">Dashboard</div>
+    <div class="row items-center justify-between q-mb-lg">
+      <div class="text-h5 text-weight-bold">Dashboard</div>
+      <div class="row q-gutter-sm items-center">
+        <q-select
+          v-model="filterBulan"
+          :options="bulanOptions"
+          emit-value
+          map-options
+          dense
+          outlined
+          style="min-width: 140px"
+          label="Bulan"
+        />
+        <q-select
+          v-model="filterTahun"
+          :options="tahunOptions"
+          dense
+          outlined
+          style="min-width: 100px"
+          label="Tahun"
+        />
+        <q-btn unelevated color="primary" icon="search" label="Filter" no-caps @click="fetchDashboard" :loading="loading" />
+      </div>
+    </div>
 
     <!-- Stat Cards -->
     <div class="row q-col-gutter-md q-mb-xl">
@@ -14,6 +37,7 @@
                   <q-skeleton v-if="loading" type="text" width="60px" />
                   <span v-else>{{ stat.value }}</span>
                 </div>
+                <div v-if="stat.sub" class="text-caption text-grey-6">{{ stat.sub }}</div>
               </div>
               <q-avatar :color="stat.color" text-color="white" size="52px">
                 <q-icon :name="stat.icon" />
@@ -60,7 +84,7 @@
         </q-card>
       </div>
 
-      <!-- Kajian Terbaru -->
+      <!-- Kajian Mendatang -->
       <div class="col-12 col-md-6">
         <q-card flat bordered class="rounded-xl">
           <q-card-section>
@@ -86,7 +110,7 @@
                 </q-item-section>
                 <q-item-section>
                   <q-item-label class="text-weight-medium ellipsis">{{ k.judul }}</q-item-label>
-                  <q-item-label caption>{{ k.ustadz }} · {{ formatDate(k.tanggal) }}</q-item-label>
+                  <q-item-label caption>{{ k.ustadz }} · {{ formatDate(k.tanggal) }} · {{ k.waktu }}</q-item-label>
                 </q-item-section>
               </q-item>
             </template>
@@ -103,43 +127,62 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { api } from 'src/boot/axios';
-import { useDonasiStore } from 'src/stores/donasi';
-import { useKajianStore } from 'src/stores/kajian';
 
-const donasiStore = useDonasiStore();
-const kajianStore = useKajianStore();
 const loading = ref(false);
+const summary = ref({});
+const upcomingKajian = ref([]);
+const pendingDonasi = ref([]);
+
+const now = new Date();
+const filterBulan = ref(now.getMonth() + 1);
+const filterTahun = ref(now.getFullYear());
+
+const bulanOptions = [
+  { label: 'Januari', value: 1 },
+  { label: 'Februari', value: 2 },
+  { label: 'Maret', value: 3 },
+  { label: 'April', value: 4 },
+  { label: 'Mei', value: 5 },
+  { label: 'Juni', value: 6 },
+  { label: 'Juli', value: 7 },
+  { label: 'Agustus', value: 8 },
+  { label: 'September', value: 9 },
+  { label: 'Oktober', value: 10 },
+  { label: 'November', value: 11 },
+  { label: 'Desember', value: 12 },
+];
+
+const currentYear = now.getFullYear();
+const tahunOptions = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
 const stats = computed(() => [
   {
     label: 'Total Kajian',
-    value: kajianStore.meta.total || 0,
+    value: summary.value.totalKajian || 0,
+    sub: `Bulan ini: ${summary.value.kajianBulanIni || 0}`,
     icon: 'menu_book',
     color: 'primary',
   },
   {
     label: 'Total Artikel',
-    value: totalArtikel.value,
+    value: summary.value.totalArtikel || 0,
+    sub: `Bulan ini: ${summary.value.artikelBulanIni || 0}`,
     icon: 'article',
     color: 'teal',
   },
   {
     label: 'Total Infaq',
-    value: formatCurrency(donasiStore.summary?.totalInfaq || 0),
+    value: formatCurrency(summary.value.totalInfaq || 0),
     icon: 'volunteer_activism',
     color: 'positive',
   },
   {
     label: 'Infaq Pending',
-    value: donasiStore.summary?.pendingKonfirmasi || 0,
+    value: summary.value.pendingKonfirmasi || 0,
     icon: 'pending',
     color: 'warning',
   },
 ]);
-
-const totalArtikel = ref(0);
-const upcomingKajian = ref([]);
-const pendingDonasi = ref([]);
 
 const donasiColumns = [
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
@@ -156,21 +199,20 @@ const formatDate = (d) =>
 const statusColor = (status) =>
   ({ VERIFIED: 'positive', PENDING: 'warning', REJECTED: 'negative' }[status] || 'grey');
 
-onMounted(async () => {
+const fetchDashboard = async () => {
   loading.value = true;
   try {
-    const [kajianRes, artikelRes, donasiRes] = await Promise.all([
-      api.get('/kajian/admin/all', { params: { limit: 5 } }),
-      api.get('/artikel/admin/all', { params: { limit: 1 } }),
+    const [summaryRes, donasiRes] = await Promise.all([
+      api.get('/dashboard/summary', { params: { bulan: filterBulan.value, tahun: filterTahun.value } }),
       api.get('/donasi', { params: { status: 'PENDING', limit: 5 } }),
     ]);
-    upcomingKajian.value = kajianRes.data.data;
-    totalArtikel.value = artikelRes.data.meta?.total || 0;
+    summary.value = summaryRes.data.data;
+    upcomingKajian.value = summaryRes.data.data.upcomingKajian || [];
     pendingDonasi.value = donasiRes.data.data;
-    await donasiStore.fetchSummary();
-    kajianStore.meta.total = kajianRes.data.meta?.total || 0;
   } finally {
     loading.value = false;
   }
-});
+};
+
+onMounted(() => fetchDashboard());
 </script>
