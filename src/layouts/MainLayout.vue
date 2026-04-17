@@ -613,7 +613,7 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -71px;
+  bottom: -67px;
 
   display: flex;
   justify-content: center;
