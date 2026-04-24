@@ -44,9 +44,9 @@
           <!-- Maps Embed -->
           <q-card flat bordered class="rounded-xl overflow-hidden q-mb-lg">
             <iframe
-              src="https://www.google.com/maps?q=Masjid%20SYAIKH%20HAMAD%20AL%20HAMAD%20IMAM%20ASY-SYAFI%27I%20MAIS%2C%20-6.4143689%2C106.8381553&z=17&output=embed"
+              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3964.8417912064397!2d106.83339169678953!3d-6.414368899999997!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69ebc905d63461%3A0x64a3c1af142e71a4!2sMasjid%20SYAIKH%20HAMAD%20AL%20HAMAD%2F%20IMAM%20ASY-SYAFI'I%20(MAIS)!5e0!3m2!1sen!2sus!4v1777016194573!5m2!1sen!2sus"
               width="100%"
-              height="280"
+              height="250"
               style="border: 0"
               allowfullscreen=""
               loading="lazy"

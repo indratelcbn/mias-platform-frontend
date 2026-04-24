@@ -173,12 +173,16 @@
                 </q-select>
 
                 <q-input
-                  v-model.number="form.jumlah"
+                  v-model="displayJumlah"
                   outlined
                   label="Jumlah Infaq *"
-                  type="number"
-                  prefix="Rp"
-                  :rules="[val => val > 0 || 'Jumlah infaq harus diisi']"
+                  type="text"
+                  placeholder="Rp 0,-"
+                  inputmode="numeric"
+                  :rules="[val => {
+                    const num = parseInt(val.replace(/\D/g, ''));
+                    return num > 0 || 'Jumlah infaq harus diisi';
+                  }]"
                 >
                   <template #prepend><q-icon name="payments" /></template>
                 </q-input>
@@ -196,7 +200,7 @@
                       :color="form.jumlah === nominal ? 'primary' : 'grey'"
                       :outline="form.jumlah !== nominal"
                       style="border-radius: 8px; font-size: 12px"
-                      @click="form.jumlah = nominal"
+                      @click="selectQuickAmount(nominal)"
                     />
                   </div>
                 </div>
@@ -242,16 +246,12 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { useDonasiStore } from 'src/stores/donasi';
 
 const donasiStore = useDonasiStore();
 const copied = ref(null);
-
-// Ambil rekening pertama yang punya QRIS untuk ditampilkan
-const qrisRekening = computed(() =>
-  donasiStore.rekeningList.find((r) => r.isActive && r.qrisImage) || null
-);
+const inputJumlah = ref(''); // Raw input dari user
 
 const form = reactive({
   nama: '',
@@ -262,6 +262,33 @@ const form = reactive({
   jumlah: null,
   buktiTransfer: null,
   pesan: '',
+});
+
+const formatCurrency = (val) =>
+  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+
+// Ambil rekening pertama yang punya QRIS untuk ditampilkan
+const qrisRekening = computed(() =>
+  donasiStore.rekeningList.find((r) => r.isActive && r.qrisImage) || null
+);
+
+// Computed untuk display yang otomatis format (tanpa side effect)
+const displayJumlah = computed({
+  get() {
+    const numOnly = inputJumlah.value.replace(/\D/g, '');
+    const num = parseInt(numOnly, 10) || 0;
+    return num > 0 ? formatCurrency(num) : inputJumlah.value;
+  },
+  set(val) {
+    inputJumlah.value = val;
+  }
+});
+
+// Watch untuk update form.jumlah (side effect)
+watch(inputJumlah, (newVal) => {
+  const numOnly = newVal.replace(/\D/g, '');
+  const num = parseInt(numOnly, 10) || 0;
+  form.jumlah = num;
 });
 
 const jenisOptions = [
@@ -291,13 +318,15 @@ const onJenisChange = () => {
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000];
 
-const formatCurrency = (val) =>
-  new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
-
 const copyRekening = async (rek) => {
   await navigator.clipboard.writeText(rek.noRekening);
   copied.value = rek.id;
   setTimeout(() => (copied.value = null), 2000);
+};
+
+const selectQuickAmount = (nominal) => {
+  form.jumlah = nominal;
+  inputJumlah.value = String(nominal);
 };
 
 const submitDonasi = async () => {
@@ -311,6 +340,7 @@ const submitDonasi = async () => {
     form.jumlah = null;
     form.buktiTransfer = null;
     form.pesan = '';
+    inputJumlah.value = '';
   }
 };
 
