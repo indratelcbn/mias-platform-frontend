@@ -4,7 +4,7 @@
     <q-header
   elevated
   class="bg-white text-dark"
-  style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000;"
+  style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; overflow: visible;"
 >
     <!-- <q-header elevated class="bg-white text-dark" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1)"> -->
       <q-toolbar class="q-px-md" style="min-height: 50px">
@@ -613,19 +613,21 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -67px;
+  bottom: -71px;
 
   display: flex;
   justify-content: center;
   z-index: 10;
 
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition: opacity 0.35s ease, clip-path 0.35s ease;
   opacity: 1;
-  transform: translateY(0);
+  clip-path: inset(0 0 0 0 round 9999px);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 .jadwal-bar-hidden {
   opacity: 0;
-  transform: translateY(-20px);
+  clip-path: inset(100% 0 0 0 round 9999px);
   pointer-events: none;
 }
 
@@ -634,14 +636,16 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   width: min(62vw, 1020px);
   max-width: calc(100% - 48px);
 
-background: linear-gradient(
-  90deg,
-  rgba(22, 94, 181, 0.7),
-  rgba(30, 99, 183, 0.7)
-);
+  background: linear-gradient(
+    90deg,
+    rgba(22, 94, 181, 0.7),
+    rgba(30, 99, 183, 0.7)
+  );
   color: #ffffff;
 
-  border-radius: 0 0 9999px 9999px;
+  border-radius: 20px 20px 9999px 9999px;
+  overflow: hidden;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), 100% 100%, 0 100%, 0 calc(100% - 20px));
 
   padding: 8px 40px 14px;
 
@@ -650,6 +654,7 @@ background: linear-gradient(
   justify-content: center;
 
   box-shadow: 0 12px 28px rgba(20, 60, 160, 0.25);
+  backface-visibility: hidden;
 }
 .jadwal-bar-inner {
   display: flex;
