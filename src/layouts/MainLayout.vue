@@ -186,7 +186,7 @@
           <q-btn
             flat
             no-caps
-            label="Artikel"
+            label="Berita & Artikel"
             to="/artikel"
             color="dark"
             class="nav-btn"
