@@ -350,6 +350,11 @@
                 <q-badge :color="props.value === 'RUTIN' ? 'primary' : 'deep-orange'" :label="props.value" />
               </q-td>
             </template>
+            <template #body-cell-hari="props">
+              <q-td class="text-center">
+                {{ props.row.jenis === 'RUTIN' ? (props.value || '-') : '-' }}
+              </q-td>
+            </template>
             <template #body-cell-waktu="props">
               <q-td class="text-center">
                 {{ props.row.jenis === 'RUTIN' ? (props.value || '-') : '-' }}
@@ -403,6 +408,16 @@
                 :rules="[v => !!v || 'Wajib']"
               />
               <template v-if="pmForm.jenis === 'RUTIN'">
+                <q-select
+                  v-model="pmForm.hari"
+                  outlined dense
+                  label="Hari"
+                  :options="hariOptions"
+                  emit-value map-options
+                  multiple
+                  use-chips
+                  clearable
+                />
                 <q-select
                   v-model="pmForm.waktu"
                   outlined dense
@@ -720,12 +735,22 @@ const pmSaving  = ref(false);
 const pmFotoFile = ref(null);
 const pmPreview  = ref('');
 const pmForm = reactive({
-  nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: ''
+  nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: ''
 });
 
 const jenisPemateriOptions = [
   { label: 'Kajian Rutin', value: 'RUTIN' },
   { label: 'Kajian Tematik', value: 'TEMATIK' },
+];
+
+const hariOptions = [
+  { label: 'Senin',  value: 'Senin' },
+  { label: 'Selasa', value: 'Selasa' },
+  { label: 'Rabu',   value: 'Rabu' },
+  { label: 'Kamis',  value: 'Kamis' },
+  { label: "Jum'at", value: "Jum'at" },
+  { label: 'Sabtu',  value: 'Sabtu' },
+  { label: 'Ahad',   value: 'Ahad' },
 ];
 
 const waktuOptions = [
@@ -746,6 +771,7 @@ const pemateriCols = [
   { name: 'foto',       label: 'Foto',       field: 'foto',       align: 'center' },
   { name: 'nama',       label: 'Nama',       field: 'nama',       align: 'left', sortable: true },
   { name: 'jenis',      label: 'Jenis',      field: 'jenis',      align: 'center' },
+  { name: 'hari',       label: 'Hari',       field: 'hari',       align: 'center' },
   { name: 'waktu',      label: 'Waktu',      field: 'waktu',      align: 'center' },
   { name: 'jam',        label: 'Jam',        field: 'jam',        align: 'center' },
   { name: 'kitab',      label: 'Kitab',      field: 'kitab',      align: 'left' },
@@ -761,6 +787,7 @@ function openPemateriDialog(row = null) {
   if (row) {
     Object.assign(pmForm, {
       nama: row.nama, jenis: row.jenis,
+      hari: row.hari ? row.hari.split(', ') : [],
       waktu: row.waktu ? row.waktu.split(', ') : [],
       jam: row.jam || null,
       kitab: row.kitab || '', keterangan: row.keterangan || '', youtube: row.youtube || '',
@@ -768,7 +795,7 @@ function openPemateriDialog(row = null) {
     });
   } else {
     Object.assign(pmForm, {
-      nama: '', jenis: 'RUTIN', waktu: [], jam: null, kitab: '', keterangan: '', youtube: '',
+      nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '',
       urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
     });
   }
@@ -789,6 +816,7 @@ async function savePemateri() {
   fd.append('nama', pmForm.nama);
   fd.append('jenis', pmForm.jenis);
   if (pmForm.jenis === 'RUTIN') {
+    if (pmForm.hari.length)  fd.append('hari', pmForm.hari.join(', '));
     if (pmForm.waktu.length) fd.append('waktu', pmForm.waktu.join(', '));
     if (pmForm.jam)   fd.append('jam', pmForm.jam);
   }
