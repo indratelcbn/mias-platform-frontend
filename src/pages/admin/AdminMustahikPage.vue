@@ -24,6 +24,18 @@
       <div class="col-6 col-sm-3">
         <q-select v-model="filterBerhak" outlined dense :options="berhakFilterOpts" emit-value map-options clearable label="Berhak" @update:model-value="loadData" />
       </div>
+      <div class="col-6 col-sm-2">
+        <q-select v-model="filterRt" outlined dense :options="rtFilterOpts" emit-value map-options clearable label="RT" @update:model-value="loadData" />
+      </div>
+      <div class="col-6 col-sm-2">
+        <q-select v-model="filterRw" outlined dense :options="rwFilterOpts" emit-value map-options clearable label="RW" @update:model-value="loadData" />
+      </div>
+      <div class="col-6 col-sm-3">
+        <q-select v-model="filterStatus" outlined dense :options="statusFilterOpts" emit-value map-options clearable label="Status" @update:model-value="loadData" />
+      </div>
+      <div class="col-6 col-sm-3">
+        <q-select v-model="filterPrioritas" outlined dense :options="prioritasFilterOpts" emit-value map-options clearable label="Prioritas" @update:model-value="loadData" />
+      </div>
     </div>
 
     <!-- Table -->
@@ -37,11 +49,28 @@
         :pagination="{ rowsPerPage: 0 }"
         hide-pagination
       >
+        <template #body-cell-no="props">
+          <q-td class="text-center text-weight-medium text-grey-8">
+            {{ ((mustahikStore.meta.page - 1) * mustahikStore.meta.limit) + props.rowIndex + 1 }}
+          </q-td>
+        </template>
         <template #body-cell-kategori="props">
           <q-td><q-badge :color="kategoriColor(props.value)" :label="kategoriLabel(props.value)" /></q-td>
         </template>
         <template #body-cell-berhak="props">
           <q-td><q-badge color="blue-grey" :label="berhakLabel(props.value)" /></q-td>
+        </template>
+        <template #body-cell-status="props">
+          <q-td class="text-center">
+            <q-badge v-if="props.value" :color="statusColor(props.value)" :label="statusLabel(props.value)" />
+            <span v-else class="text-grey-5">—</span>
+          </q-td>
+        </template>
+        <template #body-cell-prioritas="props">
+          <q-td class="text-center">
+            <q-badge v-if="props.value" :color="prioritasColor(props.value)" :label="prioritasLabel(props.value)" />
+            <span v-else class="text-grey-5">—</span>
+          </q-td>
         </template>
         <template #body-cell-actions="props">
           <q-td>
@@ -79,6 +108,15 @@
 
             <div class="row q-col-gutter-sm">
               <div class="col-6">
+                <q-select v-model="form.rt" outlined label="RT" :options="rtOpts" emit-value map-options clearable />
+              </div>
+              <div class="col-6">
+                <q-select v-model="form.rw" outlined label="RW" :options="rwOpts" emit-value map-options clearable />
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-sm">
+              <div class="col-6">
                 <q-input v-model="form.kabKota" outlined label="Kab/Kota" />
               </div>
               <div class="col-6">
@@ -87,6 +125,15 @@
             </div>
 
             <q-input v-model="form.telepon" outlined label="No. Telepon" />
+
+            <div class="row q-col-gutter-sm">
+              <div class="col-6">
+                <q-select v-model="form.status" outlined label="Status" :options="statusOpts" emit-value map-options clearable />
+              </div>
+              <div class="col-6">
+                <q-select v-model="form.prioritas" outlined label="Prioritas" :options="prioritasOpts" emit-value map-options clearable />
+              </div>
+            </div>
 
             <q-select
               v-model="form.kategori"
@@ -135,6 +182,10 @@ const saving = ref(false);
 const search = ref('');
 const filterKategori = ref(null);
 const filterBerhak = ref(null);
+const filterStatus = ref(null);
+const filterPrioritas = ref(null);
+const filterRt = ref(null);
+const filterRw = ref(null);
 const currentPage = ref(1);
 const fileInput = ref(null);
 
@@ -155,52 +206,91 @@ const berhakOpts = [
   { label: 'Semua', value: 'SEMUA' },
 ];
 
+const rtOpts = Array.from({ length: 7 }, (_, i) => {
+  const v = `RT-${String(i + 1).padStart(2, '0')}`;
+  return { label: v, value: v };
+});
+const rwOpts = Array.from({ length: 4 }, (_, i) => {
+  const v = `RW-${String(i + 1).padStart(2, '0')}`;
+  return { label: v, value: v };
+});
+
+const statusOpts = [
+  { label: "Jama'ah", value: 'JAMAAH' },
+  { label: 'Warga', value: 'WARGA' },
+  { label: 'Warga Luar', value: 'WARGA_LUAR' },
+];
+
+const prioritasOpts = [
+  { label: 'Prioritas 1', value: 'PRIORITAS_1' },
+  { label: 'Prioritas 2', value: 'PRIORITAS_2' },
+  { label: 'Prioritas 3', value: 'PRIORITAS_3' },
+];
+
 const kategoriFilterOpts = [{ label: 'Semua Kategori', value: null }, ...kategoriOpts];
 const berhakFilterOpts = [{ label: 'Semua Hak', value: null }, ...berhakOpts];
+const statusFilterOpts = [{ label: 'Semua Status', value: null }, ...statusOpts];
+const prioritasFilterOpts = [{ label: 'Semua Prioritas', value: null }, ...prioritasOpts];
+const rtFilterOpts = [{ label: 'Semua RT', value: null }, ...rtOpts];
+const rwFilterOpts = [{ label: 'Semua RW', value: null }, ...rwOpts];
 
 const KATEGORI_COLORS = {
   YATIM: 'indigo', JANDA: 'purple', FAKIR: 'red-8', MISKIN: 'orange-9',
   GHARIM: 'cyan-8', FII_SABILILLAH: 'green-8', MUSAFIR: 'teal',
 };
+const STATUS_COLORS = { JAMAAH: 'green-7', WARGA: 'blue-7', WARGA_LUAR: 'grey-7' };
+const PRIORITAS_COLORS = { PRIORITAS_1: 'red-7', PRIORITAS_2: 'orange-8', PRIORITAS_3: 'amber-8' };
+
 const kategoriColor = (k) => KATEGORI_COLORS[k] || 'grey';
 const kategoriLabel = (k) => kategoriOpts.find(o => o.value === k)?.label ?? k;
 const berhakLabel = (k) => berhakOpts.find(o => o.value === k)?.label ?? k;
+const statusColor = (k) => STATUS_COLORS[k] || 'grey';
+const statusLabel = (k) => statusOpts.find(o => o.value === k)?.label ?? k;
+const prioritasColor = (k) => PRIORITAS_COLORS[k] || 'grey';
+const prioritasLabel = (k) => prioritasOpts.find(o => o.value === k)?.label ?? k;
 
 const columns = [
+  { name: 'no', label: 'No', field: 'no', align: 'center', style: 'width: 56px' },
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left', sortable: true },
   { name: 'alamat', label: 'Alamat', field: 'alamat', align: 'left' },
+  { name: 'rt', label: 'RT', field: 'rt', align: 'center' },
+  { name: 'rw', label: 'RW', field: 'rw', align: 'center' },
   { name: 'kabKota', label: 'Kab/Kota', field: 'kabKota', align: 'left' },
   { name: 'provinsi', label: 'Provinsi', field: 'provinsi', align: 'left' },
   { name: 'telepon', label: 'No. Telp', field: 'telepon', align: 'left' },
   { name: 'kategori', label: 'Kategori', field: 'kategori', align: 'center' },
   { name: 'berhak', label: 'Berhak', field: 'berhak', align: 'center' },
+  { name: 'status', label: 'Status', field: 'status', align: 'center' },
+  { name: 'prioritas', label: 'Prioritas', field: 'prioritas', align: 'center' },
   { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ];
 
 const emptyForm = () => ({
-  id: null, nama: '', alamat: '', kabKota: '', provinsi: '', telepon: '', kategori: 'FAKIR', berhak: 'SEMUA',
+  id: null, nama: '', alamat: '', rt: null, rw: null, kabKota: '', provinsi: '', telepon: '',
+  kategori: 'FAKIR', berhak: 'SEMUA', status: null, prioritas: null,
 });
 const form = ref(emptyForm());
+
+const filterParams = () => ({
+  search: search.value || undefined,
+  kategori: filterKategori.value || undefined,
+  berhak: filterBerhak.value || undefined,
+  status: filterStatus.value || undefined,
+  prioritas: filterPrioritas.value || undefined,
+  rt: filterRt.value || undefined,
+  rw: filterRw.value || undefined,
+});
 
 const loadData = () => {
   currentPage.value = 1;
   mustahikStore.setPage(1);
-  mustahikStore.fetchAll({
-    search: search.value || undefined,
-    kategori: filterKategori.value || undefined,
-    berhak: filterBerhak.value || undefined,
-  });
+  mustahikStore.fetchAll(filterParams());
 };
 
 const onPageChange = (page) => {
   currentPage.value = page;
   mustahikStore.setPage(page);
-  mustahikStore.fetchAll({
-    page,
-    search: search.value || undefined,
-    kategori: filterKategori.value || undefined,
-    berhak: filterBerhak.value || undefined,
-  });
+  mustahikStore.fetchAll({ page, ...filterParams() });
 };
 
 const openDialog = (row = null) => {
@@ -274,6 +364,18 @@ const handleImportFile = async (e) => {
       else if (h.includes('telp') || h.includes('telepon') || h.includes('hp')) row.telepon = val;
       else if (h === 'kategori') row.kategori = val.toUpperCase().replace(/ /g, '_');
       else if (h === 'berhak') row.berhak = val.toUpperCase().replace(/ /g, '_');
+      else if (h === 'rt') row.rt = val;
+      else if (h === 'rw') row.rw = val;
+      else if (h === 'status') {
+        const s = val.toUpperCase().replace(/[' ]/g, '').replace('JAMAAH', 'JAMAAH');
+        if (s.includes('LUAR')) row.status = 'WARGA_LUAR';
+        else if (s.includes('WARGA')) row.status = 'WARGA';
+        else if (s.includes('JAMA')) row.status = 'JAMAAH';
+      }
+      else if (h === 'prioritas') {
+        const m = val.match(/[1-3]/);
+        if (m) row.prioritas = `PRIORITAS_${m[0]}`;
+      }
     });
     if (row.nama) records.push(row);
   }
@@ -302,16 +404,21 @@ const exportCsv = async () => {
   const data = await mustahikStore.exportData({
     kategori: filterKategori.value || undefined,
     berhak: filterBerhak.value || undefined,
+    status: filterStatus.value || undefined,
+    prioritas: filterPrioritas.value || undefined,
+    rt: filterRt.value || undefined,
+    rw: filterRw.value || undefined,
   });
   if (!data || !data.length) {
     $q.notify({ type: 'warning', message: 'Tidak ada data untuk diekspor.' });
     return;
   }
 
-  const headers = ['Nama', 'Alamat', 'Kab/Kota', 'Provinsi', 'Telepon', 'Kategori', 'Berhak'];
+  const headers = ['Nama', 'Alamat', 'RT', 'RW', 'Kab/Kota', 'Provinsi', 'Telepon', 'Kategori', 'Berhak', 'Status', 'Prioritas'];
   const rows = data.map(d => [
-    d.nama, d.alamat || '', d.kabKota || '', d.provinsi || '', d.telepon || '',
+    d.nama, d.alamat || '', d.rt || '', d.rw || '', d.kabKota || '', d.provinsi || '', d.telepon || '',
     kategoriLabel(d.kategori), berhakLabel(d.berhak),
+    d.status ? statusLabel(d.status) : '', d.prioritas ? prioritasLabel(d.prioritas) : '',
   ]);
 
   const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
