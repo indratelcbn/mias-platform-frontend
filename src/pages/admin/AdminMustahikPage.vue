@@ -206,11 +206,11 @@ const berhakOpts = [
   { label: 'Semua', value: 'SEMUA' },
 ];
 
-const rtOpts = Array.from({ length: 7 }, (_, i) => {
+const rtOpts = Array.from({ length: 10 }, (_, i) => {
   const v = `RT-${String(i + 1).padStart(2, '0')}`;
   return { label: v, value: v };
 });
-const rwOpts = Array.from({ length: 4 }, (_, i) => {
+const rwOpts = Array.from({ length: 10 }, (_, i) => {
   const v = `RW-${String(i + 1).padStart(2, '0')}`;
   return { label: v, value: v };
 });
