@@ -260,11 +260,21 @@
                 v-for="(item, i) in prayerItems"
                 :key="item.name"
                 class="prayer-item row items-center no-wrap"
-                :class="currentPrayer === item.name ? 'prayer-item--active' : ''"
+                :class="{
+                  'prayer-item--active': currentPrayer === item.name,
+                  'prayer-item--next': nextPrayer === item.name
+                }"
               >
                 <span class="text-caption q-mr-xs" style="opacity: 0.78; font-size: 11px">{{ item.name }}</span>
                 <span class="text-weight-bold" style="font-size: 13px; letter-spacing: 0.4px">{{ item.time }}</span>
                 <q-icon v-if="currentPrayer === item.name" name="notifications_active" size="12px" class="q-ml-xs" style="opacity: 0.9" />
+                 <q-tooltip v-if="currentPrayer === item.name" anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                  Sekarang
+                </q-tooltip>
+                <q-icon v-if="nextPrayer === item.name" name="schedule" size="12px" class="q-ml-xs" style="opacity: 0.9" />
+                <q-tooltip v-if="nextPrayer === item.name" anchor="top middle" self="bottom middle" :offset="[0, 8]">
+                  Sholat Selanjutnya
+                </q-tooltip>
                 <span v-if="i < prayerItems.length - 1" class="q-mx-sm" style="opacity: 0.3; font-size: 16px">|</span>
               </div>
             </div>
@@ -515,6 +525,27 @@ const currentPrayer = computed(() => {
   return null;
 });
 
+const nextPrayer = computed(() => {
+  if (!prayerTimingsRaw.value) return null;
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const toMin = (s) => { if (!s) return -1; const [h, m] = s.split(':').map(Number); return h * 60 + m; };
+  const items = prayerItems.value;
+  for (let i = 0; i < items.length; i++) {
+    const cur = toMin(items[i].time);
+    const nxt = i + 1 < items.length ? toMin(items[i + 1].time) : Infinity;
+    if (nowMin >= cur && nowMin < nxt) {
+      // Return next prayer after current
+      return i + 1 < items.length ? items[i + 1].name : 'Subuh';
+    }
+  }
+  // If we're past all prayers, next one is Subuh tomorrow
+  if (nowMin >= toMin(items[items.length - 1].time)) {
+    return 'Subuh';
+  }
+  return null;
+});
+
 onMounted(async () => {
   try {
     const today = new Date();
@@ -688,6 +719,14 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   background: rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   padding: 3px 12px;
+}
+
+/* NEXT */
+.prayer-item--next {
+  background: rgba(255, 183, 77, 0.35);
+  border-radius: 999px;
+  padding: 3px 12px;
+  border: 1px solid rgba(255, 193, 7, 0.5);
 }
 
 /* RESPONSIVE */

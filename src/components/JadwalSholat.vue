@@ -18,11 +18,12 @@
           flat
           :class="[
             'rounded-xl text-center q-pa-xs cursor-pointer jadwal-card',
-            isCurrentPrayer(name) ? 'bg-primary text-white' : 'bg-white'
+            isCurrentPrayer(name) ? 'bg-primary text-white' : 
+            isNextPrayer(name) ? 'bg-orange-1 border-orange' : 'bg-white'
           ]"
         >
           <q-card-section class="q-pa-md">
-            <div class="text-caption text-weight-bold" :class="isCurrentPrayer(name) ? 'text-white' : 'text-grey-6'">
+            <div class="text-caption text-weight-bold" :class="isCurrentPrayer(name) ? 'text-white' : isNextPrayer(name) ? 'text-orange-9' : 'text-grey-6'">
               {{ name }}
             </div>
             <div class="text-h6 text-weight-bold q-mt-xs">{{ waktu }}</div>
@@ -31,6 +32,13 @@
               color="white"
               text-color="primary"
               label="Sekarang"
+              class="q-mt-sm"
+            />
+            <q-badge
+              v-if="isNextPrayer(name)"
+              color="orange"
+              text-color="white"
+              label="Selanjutnya"
               class="q-mt-sm"
             />
           </q-card-section>
@@ -114,6 +122,37 @@ const isCurrentPrayer = (name) => {
   return false;
 };
 
+const isNextPrayer = (name) => {
+  if (!jadwal.value) return false;
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const times = jadwalDisplay.value;
+
+  const getMinutes = (timeStr) => {
+    if (!timeStr) return -1;
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const prayers = prayerOrder.map((p) => ({ name: p, minutes: getMinutes(times[p]) }));
+
+  for (let i = 0; i < prayers.length; i++) {
+    const current = prayers[i];
+    const next = prayers[i + 1];
+    if (nowMinutes >= current.minutes && (!next || nowMinutes < next.minutes)) {
+      // Return true if this is the next prayer after current
+      return next && name === next.name;
+    }
+  }
+  
+  // If we're past all prayers, the next one is Subuh tomorrow
+  if (nowMinutes >= prayers[prayers.length - 1].minutes) {
+    return name === 'Subuh';
+  }
+  
+  return false;
+};
+
 const fetchJadwal = async () => {
   loading.value = true;
   error.value = false;
@@ -141,5 +180,8 @@ onMounted(fetchJadwal);
 .jadwal-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(27, 122, 74, 0.15);
+}
+.border-orange {
+  border: 2px solid #f2711c;
 }
 </style>
