@@ -14,9 +14,21 @@
   <img src="/LOGO MIAS.png" style="width: 62px; height: 62px; object-fit: contain;" />
 </q-avatar>
           <div class="column no-wrap">
-            <span class="text-weight-bold text-primary" style="font-size: 13px; line-height: 1.2">
-              Masjid Imam Asy Syafi'i
-            </span>
+            <div class="row items-center no-wrap">
+              <span class="text-weight-bold text-primary" style="font-size: 13px; line-height: 1.2">
+                Masjid Imam Asy Syafi'i
+              </span>
+              <q-badge
+                v-if="isLiveStreaming"
+                color="red"
+                text-color="white"
+                class="q-ml-sm live-badge"
+                @click.prevent="goToLiveStream"
+              >
+                <q-icon name="circle" size="8px" class="q-mr-xs" />
+                LIVE
+              </q-badge>
+            </div>
             <span class="text-grey-6" style="font-size: 11px">Depok</span>
           </div>
         </router-link>
@@ -472,9 +484,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import FooterComp from 'src/components/FooterComp.vue';
+import { useStreamingStore } from 'src/stores/streaming';
 
 // ─── Jadwal Sholat Bar ──────────────────────────────────────────────────────
 const prayerTimingsRaw = ref(null);
@@ -546,6 +559,18 @@ const nextPrayer = computed(() => {
   return null;
 });
 
+// ─── Live Streaming ─────────────────────────────────────────────────────────
+const streamingStore = useStreamingStore();
+let liveStreamInterval = null;
+
+const isLiveStreaming = computed(() => {
+  return streamingStore.active !== null && streamingStore.active !== undefined;
+});
+
+const goToLiveStream = () => {
+  router.push('/dakwah/mias-tv');
+};
+
 onMounted(async () => {
   try {
     const today = new Date();
@@ -556,6 +581,14 @@ onMounted(async () => {
     prayerTimingsRaw.value = data.data.timings;
     prayerDateRaw.value = data.data.date?.gregorian || null;
   } catch { /* gagal muat jadwal sholat — bar disembunyikan */ }
+  
+  // Fetch live streaming status
+  streamingStore.fetchActive();
+  
+  // Poll for live streaming status every 60 seconds
+  liveStreamInterval = setInterval(() => {
+    streamingStore.fetchActive();
+  }, 60000);
 });
 
 // ─── Show/Hide Jadwal Bar on Scroll ─────────────────────────────────────────
@@ -568,10 +601,14 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll);
+  if (liveStreamInterval) {
+    clearInterval(liveStreamInterval);
+  }
 });
 
 const drawer = ref(false);
 const route = useRoute();
+const router = useRouter();
 
 const simpleNavItems = [
   { name: 'home', label: 'Beranda', to: '/', icon: 'home' },
@@ -633,6 +670,27 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   color: var(--q-primary) !important;
 }
 
+/* Live Badge Animation */
+.live-badge {
+  animation: pulse-live 1.5s ease-in-out infinite;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse-live {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
 /* 🔥 HEADER HARUS RELATIVE */
 .q-header {
   position: relative;
@@ -644,7 +702,7 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -71px;
+  bottom: -73px;
 
   display: flex;
   justify-content: center;
