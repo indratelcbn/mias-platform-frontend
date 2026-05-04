@@ -5,7 +5,7 @@
         <q-img
           v-if="artikel.thumbnail"
           :src="artikel.thumbnail"
-          height="200px"
+          height="500px"
           fit="cover"
           class="artikel-thumb"
         />
