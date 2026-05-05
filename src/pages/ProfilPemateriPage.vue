@@ -191,7 +191,7 @@ const tab = ref('RUTIN');
 const HARI_ORDER = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Ahad'];
 
 const waktuOrder = { 'Pekan 1': 1, 'Pekan 2': 2, 'Pekan 3': 3, 'Pekan 4': 4, 'Pekan 5': 5 };
-const jamOrder = { "Ba'da Shubuh - Selesai": 1, '09.00 - 12.00 WIB': 2, "Ba'da Maghrib - Selesai": 3 };
+const jamOrder = { "Ba'da Shubuh - Selesai": 1, "08.30 - 11.00 WIB": 2, '09.00 - 12.00 WIB': 3, "Ba'da Maghrib - Selesai": 4 };
 
 function firstWaktuRank(waktu) {
   if (!waktu) return 99;

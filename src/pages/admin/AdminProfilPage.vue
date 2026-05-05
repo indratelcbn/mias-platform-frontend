@@ -762,8 +762,9 @@ const waktuOptions = [
 ];
 
 const jamOptions = [
-  { label: '09.00 - 12.00 WIB',         value: '09.00 - 12.00 WIB' },
   { label: "Ba'da Shubuh - Selesai",     value: "Ba'da Shubuh - Selesai" },
+  { label: '08.30 - 11.00 WIB',         value: '08.30 - 11.00 WIB' },
+  { label: '09.00 - 12.00 WIB',         value: '09.00 - 12.00 WIB' },
   { label: "Ba'da Maghrib - Selesai",    value: "Ba'da Maghrib - Selesai" },
 ];
 
