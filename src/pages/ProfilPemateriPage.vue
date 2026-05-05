@@ -274,7 +274,6 @@ const rutinColumns = [
 
 const tematikColumns = [
   { name: 'no',         label: 'No',               field: 'no',         align: 'center', style: 'width: 56px' },
-  { name: 'foto',       label: 'Foto',             field: 'foto',       align: 'center', style: 'width: 64px' },
   { name: 'nama',       label: 'Nama',             field: 'nama',       align: 'left',   sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
