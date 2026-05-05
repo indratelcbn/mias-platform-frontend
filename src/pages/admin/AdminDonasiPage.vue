@@ -223,6 +223,15 @@
           <q-form @submit="saveProgram" class="q-gutter-md">
             <q-input v-model="editProgram.judul" outlined label="Judul Program *" :rules="[v => !!v || 'Judul wajib diisi']" />
             <q-input v-model="editProgram.kode" outlined label="Kode Program" />
+            <q-select
+              v-model="editProgram.divisi"
+              :options="divisiOptions"
+              outlined
+              label="Divisi"
+              emit-value
+              map-options
+              clearable
+            />
             <q-input v-model="editProgram.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
             <q-input v-model="editProgram.target" outlined label="Target Infaq (Rp)" type="number" min="0" />
             <q-input v-model="editProgram.urutan" outlined label="Urutan Tampil" type="number" min="0" />
@@ -247,6 +256,14 @@
           <q-form @submit="saveWakaf" class="q-gutter-md">
             <q-input v-model="editWakaf.kegiatan" outlined label="Kegiatan *" :rules="[v => !!v || 'Kegiatan wajib diisi']" />
             <q-input v-model="editWakaf.kode" outlined label="Kode Program" />
+            <q-select
+              v-model="editWakaf.divisi"
+              :options="wakafDivisiOptions"
+              outlined
+              label="Divisi"
+              emit-value
+              map-options
+            />
             <q-input v-model="editWakaf.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
             <q-input v-model="editWakaf.target" outlined label="Target Wakaf (Rp)" type="number" min="0" />
             <q-input v-model="editWakaf.urutan" outlined label="Urutan Tampil" type="number" min="0" />
@@ -324,6 +341,20 @@ const activeStatus = ref('');
 const buktiDialog = ref(false);
 const buktiUrl = ref('');
 
+const divisiOptions = [
+  { label: 'Dakwah', value: 'DAKWAH' },
+  { label: 'Sosial', value: 'SOSIAL' },
+  { label: 'Pendidikan', value: 'PENDIDIKAN' },
+  { label: 'Usaha', value: 'USAHA' },
+  { label: 'Multimedia', value: 'MULTIMEDIA' },
+  { label: 'Operasional', value: 'OPERASIONAL' },
+];
+const wakafDivisiOptions = [
+  { label: 'Wakaf', value: 'WAKAF' },
+];
+const allDivisiOptions = [...divisiOptions, ...wakafDivisiOptions];
+const divisiLabel = (val) => allDivisiOptions.find((o) => o.value === val)?.label || '-';
+
 // ─── Program Infaq ───────────────────────────────────────────────────────────
 const programDialog = ref(false);
 const editProgram = ref({});
@@ -331,7 +362,7 @@ const editProgram = ref({});
 const openProgramDialog = (row = null) => {
   editProgram.value = row
     ? { ...row, target: Number(row.target), terkumpul: Number(row.terkumpul) }
-    : { judul: '', kode: '', deskripsi: '', target: '', terkumpul: 0, urutan: 0, isActive: true };
+    : { judul: '', kode: '', deskripsi: '', divisi: null, target: '', terkumpul: 0, urutan: 0, isActive: true };
   programDialog.value = true;
 };
 
@@ -421,6 +452,7 @@ const columns = [
 const programColumns = [
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'judul', label: 'Kegiatan', field: 'judul', align: 'left', sortable: true },
+  { name: 'divisi', label: 'Divisi', field: 'divisi', align: 'center', format: (v) => divisiLabel(v) },
   { name: 'target', label: 'Target', field: 'target', align: 'right' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
@@ -449,6 +481,7 @@ const editWakaf = ref({});
 const wakafColumns = [
   { name: 'kode', label: 'Kode', field: 'kode', align: 'left' },
   { name: 'kegiatan', label: 'Kegiatan', field: 'kegiatan', align: 'left', sortable: true },
+  { name: 'divisi', label: 'Divisi', field: 'divisi', align: 'center', format: (v) => divisiLabel(v) },
   { name: 'target', label: 'Target', field: 'target', align: 'right' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
@@ -458,8 +491,8 @@ const wakafColumns = [
 
 const openWakafDialog = (row = null) => {
   editWakaf.value = row
-    ? { ...row, target: Number(row.target || 0) }
-    : { kode: '', kegiatan: '', deskripsi: '', target: '', urutan: 0, isActive: true };
+    ? { ...row, target: Number(row.target || 0), divisi: row.divisi || 'WAKAF' }
+    : { kode: '', kegiatan: '', deskripsi: '', divisi: 'WAKAF', target: '', urutan: 0, isActive: true };
   wakafDialog.value = true;
 };
 

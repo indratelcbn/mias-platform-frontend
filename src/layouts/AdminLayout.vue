@@ -26,27 +26,58 @@
       <q-separator />
 
       <q-list padding>
-        <q-item
-          v-for="item in menuItems"
-          :key="item.name"
-          clickable
-          v-ripple
-          :to="item.to"
-          :active="$route.name === item.name"
-          active-class="active-menu-item"
-          style="border-radius: 8px; margin-bottom: 4px"
-        >
-          <q-item-section avatar>
-            <q-icon :name="item.icon" />
-          </q-item-section>
-          <q-item-section>{{ item.label }}</q-item-section>
-          <q-item-section v-if="item.name === 'admin-pesan' && unresolvedPesanCount > 0" side>
-            <q-badge color="negative" rounded :label="unresolvedPesanCount" />
-          </q-item-section>
-          <q-tooltip v-if="miniMode" anchor="center right" self="center left">
-            {{ item.label }}
-          </q-tooltip>
-        </q-item>
+        <template v-for="item in menuItems" :key="item.name">
+          <!-- Menu dengan submenu (expansion) -->
+          <q-expansion-item
+            v-if="item.children"
+            :icon="item.icon"
+            :label="item.label"
+            :default-opened="$route.path.startsWith(item.basePath)"
+            expand-separator
+            style="border-radius: 8px; margin-bottom: 4px"
+            header-class="text-weight-medium"
+          >
+            <q-list padding dense>
+              <q-item
+                v-for="child in item.children"
+                :key="child.name"
+                clickable
+                v-ripple
+                :to="child.to"
+                :active="$route.name === child.name"
+                active-class="active-menu-item"
+                style="border-radius: 8px; padding-left: 48px"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="child.icon" size="20px" />
+                </q-item-section>
+                <q-item-section>{{ child.label }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-expansion-item>
+
+          <!-- Menu biasa (tanpa submenu) -->
+          <q-item
+            v-else
+            clickable
+            v-ripple
+            :to="item.to"
+            :active="$route.name === item.name"
+            active-class="active-menu-item"
+            style="border-radius: 8px; margin-bottom: 4px"
+          >
+            <q-item-section avatar>
+              <q-icon :name="item.icon" />
+            </q-item-section>
+            <q-item-section>{{ item.label }}</q-item-section>
+            <q-item-section v-if="item.name === 'admin-pesan' && unresolvedPesanCount > 0" side>
+              <q-badge color="negative" rounded :label="unresolvedPesanCount" />
+            </q-item-section>
+            <q-tooltip v-if="miniMode" anchor="center right" self="center left">
+              {{ item.label }}
+            </q-tooltip>
+          </q-item>
+        </template>
       </q-list>
 
       <div class="absolute-bottom q-pb-md q-px-md">
@@ -228,6 +259,19 @@ const allMenuItems = [
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
   { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Infaq', to: '/admin/donasi', icon: 'volunteer_activism' },
+  { 
+    name: 'admin-finance', 
+    label: 'Keuangan', 
+    icon: 'account_balance_wallet',
+    basePath: '/admin/finance',
+    children: [
+      { name: 'admin-finance-dashboard', label: 'Dashboard', to: '/admin/finance/dashboard', icon: 'dashboard' },
+      { name: 'admin-finance-accounts', label: 'Akun', to: '/admin/finance/accounts', icon: 'account_balance' },
+      { name: 'admin-finance-transactions', label: 'Transaksi', to: '/admin/finance/transactions', icon: 'receipt_long' },
+      { name: 'admin-finance-reconciliation', label: 'Rekonsiliasi', to: '/admin/finance/reconciliation', icon: 'rule' },
+      { name: 'admin-finance-report', label: 'Laporan', to: '/admin/finance/report', icon: 'assessment' },
+    ]
+  },
   { name: 'admin-pesan', label: 'Pesan', to: '/admin/pesan', icon: 'mark_email_unread' },
   { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
   { name: 'admin-users', label: 'Pengguna', to: '/admin/users', icon: 'manage_accounts', superadminOnly: true },

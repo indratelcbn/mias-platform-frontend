@@ -134,13 +134,14 @@ const form = reactive({ nama: '', username: '', password: '', role: 'ADMIN' });
 const roleOptions = [
   { label: 'SUPERADMIN', value: 'SUPERADMIN' },
   { label: 'ADMIN', value: 'ADMIN' },
+  { label: 'KEUANGAN', value: 'KEUANGAN' },
   { label: 'SOSIAL', value: 'SOSIAL' },
   { label: 'DAKWAH', value: 'DAKWAH' },
   { label: 'PENDIDIKAN', value: 'PENDIDIKAN' },
   { label: 'USAHA', value: 'USAHA' },
 ];
 
-const editableRoles = ['ADMIN', 'SOSIAL', 'DAKWAH', 'PENDIDIKAN', 'USAHA'];
+const editableRoles = ['ADMIN', 'KEUANGAN', 'SOSIAL', 'DAKWAH', 'PENDIDIKAN', 'USAHA'];
 
 const allMenuOptions = [
   { value: 'admin-dashboard', label: 'Dashboard' },
@@ -154,9 +155,10 @@ const allMenuOptions = [
   { value: 'admin-usaha', label: 'Usaha' },
   { value: 'admin-artikel', label: 'Artikel' },
   { value: 'admin-donasi', label: 'Infaq' },
+  { value: 'admin-finance', label: 'Keuangan' },
+  { value: 'admin-qurban', label: 'Qurban' },
   { value: 'admin-pesan', label: 'Pesan' },
   { value: 'admin-setting', label: 'Pengaturan' },
-  { value: 'admin-qurban', label: 'Qurban' },
 ];
 
 const permForm = reactive({});
@@ -170,7 +172,7 @@ const columns = [
 ];
 
 const roleColor = (role) => {
-  const map = { SUPERADMIN: 'deep-purple', ADMIN: 'primary', SOSIAL: 'teal', DAKWAH: 'orange', PENDIDIKAN: 'blue', USAHA: 'brown' };
+  const map = { SUPERADMIN: 'deep-purple', ADMIN: 'primary', KEUANGAN: 'green', SOSIAL: 'teal', DAKWAH: 'orange', PENDIDIKAN: 'blue', USAHA: 'brown' };
   return map[role] || 'grey';
 };
 
