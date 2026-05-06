@@ -18,6 +18,34 @@ export const useAuthStore = defineStore('auth', {
       if (state.user?.role === 'SUPERADMIN') return true;
       return state.permissions.includes(menuKey);
     },
+    // First admin route the current user is allowed to land on.
+    landingRoute: (state) => {
+      if (state.user?.role === 'SUPERADMIN') return 'admin-dashboard';
+      // Priority: dashboard > finance > donasi > kajian > artikel > pesan > galeri
+      // > streaming > sosial > mustahik > pendidikan > usaha > qurban > profil
+      // > setting > hero-banner > users
+      const order = [
+        ['admin-dashboard',  'admin-dashboard'],
+        ['admin-finance',    'admin-finance-dashboard'],
+        ['admin-donasi',     'admin-donasi'],
+        ['admin-kajian',     'admin-kajian'],
+        ['admin-artikel',    'admin-artikel'],
+        ['admin-pesan',      'admin-pesan'],
+        ['admin-galeri',     'admin-galeri'],
+        ['admin-streaming',  'admin-streaming'],
+        ['admin-sosial',     'admin-sosial'],
+        ['admin-mustahik',   'admin-mustahik'],
+        ['admin-pendidikan', 'admin-pendidikan'],
+        ['admin-usaha',      'admin-usaha'],
+        ['admin-profil',     'admin-profil'],
+        ['admin-setting',    'admin-setting'],
+        ['admin-users',      'admin-users'],
+      ];
+      for (const [perm, name] of order) {
+        if (state.permissions.includes(perm)) return name;
+      }
+      return null;
+    },
   },
 
   actions: {

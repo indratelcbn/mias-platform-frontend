@@ -103,18 +103,31 @@ export default route(function ({ store /*, ssrContext */ }) {
 
     // Redirect logged-in users away from guest-only pages
     if (to.meta.guestOnly && authStore.isLoggedIn) {
-      return next({ name: 'admin-dashboard' });
+      const landing = authStore.landingRoute || 'admin-dashboard';
+      return next({ name: landing });
     }
 
     // SUPERADMIN-only routes
     if (to.meta.superadminOnly && !authStore.isSuperadmin) {
-      return next({ name: 'admin-dashboard' });
+      const landing = authStore.landingRoute;
+      if (landing && landing !== to.name) return next({ name: landing });
+      return next(false);
     }
 
     // Permission-based guard for admin menu pages
     if (to.meta.menuKey && authStore.isLoggedIn) {
       if (!authStore.hasPermission(to.meta.menuKey)) {
-        return next({ name: 'admin-dashboard' });
+        const landing = authStore.landingRoute;
+        // Avoid infinite redirect: if user has no permitted page or already
+        // navigating to it, fall back to login.
+        if (!landing) {
+          authStore.logout();
+          return next({ name: 'admin-login' });
+        }
+        if (landing === to.name) {
+          return next(false);
+        }
+        return next({ name: landing });
       }
     }
 

@@ -103,7 +103,8 @@ const handleLogin = async () => {
     const recaptchaToken = await getRecaptchaToken();
     const ok = await authStore.login({ ...form, recaptchaToken });
     if (ok) {
-      router.push({ name: 'admin-dashboard' });
+      const landing = authStore.landingRoute || 'admin-dashboard';
+      router.push({ name: landing });
     }
   } catch {
     Notify.create({ type: 'negative', message: 'Gagal mendapatkan token reCAPTCHA. Periksa koneksi Anda.' });
