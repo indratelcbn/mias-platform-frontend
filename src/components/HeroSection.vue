@@ -104,15 +104,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 
-const stats = [
+const heroStats = ref({
+  totalKajian: 0,
+  totalPemateri: 0,
+  totalProgram: 0,
+});
+
+const stats = computed(() => [
   { value: '2012', label: 'Tahun Berdiri' },
-  { value: '40+', label: 'Jamaah Tetap' },
-  { value: '5+', label: 'Jadwal Kajian' },
-  { value: '10+', label: 'Santri Tahfizh' },
-];
+  { value: `${heroStats.value.totalKajian || 0}+`, label: 'Total Kajian' },
+  { value: `${heroStats.value.totalPemateri || 0}+`, label: 'Total Pemateri' },
+  { value: `${heroStats.value.totalProgram || 0}+`, label: 'Total Program' },
+]);
 
 const banners = ref([]);
 const current = ref(0);
@@ -128,6 +134,15 @@ async function fetchBanners() {
     banners.value = res.data.data || [];
   } catch {
     banners.value = [];
+  }
+}
+
+async function fetchHeroStats() {
+  try {
+    const res = await axios.get('/api/profil/hero-stats');
+    heroStats.value = res.data.data || heroStats.value;
+  } catch {
+    // keep defaults
   }
 }
 
@@ -158,7 +173,7 @@ function onScroll() {
 }
 
 onMounted(async () => {
-  await fetchBanners();
+  await Promise.all([fetchBanners(), fetchHeroStats()]);
   resetTimer();
   window.addEventListener('scroll', onScroll, { passive: true });
 });

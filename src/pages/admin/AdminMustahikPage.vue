@@ -5,8 +5,10 @@
         <q-icon name="people_alt" color="primary" class="q-mr-sm" />Data Mustahik
       </div>
       <div class="row q-gutter-sm">
+        <q-btn outline color="grey-8" icon="description" label="Template CSV" no-caps @click="downloadTemplate" />
         <q-btn outline color="teal" icon="upload_file" label="Import CSV" no-caps @click="triggerImport" />
-        <q-btn outline color="secondary" icon="download" label="Export CSV" no-caps @click="exportCsv" />
+        <q-btn outline color="green-7" icon="download" label="Export Excel" no-caps :loading="exportingExcel" @click="exportExcel" />
+        <q-btn outline color="red-7" icon="picture_as_pdf" label="Export PDF" no-caps :loading="exportingPdf" @click="exportPdf" />
         <q-btn unelevated color="primary" icon="add" label="Tambah Mustahik" no-caps @click="openDialog()" />
       </div>
     </div>
@@ -332,6 +334,55 @@ const confirmDelete = (row) => {
 };
 
 // ─── Import CSV ──────────────────────────────────────────────────────────────
+const downloadTemplate = () => {
+  const headers = [
+    'nama', 'alamat', 'rt', 'rw', 'kabKota', 'provinsi', 'telepon',
+    'kategori', 'berhak', 'status', 'prioritas',
+  ];
+  const sampleRows = [
+    [
+      'Ahmad Yusuf', 'Jl. Mawar No. 12', '003', '005', 'Depok', 'Jawa Barat', '081234567890',
+      'YATIM', 'PENERIMA_BANTUAN_MIAS', 'JAMAAH', 'PRIORITAS_1',
+    ],
+    [
+      'Siti Aminah', 'Jl. Melati No. 7', '004', '005', 'Depok', 'Jawa Barat', '082112223344',
+      'JANDA', 'PENERIMA_ZAKAT_MAL', 'WARGA', 'PRIORITAS_2',
+    ],
+    [
+      'Bapak Sulaiman', 'Jl. Anggrek No. 3', '002', '006', 'Depok', 'Jawa Barat', '',
+      'FAKIR', 'SEMUA', 'WARGA_LUAR', 'PRIORITAS_3',
+    ],
+  ];
+
+  // Petunjuk pengisian (komentar di akhir)
+  const notes = [
+    [],
+    ['# PETUNJUK PENGISIAN'],
+    ['# Pisahkan kolom dengan titik koma (;). Hapus baris yang diawali "#" sebelum import.'],
+    ['# kategori: YATIM | JANDA | FAKIR | MISKIN | GHARIM | FII_SABILILLAH | MUSAFIR'],
+    ['# berhak: PENERIMA_ZAKAT_MAL | PENERIMA_ZAKAT_FITRI | PENERIMA_BANTUAN_MIAS | SEMUA'],
+    ['# status: JAMAAH | WARGA | WARGA_LUAR (boleh kosong)'],
+    ['# prioritas: PRIORITAS_1 | PRIORITAS_2 | PRIORITAS_3 (boleh kosong)'],
+  ];
+
+  const csvLines = [
+    headers.join(';'),
+    ...sampleRows.map((r) => r.join(';')),
+    ...notes.map((r) => r.join(';')),
+  ];
+  const csv = csvLines.join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blobUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = 'template-import-mustahik.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(blobUrl);
+  $q.notify({ type: 'positive', message: 'Template CSV berhasil diunduh.' });
+};
+
 const triggerImport = () => {
   fileInput.value.click();
 };
@@ -341,7 +392,7 @@ const handleImportFile = async (e) => {
   if (!file) return;
 
   const text = await file.text();
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
   if (lines.length < 2) {
     $q.notify({ type: 'warning', message: 'File CSV kosong atau hanya header.' });
     fileInput.value.value = '';
@@ -399,36 +450,37 @@ const handleImportFile = async (e) => {
   fileInput.value.value = '';
 };
 
-// ─── Export CSV ──────────────────────────────────────────────────────────────
-const exportCsv = async () => {
-  const data = await mustahikStore.exportData({
-    kategori: filterKategori.value || undefined,
-    berhak: filterBerhak.value || undefined,
-    status: filterStatus.value || undefined,
-    prioritas: filterPrioritas.value || undefined,
-    rt: filterRt.value || undefined,
-    rw: filterRw.value || undefined,
-  });
-  if (!data || !data.length) {
-    $q.notify({ type: 'warning', message: 'Tidak ada data untuk diekspor.' });
-    return;
+// ─── Export Excel / PDF ──────────────────────────────────────────────────────
+const exportingExcel = ref(false);
+const exportingPdf = ref(false);
+
+const buildExportParams = () => ({
+  kategori: filterKategori.value || undefined,
+  berhak: filterBerhak.value || undefined,
+  status: filterStatus.value || undefined,
+  prioritas: filterPrioritas.value || undefined,
+  rt: filterRt.value || undefined,
+  rw: filterRw.value || undefined,
+});
+
+const exportExcel = async () => {
+  exportingExcel.value = true;
+  try {
+    const ok = await mustahikStore.downloadExport('excel', buildExportParams());
+    if (ok) $q.notify({ type: 'positive', message: 'Data Excel berhasil diunduh.' });
+  } finally {
+    exportingExcel.value = false;
   }
+};
 
-  const headers = ['Nama', 'Alamat', 'RT', 'RW', 'Kab/Kota', 'Provinsi', 'Telepon', 'Kategori', 'Berhak', 'Status', 'Prioritas'];
-  const rows = data.map(d => [
-    d.nama, d.alamat || '', d.rt || '', d.rw || '', d.kabKota || '', d.provinsi || '', d.telepon || '',
-    kategoriLabel(d.kategori), berhakLabel(d.berhak),
-    d.status ? statusLabel(d.status) : '', d.prioritas ? prioritasLabel(d.prioritas) : '',
-  ]);
-
-  const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const blobUrl = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = blobUrl;
-  a.download = `mustahik_${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  window.URL.revokeObjectURL(blobUrl);
+const exportPdf = async () => {
+  exportingPdf.value = true;
+  try {
+    const ok = await mustahikStore.downloadExport('pdf', buildExportParams());
+    if (ok) $q.notify({ type: 'positive', message: 'Data PDF berhasil diunduh.' });
+  } finally {
+    exportingPdf.value = false;
+  }
 };
 
 onMounted(loadData);

@@ -103,7 +103,7 @@
           </div>
           <div v-else>
             <q-card flat bordered class="rounded-xl q-mt-md text-center q-pa-md">
-              <q-icon name="qr_code_2" size="80px" color="primary" />
+              <q-icon name="qr_code_2" size="200px" color="primary" />
               <div class="text-weight-bold q-mt-sm">QRIS</div>
               <div class="text-caption text-grey-6">Scan untuk infaq via semua e-wallet</div>
             </q-card>

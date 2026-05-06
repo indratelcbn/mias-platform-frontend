@@ -79,6 +79,31 @@ export const useMustahikStore = defineStore('mustahik', {
       }
     },
 
+    async downloadExport(format = 'excel', params = {}) {
+      try {
+        const url = format === 'pdf' ? '/mustahik/export/pdf' : '/mustahik/export/excel';
+        const ext = format === 'pdf' ? 'pdf' : 'xlsx';
+        const mime = format === 'pdf'
+          ? 'application/pdf'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+        const response = await api.get(url, { params, responseType: 'blob' });
+        const blob = new Blob([response.data], { type: mime });
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `Data-Mustahik-${new Date().toISOString().slice(0, 10)}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: `Gagal mengunduh ${format.toUpperCase()}.` });
+        return false;
+      }
+    },
+
     setPage(page) {
       this.meta.page = page;
     },

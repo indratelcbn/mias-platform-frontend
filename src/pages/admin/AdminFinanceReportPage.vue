@@ -7,8 +7,9 @@
         <div class="text-caption text-grey-6">Laporan bulanan komprehensif</div>
       </div>
       <div class="row q-gutter-sm">
-        <q-btn unelevated color="primary" icon="print" label="Cetak / PDF" no-caps @click="handlePrint" />
-        <q-btn unelevated color="green-7" icon="download" label="Export CSV" no-caps @click="exportCSV" />
+        <q-btn unelevated color="primary" icon="print" label="Cetak" no-caps @click="handlePrint" />
+        <q-btn unelevated color="red-7" icon="picture_as_pdf" label="Export PDF" no-caps :loading="exportingPdf" @click="exportPDF" />
+        <q-btn unelevated color="green-7" icon="download" label="Export Excel" no-caps :loading="exportingExcel" @click="exportExcel" />
       </div>
     </div>
 
@@ -391,6 +392,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { api } from 'src/boot/axios';
 import { useFinanceStore } from 'src/stores/finance';
 import { formatCurrency, formatDate, formatDateShort } from 'src/utils/format';
 
@@ -398,6 +400,8 @@ const $q = useQuasar();
 const financeStore = useFinanceStore();
 
 const loading = ref(false);
+const exportingExcel = ref(false);
+const exportingPdf = ref(false);
 const now = new Date();
 
 const filters = reactive({
@@ -471,52 +475,67 @@ const handlePrint = () => {
   window.print();
 };
 
-const exportCSV = () => {
+const downloadReport = async (format) => {
+  const params = {
+    year: filters.year,
+    month: filters.month,
+  };
+  if (filters.accountId) params.accountId = filters.accountId;
+
+  const url = format === 'excel' ? '/finance/reports/monthly/excel' : '/finance/reports/monthly/pdf';
+  const ext = format === 'excel' ? 'xlsx' : 'pdf';
+
+  const response = await api.get(url, {
+    params,
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], {
+    type: format === 'excel'
+      ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      : 'application/pdf',
+  });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Laporan-Keuangan-${filters.year}-${String(filters.month).padStart(2, '0')}.${ext}`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+};
+
+const exportExcel = async () => {
   if (!transactions.value.length) {
     $q.notify({ type: 'warning', message: 'Tidak ada data untuk diexport.' });
     return;
   }
+  exportingExcel.value = true;
+  try {
+    await downloadReport('excel');
+    $q.notify({ type: 'positive', message: 'Laporan Excel berhasil diunduh.' });
+  } catch (err) {
+    console.error(err);
+    $q.notify({ type: 'negative', message: 'Gagal mengunduh laporan Excel.' });
+  } finally {
+    exportingExcel.value = false;
+  }
+};
 
-  const headers = ['Tanggal', 'Akun', 'Tipe Akun', 'Deskripsi', 'Tipe', 'Program', 'Kategori', 'Jumlah'];
-  const rows = transactions.value.map((t) => [
-    formatDateShort(t.transactionDate),
-    t.account?.name || '',
-    t.account?.type || '',
-    (t.description || '').replace(/"/g, '""'),
-    t.type === 'IN' ? 'Masuk' : 'Keluar',
-    t.programName || '',
-    t.category || '',
-    t.amount,
-  ]);
-
-  // Add summary section
-  const summaryRows = [
-    [],
-    ['RINGKASAN'],
-    ['Periode', periodLabel.value],
-    ['Saldo Awal', summary.value.openingBalance],
-    ['Total Pemasukan', summary.value.totalIn],
-    ['Total Pengeluaran', summary.value.totalOut],
-    ['Saldo Akhir', summary.value.closingBalance],
-    ['Net Cashflow', summary.value.netCashflow],
-  ];
-
-  const csvContent = [
-    headers.map((h) => `"${h}"`).join(','),
-    ...rows.map((r) => r.map((v) => `"${v}"`).join(',')),
-    ...summaryRows.map((r) => r.map((v) => `"${v}"`).join(',')),
-  ].join('\n');
-
-  const BOM = '\uFEFF';
-  const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `Laporan-Keuangan-${filters.year}-${String(filters.month).padStart(2, '0')}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
-
-  $q.notify({ type: 'positive', message: 'Laporan berhasil diexport.' });
+const exportPDF = async () => {
+  if (!transactions.value.length) {
+    $q.notify({ type: 'warning', message: 'Tidak ada data untuk diexport.' });
+    return;
+  }
+  exportingPdf.value = true;
+  try {
+    await downloadReport('pdf');
+    $q.notify({ type: 'positive', message: 'Laporan PDF berhasil diunduh.' });
+  } catch (err) {
+    console.error(err);
+    $q.notify({ type: 'negative', message: 'Gagal mengunduh laporan PDF.' });
+  } finally {
+    exportingPdf.value = false;
+  }
 };
 
 onMounted(async () => {
