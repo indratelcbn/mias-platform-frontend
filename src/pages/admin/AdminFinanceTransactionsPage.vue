@@ -99,105 +99,137 @@
           <q-btn flat dense icon="close" v-close-popup />
         </q-card-section>
 
-        <q-card-section>
-          <q-form @submit="handleSubmit" class="q-gutter-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-6">
-                <q-select
-                  v-model="form.accountId"
-                  :options="accountOptions"
-                  label="Akun *"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  :rules="[val => !!val || 'Akun diperlukan']"
-                />
-              </div>
-              <div class="col-6">
-                <q-input
-                  v-model="form.transactionDate"
-                  type="date"
-                  label="Tanggal *"
-                  outlined
-                  dense
-                  :rules="[val => !!val || 'Tanggal diperlukan']"
-                />
-              </div>
-            </div>
+<q-card-section>
+  <q-form @submit="handleSubmit">
+    <div class="row q-col-gutter-md">
+      <div class="col-6">
+        <q-select
+          v-model="form.accountId"
+          :options="accountOptions"
+          label="Akun *"
+          outlined
+          dense
+          emit-value
+          map-options
+          :rules="[val => !!val || 'Akun diperlukan']"
+        />
+      </div>
+      <div class="col-6">
+        <q-input
+          v-model="form.transactionDate"
+          type="date"
+          label="Tanggal *"
+          outlined
+          dense
+          :rules="[val => !!val || 'Tanggal diperlukan']"
+        />
+      </div>
 
-            <q-input
-              v-model.number="form.amount"
-              type="number"
-              label="Jumlah *"
-              outlined
-              dense
-              prefix="Rp"
-              :rules="[val => val > 0 || 'Jumlah harus lebih dari 0']"
-              @blur="checkUniqueCode"
-            />
+      <div class="col-12">
+        <q-input
+          v-model="displayAmount"
+          label="Jumlah *"
+          type="text"
+          inputmode="numeric"
+          outlined
+          dense
+          prefix="Rp"
+          placeholder="0"
+          :rules="[() => Number(form.amount) > 0 || 'Jumlah harus lebih dari 0']"
+          @blur="checkUniqueCode"
+        >
+          <template #hint>
+            <span v-if="amountTerbilang" class="text-italic text-capitalize">
+              {{ amountTerbilang }}
+            </span>
+          </template>
+        </q-input>
+      </div>
 
-            <!-- Kode Unik Detection -->
-            <q-banner v-if="detectedProgram" rounded class="bg-blue-1 text-blue-9">
-              <template #avatar>
-                <q-icon name="info" color="blue-9" />
-              </template>
-              <div class="text-weight-medium">Kode Unik Terdeteksi!</div>
-              <div class="text-caption">
-                Kode: {{ String(detectedProgram.uniqueCode).padStart(3, '0') }} • 
-                Program: {{ detectedProgram.program?.name || 'Tidak ditemukan' }} •
-                Nominal Aktual: {{ formatCurrency(detectedProgram.actualAmount) }}
-              </div>
-            </q-banner>
+      <div v-if="detectedProgram" class="col-12">
+        <q-banner rounded class="bg-blue-1 text-blue-9">
+          <template #avatar>
+            <q-icon name="info" color="blue-9" />
+          </template>
+          <div class="text-weight-medium">Kode Unik Terdeteksi!</div>
+          <div class="text-caption">
+            Kode: {{ String(detectedProgram.uniqueCode).padStart(3, '0') }} •
+            Program: {{ detectedProgram.program?.name || 'Tidak ditemukan' }} •
+            Nominal Aktual: {{ formatCurrency(detectedProgram.actualAmount) }}
+          </div>
+        </q-banner>
+      </div>
 
-            <q-select
-              v-model="form.divisi"
-              :options="divisiOptions"
-              label="Divisi"
-              outlined
-              dense
-              clearable
-              emit-value
-              map-options
-              @update:model-value="onDivisiChange"
-            />
+      <div class="col-12">
+        <q-select
+          v-model="form.divisi"
+          :options="divisiOptions"
+          label="Divisi"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          @update:model-value="onDivisiChange"
+        />
+      </div>
 
-            <q-select
-              v-if="form.divisi"
-              v-model="form.programId"
-              :options="filteredPrograms"
-              option-value="id"
-              option-label="name"
-              label="Program"
-              outlined
-              dense
-              clearable
-              emit-value
-              map-options
-            />
+      <div v-if="form.divisi" class="col-12">
+        <q-select
+          v-model="form.programId"
+          :options="filteredPrograms"
+          option-value="id"
+          option-label="name"
+          label="Program"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+        />
+      </div>
 
-            <q-input v-model="form.description" label="Keterangan" outlined dense type="textarea" rows="2" />
+      <div class="col-12">
+        <q-input
+          v-model="form.description"
+          label="Keterangan"
+          outlined
+          dense
+          type="textarea"
+          rows="2"
+        />
+      </div>
 
-            <q-file
-              v-model="form.attachment"
-              label="Bukti Transfer"
-              outlined
-              dense
-              accept="image/*"
-              max-file-size="5242880"
-              @rejected="onFileRejected"
-            >
-              <template #prepend>
-                <q-icon name="attach_file" />
-              </template>
-            </q-file>
+      <div class="col-12">
+        <q-file
+          v-model="form.attachment"
+          label="Bukti Dukung"
+          outlined
+          dense
+          accept="image/*"
+          max-file-size="5242880"
+          @rejected="onFileRejected"
+        >
+          <template #prepend>
+            <q-icon name="attach_file" />
+          </template>
+        </q-file>
+      </div>
 
-            <div class="row justify-end q-gutter-sm q-mt-md">
-              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
-              <q-btn unelevated type="submit" label="Simpan" :color="form.type === 'IN' ? 'positive' : 'negative'" no-caps :loading="submitting" />
-            </div>
-          </q-form>
-        </q-card-section>
+      <div class="col-12 row justify-end q-gutter-sm q-mt-sm">
+        <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
+        <q-btn
+          unelevated
+          type="submit"
+          label="Simpan"
+          :color="form.type === 'IN' ? 'positive' : 'negative'"
+          no-caps
+          :loading="submitting"
+        />
+      </div>
+    </div>
+  </q-form>
+</q-card-section>
       </q-card>
     </q-dialog>
   </q-page>
@@ -207,7 +239,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useFinanceStore } from 'src/stores/finance';
 import { useQuasar } from 'quasar';
-import { formatCurrency } from 'src/utils/format';
+import { formatCurrency, terbilang } from 'src/utils/format';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
@@ -271,6 +303,23 @@ const divisiOptions = [
 const filteredPrograms = computed(() => {
   if (!form.value.divisi) return [];
   return programs.value.filter((p) => p.divisi === form.value.divisi);
+});
+
+const displayAmount = computed({
+  get() {
+    const num = Number(form.value.amount) || 0;
+    return num > 0 ? new Intl.NumberFormat('id-ID').format(num) : '';
+  },
+  set(val) {
+    const numOnly = String(val ?? '').replace(/\D/g, '');
+    form.value.amount = numOnly ? parseInt(numOnly, 10) : 0;
+  },
+});
+
+const amountTerbilang = computed(() => {
+  const num = Number(form.value.amount) || 0;
+  if (num <= 0) return '';
+  return `${terbilang(num)} rupiah`;
 });
 
 const dialogTitle = computed(() => {

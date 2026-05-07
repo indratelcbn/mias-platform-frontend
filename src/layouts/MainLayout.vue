@@ -624,7 +624,7 @@ const dakwahSubMenu = [
 ];
 
 const sosialSubMenu = [
-  { label: 'Santunan Anak Yatim',    to: '/sosial/santunan-anak-yatim', icon: 'child_care',        color: 'indigo' },
+  { label: 'Santunan Anak Yatim',    to: '/sosial/santunan-anak-yatim', icon: 'volunteer_activism',        color: 'indigo' },
   { label: 'Air Galon Gratis',        to: '/sosial/air-galon-gratis',    icon: 'water_drop',        color: 'cyan-8' },
   { label: 'Layanan Kes. Ibu & Anak', to: '/sosial/layanan-kesehatan',   icon: 'health_and_safety', color: 'green-8' },
   { label: 'Armalah & Al Miskin',     to: '/sosial/armalah-miskin',      icon: 'handshake',         color: 'purple' },
@@ -637,7 +637,7 @@ const pendidikanSubMenu = [
   { label: 'Tahsin Akhwat',      to: '/pendidikan/tahsin-akhwat',      icon: 'auto_stories', color: 'purple-9' },
   { label: 'Bahasa Arab Ikhwan', to: '/pendidikan/bahasa-arab-ikhwan', icon: 'translate',    color: 'green-8'  },
   { label: 'Bahasa Arab Akhwat', to: '/pendidikan/bahasa-arab-akhwat', icon: 'translate',    color: 'red-8'    },
-  { label: 'TPQ',                to: '/pendidikan/tpq',                icon: 'child_care',   color: 'orange-9' },
+  { label: 'Taman Pendidikan Qur\'an', to: '/pendidikan/tpq', icon: 'menu_book', color: 'orange-9' },
 ];
 
 const usahaSubMenu = [
