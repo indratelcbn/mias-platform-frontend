@@ -534,5 +534,19 @@ export const useFinanceStore = defineStore('finance', {
         return false;
       }
     },
+
+    async assignReconciliationProgram(id, payload) {
+      this.submitting = true;
+      try {
+        const { data } = await api.put(`/finance/reconciliation/${id}/assign-program`, payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal mengatur program.' });
+        return false;
+      } finally {
+        this.submitting = false;
+      }
+    },
   },
 });

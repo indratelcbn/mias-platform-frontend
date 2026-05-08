@@ -249,7 +249,7 @@
             <tbody>
               <tr v-for="d in divisiBreakdown" :key="d.divisi">
                 <td>
-                  <q-badge :color="divisiColor(d.divisi)" :label="d.divisi" />
+                  <q-badge :color="divisiColor(d.divisi)" :label="divisiLabel(d.divisi)" />
                 </td>
                 <td class="text-center">{{ d.count }}</td>
                 <td class="text-right text-green-7">{{ formatCurrency(d.totalIn) }}</td>
@@ -441,7 +441,9 @@ const dailyData = computed(() => report.value.dailyData || []);
 const accountBreakdown = computed(() => report.value.accountBreakdown || []);
 const categoryBreakdown = computed(() => report.value.categoryBreakdown || []);
 const programBreakdown = computed(() => report.value.programBreakdown || []);
-const divisiBreakdown = computed(() => report.value.divisiBreakdown || []);
+const divisiBreakdown = computed(() =>
+  (report.value.divisiBreakdown || []).filter((d) => d.divisi !== 'DAKWAH')
+);
 const transactions = computed(() => report.value.transactions || []);
 
 const periodLabel = computed(
@@ -450,7 +452,6 @@ const periodLabel = computed(
 
 const divisiColor = (divisi) => {
   const map = {
-    DAKWAH: 'blue',
     SOSIAL: 'green',
     PENDIDIKAN: 'purple',
     USAHA: 'orange',
@@ -460,6 +461,16 @@ const divisiColor = (divisi) => {
   };
   return map[divisi] || 'grey';
 };
+
+const divisiLabelMap = {
+  SOSIAL: 'Sosial',
+  PENDIDIKAN: 'Pendidikan',
+  USAHA: 'Usaha',
+  MULTIMEDIA: 'Multimedia',
+  OPERASIONAL: 'Operasional dan Dakwah',
+  WAKAF: 'Wakaf',
+};
+const divisiLabel = (divisi) => divisiLabelMap[divisi] || divisi;
 
 const loadReport = async () => {
   loading.value = true;

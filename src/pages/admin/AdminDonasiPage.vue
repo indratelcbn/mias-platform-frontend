@@ -116,6 +116,9 @@
             <template #body-cell-isActive="props">
               <q-td><q-badge :color="props.value ? 'positive' : 'grey'" :label="props.value ? 'Aktif' : 'Nonaktif'" /></q-td>
             </template>
+            <template #body-cell-tampilWebsite="props">
+              <q-td><q-badge :color="props.value ? 'primary' : 'grey'" :label="props.value ? 'Tampil' : 'Disembunyikan'" /></q-td>
+            </template>
             <template #body-cell-actions="props">
               <q-td>
                 <q-btn flat dense round icon="edit" color="primary" size="sm" @click="openProgramDialog(props.row)" />
@@ -150,6 +153,9 @@
             </template>
             <template #body-cell-isActive="props">
               <q-td><q-badge :color="props.value ? 'positive' : 'grey'" :label="props.value ? 'Aktif' : 'Nonaktif'" /></q-td>
+            </template>
+            <template #body-cell-tampilWebsite="props">
+              <q-td><q-badge :color="props.value ? 'primary' : 'grey'" :label="props.value ? 'Tampil' : 'Disembunyikan'" /></q-td>
             </template>
             <template #body-cell-actions="props">
               <q-td>
@@ -235,7 +241,8 @@
             <q-input v-model="editProgram.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
             <q-input v-model="editProgram.target" outlined label="Target Infaq (Rp)" type="number" min="0" />
             <q-input v-model="editProgram.urutan" outlined label="Urutan Tampil" type="number" min="0" />
-            <q-toggle v-model="editProgram.isActive" label="Tampilkan di website" color="primary" />
+            <q-toggle v-model="editProgram.isActive" label="Aktif" color="primary" />
+            <q-toggle v-model="editProgram.tampilWebsite" label="Tampilkan di Website" color="primary" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat no-caps label="Batal" v-close-popup />
               <q-btn unelevated color="primary" no-caps :label="editProgram.id ? 'Simpan' : 'Tambah'" type="submit" />
@@ -267,7 +274,8 @@
             <q-input v-model="editWakaf.deskripsi" outlined label="Deskripsi" type="textarea" rows="10" />
             <q-input v-model="editWakaf.target" outlined label="Target Wakaf (Rp)" type="number" min="0" />
             <q-input v-model="editWakaf.urutan" outlined label="Urutan Tampil" type="number" min="0" />
-            <q-toggle v-model="editWakaf.isActive" label="Tampilkan di website" color="primary" />
+            <q-toggle v-model="editWakaf.isActive" label="Aktif" color="primary" />
+            <q-toggle v-model="editWakaf.tampilWebsite" label="Tampilkan di Website" color="primary" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat no-caps label="Batal" v-close-popup />
               <q-btn unelevated color="primary" no-caps :label="editWakaf.id ? 'Simpan' : 'Tambah'" type="submit" />
@@ -342,12 +350,11 @@ const buktiDialog = ref(false);
 const buktiUrl = ref('');
 
 const divisiOptions = [
-  { label: 'Dakwah', value: 'DAKWAH' },
   { label: 'Sosial', value: 'SOSIAL' },
   { label: 'Pendidikan', value: 'PENDIDIKAN' },
   { label: 'Usaha', value: 'USAHA' },
   { label: 'Multimedia', value: 'MULTIMEDIA' },
-  { label: 'Operasional', value: 'OPERASIONAL' },
+  { label: 'Operasional dan Dakwah', value: 'OPERASIONAL' },
 ];
 const wakafDivisiOptions = [
   { label: 'Wakaf', value: 'WAKAF' },
@@ -361,8 +368,8 @@ const editProgram = ref({});
 
 const openProgramDialog = (row = null) => {
   editProgram.value = row
-    ? { ...row, target: Number(row.target), terkumpul: Number(row.terkumpul) }
-    : { judul: '', kode: '', deskripsi: '', divisi: null, target: '', terkumpul: 0, urutan: 0, isActive: true };
+    ? { ...row, target: Number(row.target), terkumpul: Number(row.terkumpul), tampilWebsite: row.tampilWebsite !== false }
+    : { judul: '', kode: '', deskripsi: '', divisi: null, target: '', terkumpul: 0, urutan: 0, isActive: true, tampilWebsite: true };
   programDialog.value = true;
 };
 
@@ -456,7 +463,8 @@ const programColumns = [
   { name: 'target', label: 'Target', field: 'target', align: 'right' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
-  { name: 'isActive', label: 'Status', field: 'isActive', align: 'center' },
+  { name: 'isActive', label: 'Aktif', field: 'isActive', align: 'center' },
+  { name: 'tampilWebsite', label: 'Tampil Website', field: 'tampilWebsite', align: 'center' },
   { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ];
 
@@ -485,14 +493,15 @@ const wakafColumns = [
   { name: 'target', label: 'Target', field: 'target', align: 'right' },
   { name: 'terkumpul', label: 'Terkumpul', field: 'terkumpul', align: 'left' },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'center' },
-  { name: 'isActive', label: 'Status', field: 'isActive', align: 'center' },
+  { name: 'isActive', label: 'Aktif', field: 'isActive', align: 'center' },
+  { name: 'tampilWebsite', label: 'Tampil Website', field: 'tampilWebsite', align: 'center' },
   { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
 ];
 
 const openWakafDialog = (row = null) => {
   editWakaf.value = row
-    ? { ...row, target: Number(row.target || 0), divisi: row.divisi || 'WAKAF' }
-    : { kode: '', kegiatan: '', deskripsi: '', divisi: 'WAKAF', target: '', urutan: 0, isActive: true };
+    ? { ...row, target: Number(row.target || 0), divisi: row.divisi || 'WAKAF', tampilWebsite: row.tampilWebsite !== false }
+    : { kode: '', kegiatan: '', deskripsi: '', divisi: 'WAKAF', target: '', urutan: 0, isActive: true, tampilWebsite: true };
   wakafDialog.value = true;
 };
 

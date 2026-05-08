@@ -291,12 +291,11 @@ const typeOptions = [
 ];
 
 const divisiOptions = [
-  { label: 'Dakwah', value: 'DAKWAH' },
   { label: 'Sosial', value: 'SOSIAL' },
   { label: 'Pendidikan', value: 'PENDIDIKAN' },
   { label: 'Usaha', value: 'USAHA' },
   { label: 'Multimedia', value: 'MULTIMEDIA' },
-  { label: 'Operasional', value: 'OPERASIONAL' },
+  { label: 'Operasional dan Dakwah', value: 'OPERASIONAL' },
   { label: 'Wakaf', value: 'WAKAF' },
 ];
 
@@ -337,7 +336,7 @@ const columns = [
   { name: 'transactionDate', label: 'Tanggal', field: 'transactionDate', align: 'left', sortable: true, format: val => new Date(val).toLocaleDateString('id-ID') },
   { name: 'account', label: 'Akun', field: row => row.account?.name, align: 'left' },
   { name: 'type', label: 'Tipe', field: 'type', align: 'center', sortable: true },
-  { name: 'amount', label: 'Jumlah', field: 'amount', align: 'right', sortable: true },
+  { name: 'amount', label: 'Jumlah', field: 'amount', align: 'left', sortable: true },
   { name: 'program', label: 'Program', field: 'programName', align: 'left' },
   { name: 'description', label: 'Deskripsi', field: 'description', align: 'left' },
   { name: 'actions', label: 'Aksi', field: 'id', align: 'center' },

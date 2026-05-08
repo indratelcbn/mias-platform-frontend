@@ -301,12 +301,11 @@ const cashflowIcon = computed(() => {
 });
 
 const DIVISI_META = {
-  DAKWAH:      { label: 'Dakwah',      icon: 'mosque',         bg: 'green-1',  text: 'green-8' },
   SOSIAL:      { label: 'Sosial',      icon: 'volunteer_activism', bg: 'red-1',    text: 'red-8' },
   PENDIDIKAN:  { label: 'Pendidikan',  icon: 'school',         bg: 'blue-1',   text: 'blue-8' },
   USAHA:       { label: 'Usaha',       icon: 'storefront',     bg: 'amber-1',  text: 'amber-9' },
   MULTIMEDIA:  { label: 'Multimedia',  icon: 'videocam',       bg: 'purple-1', text: 'purple-8' },
-  OPERASIONAL: { label: 'Operasional', icon: 'settings',       bg: 'grey-3',   text: 'grey-9' },
+  OPERASIONAL: { label: 'Operasional dan Dakwah', icon: 'settings',       bg: 'grey-3',   text: 'grey-9' },
   WAKAF:       { label: 'Wakaf',       icon: 'account_balance', bg: 'teal-1',  text: 'teal-8' },
 };
 const divisiLabel = (key) => DIVISI_META[key]?.label || key;

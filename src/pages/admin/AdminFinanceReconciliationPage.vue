@@ -12,6 +12,64 @@
       </div>
     </div>
 
+    <q-dialog v-model="importDialogOpen" persistent>
+      <q-card style="min-width: 500px" class="rounded-xl">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">Import Mutasi Bank</div>
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-form @submit.prevent="handleImportBankCSV" class="q-gutter-md">
+            <q-select
+              v-model="importForm.accountId"
+              :options="bankAccountOptions"
+              label="Akun Bank *"
+              outlined
+              dense
+              emit-value
+              map-options
+              :rules="[val => !!val || 'Akun bank diperlukan']"
+            />
+
+            <q-select
+              v-model="importForm.bankFormat"
+              :options="bankFormatOptions"
+              label="Format Bank"
+              outlined
+              dense
+              emit-value
+              map-options
+            />
+
+            <q-file
+              v-model="importForm.file"
+              label="File CSV *"
+              outlined
+              dense
+              accept=".csv"
+              max-file-size="10485760"
+              @rejected="onFileRejected"
+              :rules="[val => !!val || 'File CSV diperlukan']"
+            >
+              <template #prepend>
+                <q-icon name="attach_file" />
+              </template>
+              <template #hint>
+                Max 10MB. Format: BCA, Mandiri, BNI, BRI, atau Standard.
+              </template>
+            </q-file>
+
+            <div class="row justify-end q-gutter-sm q-mt-md">
+              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
+              <q-btn unelevated type="submit" label="Import" color="primary" no-caps :loading="submitting" />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- Reconciliation Summary -->
     <div class="row q-col-gutter-md q-mb-lg">
       <div class="col-12 col-md-3">
@@ -122,6 +180,14 @@
           flat
           dense
         >
+          <template #body-cell-debitCredit="props">
+            <q-td>
+              <q-badge
+                :color="props.value === 'Kredit' ? 'green' : 'red'"
+                :label="props.value"
+              />
+            </q-td>
+          </template>
           <template #body-cell-status="props">
             <q-td>
               <q-badge
@@ -130,27 +196,12 @@
               />
             </q-td>
           </template>
-          <template #body-cell-bankAmount="props">
-            <q-td>
-              {{ formatCurrency(props.row.bankImportDetail?.credit || props.row.bankImportDetail?.debit || 0) }}
-            </q-td>
-          </template>
-          <template #body-cell-internalAmount="props">
-            <q-td>
-              {{ props.row.transaction ? formatCurrency(props.row.transaction.amount) : '-' }}
-            </q-td>
-          </template>
           <template #body-cell-actions="props">
             <q-td>
-              <q-btn
-                v-if="props.row.status === 'MATCHED'"
-                flat
-                dense
-                icon="link_off"
-                color="orange"
-                size="sm"
-                @click="confirmUnmatch(props.row)"
-              >
+              <q-btn flat dense icon="edit" color="primary" size="sm" @click="openAssignProgramDialog(props.row)">
+                <q-tooltip>Edit Program</q-tooltip>
+              </q-btn>
+              <q-btn flat dense icon="logout" color="orange" size="sm" @click="confirmUnmatch(props.row)">
                 <q-tooltip>Unmatch</q-tooltip>
               </q-btn>
             </q-td>
@@ -158,74 +209,6 @@
         </q-table>
       </q-card-section>
     </q-card>
-
-    <!-- Import CSV Dialog -->
-    <q-dialog v-model="importDialogOpen" persistent>
-      <q-card style="min-width: 500px" class="rounded-xl">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">Import CSV Mutasi Bank</div>
-          <q-space />
-          <q-btn flat dense icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-card-section>
-          <q-form @submit="handleImport" class="q-gutter-md">
-            <q-select
-              v-model="importForm.accountId"
-              :options="bankAccountOptions"
-              label="Akun Bank *"
-              outlined
-              dense
-              emit-value
-              map-options
-              :rules="[val => !!val || 'Akun bank diperlukan']"
-            />
-
-            <q-select
-              v-model="importForm.bankFormat"
-              :options="bankFormatOptions"
-              label="Format Bank *"
-              outlined
-              dense
-              emit-value
-              map-options
-            />
-
-            <q-file
-              v-model="importForm.file"
-              label="File CSV *"
-              outlined
-              dense
-              accept=".csv"
-              max-file-size="10485760"
-              @rejected="onFileRejected"
-              :rules="[val => !!val || 'File CSV diperlukan']"
-            >
-              <template #prepend>
-                <q-icon name="attach_file" />
-              </template>
-              <template #hint>
-                Max 10MB. Format: BCA, Mandiri, BNI, BRI, atau Standard.
-              </template>
-            </q-file>
-
-            <q-banner rounded class="bg-blue-1 text-blue-9">
-              <template #avatar>
-                <q-icon name="info" color="blue-9" />
-              </template>
-              <div class="text-caption">
-                <strong>Anti Duplicate:</strong> Sistem akan otomatis melewati transaksi yang sudah pernah diimport berdasarkan ID transaksi bank.
-              </div>
-            </q-banner>
-
-            <div class="row justify-end q-gutter-sm q-mt-md">
-              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
-              <q-btn unelevated type="submit" label="Import" color="primary" no-caps :loading="submitting" />
-            </div>
-          </q-form>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
 
     <!-- Auto Match Dialog -->
     <q-dialog v-model="autoMatchDialogOpen" persistent>
@@ -281,6 +264,79 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- Assign Program Dialog (manual edit for UNMATCHED / PENDING) -->
+    <q-dialog v-model="assignDialogOpen" persistent>
+      <q-card style="min-width: 500px" class="rounded-xl">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">Atur Kode Program Manual</div>
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-card-section v-if="assignTarget">
+          <div class="q-mb-md text-caption text-grey-8">
+            <div><strong>Bank:</strong> {{ assignTarget.bankImportDetail?.description || '-' }}</div>
+            <div>
+              <strong>Nominal:</strong>
+              <span>{{ formatCurrency(Number(assignTarget.bankImportDetail?.credit) || Number(assignTarget.bankImportDetail?.debit) || 0) }}</span>
+              <q-badge
+                class="q-ml-sm"
+                :color="Number(assignTarget.bankImportDetail?.credit) > 0 ? 'green' : 'red'"
+                :label="Number(assignTarget.bankImportDetail?.credit) > 0 ? 'Pemasukan' : 'Pengeluaran'"
+              />
+            </div>
+            <div><strong>Tanggal:</strong> {{ new Date(assignTarget.bankImportDetail?.transactionDate).toLocaleDateString('id-ID') }}</div>
+          </div>
+
+          <q-form @submit="handleAssignProgram" class="q-gutter-md">
+            <q-select
+              v-model="assignForm.program"
+              :options="programOptions"
+              label="Pilih Program *"
+              outlined
+              dense
+              emit-value
+              map-options
+              use-input
+              input-debounce="100"
+              @filter="filterPrograms"
+              :rules="[val => !!val || 'Program wajib dipilih']"
+            />
+
+            <q-input
+              v-model="assignForm.description"
+              label="Deskripsi (opsional)"
+              outlined
+              dense
+              type="textarea"
+              autogrow
+            />
+
+            <q-input
+              v-model="assignForm.notes"
+              label="Catatan (opsional)"
+              outlined
+              dense
+            />
+
+            <q-banner rounded class="bg-blue-1 text-blue-9">
+              <template #avatar>
+                <q-icon name="info" color="blue-9" />
+              </template>
+              <div class="text-caption">
+                Sistem akan membuat / memperbarui transaksi internal dengan kode program di atas dan menandai rekonsiliasi sebagai <strong>MATCHED</strong>.
+              </div>
+            </q-banner>
+
+            <div class="row justify-end q-gutter-sm q-mt-md">
+              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
+              <q-btn unelevated type="submit" label="Simpan" color="primary" no-caps :loading="submitting" />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -295,7 +351,17 @@ const financeStore = useFinanceStore();
 
 const importDialogOpen = ref(false);
 const autoMatchDialogOpen = ref(false);
+const assignDialogOpen = ref(false);
+const assignTarget = ref(null);
 const statusFilter = ref(null);
+
+const assignForm = ref({
+  program: null, // value formatted as `${type}:${id}`
+  description: '',
+  notes: '',
+});
+
+const programFilter = ref('');
 
 const importForm = ref({
   accountId: null,
@@ -315,6 +381,80 @@ const bankImports = computed(() => financeStore.bankImports);
 const reconciliations = computed(() => financeStore.reconciliations);
 const summary = computed(() => financeStore.reconciliationSummary);
 const accounts = computed(() => financeStore.accounts);
+const programs = computed(() => financeStore.programs || []);
+
+const programOptions = computed(() => {
+  const q = (programFilter.value || '').toLowerCase();
+  return programs.value
+    .filter((p) => !q || (p.name && p.name.toLowerCase().includes(q)) || (p.code && String(p.code).toLowerCase().includes(q)))
+    .map((p) => ({
+      label: `${p.type === 'WAKAF' ? '[Wakaf] ' : '[Infaq] '}${p.name}`,
+      value: `${p.type}:${p.id}`,
+    }));
+});
+
+const filterPrograms = (val, update) => {
+  update(() => { programFilter.value = val; });
+};
+
+const openImportDialog = () => {
+  importDialogOpen.value = true;
+};
+
+const handleImportBankCSV = async () => {
+  if (!importForm.value.accountId || !importForm.value.file) {
+    $q.notify({ type: 'negative', message: 'Akun dan file CSV harus dipilih.' });
+    return;
+  }
+
+  const payload = {
+    accountId: importForm.value.accountId,
+    bankFormat: importForm.value.bankFormat,
+    file: importForm.value.file,
+  };
+
+  const result = await financeStore.importBankCSV(payload);
+  if (result) {
+    importDialogOpen.value = false;
+    importForm.value = { accountId: null, bankFormat: 'STANDARD', file: null };
+    await Promise.all([financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary()]);
+  }
+};
+
+const openAutoMatchDialog = () => {
+  autoMatchDialogOpen.value = true;
+};
+
+const handleAutoMatch = async () => {
+  if (!autoMatchForm.value.accountId) {
+    $q.notify({ type: 'negative', message: 'Akun bank diperlukan untuk auto match.' });
+    return;
+  }
+
+  const payload = {
+    accountId: autoMatchForm.value.accountId,
+    dateTolerance: autoMatchForm.value.dateTolerance,
+    autoCreate: autoMatchForm.value.autoCreate,
+  };
+
+  const result = await financeStore.autoMatch(payload);
+  if (result) {
+    autoMatchDialogOpen.value = false;
+    await Promise.all([loadReconciliations(), financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary()]);
+  }
+};
+
+const confirmDeleteImport = async (importRow) => {
+  $q.dialog({
+    title: 'Konfirmasi',
+    message: 'Hapus import ini? Transaksi bank yang sudah diimpor akan tetap ada.',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7', noCaps: true },
+    ok: { unelevated: true, label: 'Hapus', color: 'negative', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    await financeStore.deleteBankImport(importRow.id);
+  });
+};
 
 const bankAccountOptions = computed(() =>
   accounts.value.filter(a => a.type === 'BANK' && a.isActive).map(a => ({ label: a.name, value: a.id }))
@@ -322,6 +462,7 @@ const bankAccountOptions = computed(() =>
 
 const bankFormatOptions = [
   { label: 'Standard (Generic)', value: 'STANDARD' },
+  { label: 'BSI (Bank Syariah Indonesia)', value: 'BSI' },
   { label: 'BCA', value: 'BCA' },
   { label: 'Mandiri', value: 'MANDIRI' },
   { label: 'BNI', value: 'BNI' },
@@ -347,10 +488,54 @@ const importColumns = [
 const reconColumns = [
   { name: 'createdAt', label: 'Tanggal', field: 'createdAt', align: 'left', format: val => new Date(val).toLocaleString('id-ID') },
   { name: 'bankDescription', label: 'Deskripsi Bank', field: row => row.bankImportDetail?.description, align: 'left' },
-  { name: 'bankAmount', label: 'Jumlah Bank', field: 'id', align: 'right' },
-  { name: 'internalAmount', label: 'Jumlah Internal', field: 'id', align: 'right' },
+  // Debet/Kredit column
+  {
+    name: 'debitCredit',
+    label: 'Debet/Kredit',
+    field: row => row.bankImportDetail?.credit != null && Number(row.bankImportDetail?.credit) > 0 ? 'Kredit' : 'Debet',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    name: 'bankAmount',
+    label: 'Jumlah Bank',
+    field: row => {
+      const credit = Number(row.bankImportDetail?.credit) || 0;
+      const debit = Number(row.bankImportDetail?.debit) || 0;
+      return credit > 0 ? credit : debit;
+    },
+    align: 'right',
+    format: (val) => (val ? formatCurrency(val) : '-'),
+  },
+  {
+    name: 'internalAmount',
+    label: 'Jumlah Internal',
+    field: row => Number(row.transaction?.amount) || 0,
+    align: 'right',
+    format: (val) => (val ? formatCurrency(val) : '-'),
+  },
+  // Kode Program column
+  {
+    name: 'programCode',
+    label: 'Kode Program',
+    field: row => getReconciliationProgramLabel(row),
+    align: 'center',
+    format: (val) => val || '-',
+    sortable: false,
+  },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
-  { name: 'matchedBy', label: 'Matched By', field: 'matchedBy', align: 'center' },
+  {
+    name: 'matchedBy',
+    label: 'Matched By',
+    field: 'matchedBy',
+    align: 'center',
+    format: (val, row) => {
+      if (!val) return '-';
+      if (val === 'AUTO') return 'Auto Match';
+      if (val === 'MANUAL') return 'Manual';
+      return row.matchedByName || 'Manual';
+    },
+  },
   { name: 'actions', label: 'Aksi', field: 'id', align: 'center' },
 ];
 
@@ -369,59 +554,15 @@ const getStatusLabel = (status) => {
     UNMATCHED: 'Unmatched',
     PENDING: 'Pending',
   };
-  return labels[status] || status;
+  return labels[status] || status || '-';
 };
 
-const openImportDialog = () => {
-  importForm.value = {
-    accountId: null,
-    bankFormat: 'STANDARD',
-    file: null,
-  };
-  importDialogOpen.value = true;
-};
-
-const openAutoMatchDialog = () => {
-  autoMatchForm.value = {
-    accountId: null,
-    dateTolerance: 1,
-    autoCreate: false,
-  };
-  autoMatchDialogOpen.value = true;
-};
-
-const handleImport = async () => {
-  const result = await financeStore.importBankCSV(importForm.value);
-  if (result) {
-    importDialogOpen.value = false;
-    await loadData();
-  }
-};
-
-const handleAutoMatch = async () => {
-  const result = await financeStore.autoMatch(autoMatchForm.value);
-  if (result) {
-    autoMatchDialogOpen.value = false;
-    $q.notify({
-      type: 'positive',
-      message: `Auto match selesai! ${result.matched} matched, ${result.created} created, ${result.unmatched} unmatched.`,
-      timeout: 5000,
-    });
-    await loadData();
-  }
-};
-
-const confirmDeleteImport = (importData) => {
-  $q.dialog({
-    title: 'Konfirmasi',
-    message: `Hapus import "${importData.fileName}"? Semua data detail akan ikut terhapus.`,
-    cancel: { flat: true, label: 'Batal', color: 'grey-7', noCaps: true },
-    ok: { unelevated: true, label: 'Hapus', color: 'negative', noCaps: true },
-    persistent: true,
-  }).onOk(async () => {
-    await financeStore.deleteBankImport(importData.id);
-    await loadData();
-  });
+const getReconciliationProgramLabel = (row) => {
+  if (!row?.transaction) return '-';
+  if (row.transaction.programName) return row.transaction.programName;
+  if (row.transaction.uniqueCode) return String(row.transaction.uniqueCode).padStart(3, '0');
+  if (row.transaction.programId) return row.transaction.programId;
+  return '-';
 };
 
 const confirmUnmatch = (recon) => {
@@ -435,6 +576,38 @@ const confirmUnmatch = (recon) => {
     await financeStore.unmatch(recon.id);
     await loadReconciliations();
   });
+};
+
+const openAssignProgramDialog = (recon) => {
+  assignTarget.value = recon;
+  // Pre-fill if transaction already has a program
+  const existing = recon.transaction;
+  let preset = null;
+  if (existing?.programType && existing?.programId) {
+    preset = `${existing.programType}:${existing.programId}`;
+  }
+  assignForm.value = {
+    program: preset,
+    description: existing?.description || recon.bankImportDetail?.description || '',
+    notes: existing?.notes || '',
+  };
+  programFilter.value = '';
+  assignDialogOpen.value = true;
+};
+
+const handleAssignProgram = async () => {
+  if (!assignTarget.value || !assignForm.value.program) return;
+  const [programType, programId] = String(assignForm.value.program).split(':');
+  const ok = await financeStore.assignReconciliationProgram(assignTarget.value.id, {
+    programType,
+    programId,
+    description: assignForm.value.description || undefined,
+    notes: assignForm.value.notes || undefined,
+  });
+  if (ok) {
+    assignDialogOpen.value = false;
+    await loadData();
+  }
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -455,6 +628,7 @@ const loadData = async () => {
     financeStore.fetchBankImports(),
     loadReconciliations(),
     financeStore.fetchReconciliationSummary(),
+    financeStore.fetchPrograms(),
   ]);
 };
 
