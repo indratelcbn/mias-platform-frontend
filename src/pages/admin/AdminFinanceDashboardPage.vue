@@ -184,14 +184,14 @@
             <div class="row q-col-gutter-md">
               <div
                 v-for="d in dashboardSummary?.divisiBalances || []"
-                :key="d.divisi"
+                :key="d.divisiId || d.divisi"
                 class="col-12 col-sm-6 col-md-4 col-lg-3"
               >
                 <q-card flat bordered class="rounded-lg q-pa-md full-height">
                   <div class="row items-center justify-between q-mb-sm">
-                    <q-chip dense :color="divisiColor(d.divisi).bg" :text-color="divisiColor(d.divisi).text" class="q-pl-sm">
-                      <q-icon :name="divisiColor(d.divisi).icon" class="q-mr-xs" />
-                      {{ divisiLabel(d.divisi) }}
+                    <q-chip dense :color="divisiColor(d.divisi || d.divisiId).bg" :text-color="divisiColor(d.divisi || d.divisiId).text" class="q-pl-sm">
+                      <q-icon :name="divisiColor(d.divisi || d.divisiId).icon" class="q-mr-xs" />
+                      {{ divisiLabel(d.divisiNama || d.divisi || d.divisiId) }}
                     </q-chip>
                     <q-icon :name="d.balance >= 0 ? 'arrow_upward' : 'arrow_downward'" :color="d.balance >= 0 ? 'green-7' : 'red-7'" />
                   </div>
@@ -308,8 +308,14 @@ const DIVISI_META = {
   OPERASIONAL: { label: 'Operasional dan Dakwah', icon: 'settings',       bg: 'grey-3',   text: 'grey-9' },
   WAKAF:       { label: 'Wakaf',       icon: 'account_balance', bg: 'teal-1',  text: 'teal-8' },
 };
-const divisiLabel = (key) => DIVISI_META[key]?.label || key;
-const divisiColor = (key) => DIVISI_META[key] || { icon: 'category', bg: 'grey-2', text: 'grey-8' };
+const divisiLabel = (key) => {
+  if (!key) return '';
+  return DIVISI_META[key]?.label || key;
+};
+const divisiColor = (key) => {
+  if (!key) return { icon: 'category', bg: 'grey-2', text: 'grey-8' };
+  return DIVISI_META[key] || { icon: 'category', bg: 'grey-2', text: 'grey-8' };
+};
 
 const loadDashboard = async () => {
   const params = {};

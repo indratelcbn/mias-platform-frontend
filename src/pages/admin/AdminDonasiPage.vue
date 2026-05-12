@@ -265,7 +265,7 @@
             <q-input v-model="editWakaf.kode" outlined label="Kode Program" />
             <q-select
               v-model="editWakaf.divisi"
-              :options="wakafDivisiOptions"
+              :options="divisiOptions"
               outlined
               label="Divisi"
               emit-value
@@ -349,18 +349,21 @@ const activeStatus = ref('');
 const buktiDialog = ref(false);
 const buktiUrl = ref('');
 
-const divisiOptions = [
-  { label: 'Sosial', value: 'SOSIAL' },
-  { label: 'Pendidikan', value: 'PENDIDIKAN' },
-  { label: 'Usaha', value: 'USAHA' },
-  { label: 'Multimedia', value: 'MULTIMEDIA' },
-  { label: 'Operasional dan Dakwah', value: 'OPERASIONAL' },
-];
-const wakafDivisiOptions = [
-  { label: 'Wakaf', value: 'WAKAF' },
-];
-const allDivisiOptions = [...divisiOptions, ...wakafDivisiOptions];
-const divisiLabel = (val) => allDivisiOptions.find((o) => o.value === val)?.label || '-';
+const divisiOptions = ref([]);
+const divisiLabel = (val) => {
+  const id = val && typeof val === 'object' ? val.id : val;
+  const found = divisiOptions.value.find((o) => o.value === id);
+  if (found) return found.label;
+  const fallback = [
+    { label: 'Sosial', value: 'SOSIAL' },
+    { label: 'Pendidikan', value: 'PENDIDIKAN' },
+    { label: 'Usaha', value: 'USAHA' },
+    { label: 'Multimedia', value: 'MULTIMEDIA' },
+    { label: 'Operasional dan Dakwah', value: 'OPERASIONAL' },
+    { label: 'Wakaf', value: 'WAKAF' },
+  ].find((o) => o.value === id);
+  return fallback?.label || (typeof id === 'string' ? id : '-');
+};
 
 // ─── Program Infaq ───────────────────────────────────────────────────────────
 const programDialog = ref(false);
@@ -368,7 +371,7 @@ const editProgram = ref({});
 
 const openProgramDialog = (row = null) => {
   editProgram.value = row
-    ? { ...row, target: Number(row.target), terkumpul: Number(row.terkumpul), tampilWebsite: row.tampilWebsite !== false }
+    ? { ...row, divisi: row.divisi?.id || row.divisiId || row.divisi || null, target: Number(row.target), terkumpul: Number(row.terkumpul), tampilWebsite: row.tampilWebsite !== false }
     : { judul: '', kode: '', deskripsi: '', divisi: null, target: '', terkumpul: 0, urutan: 0, isActive: true, tampilWebsite: true };
   programDialog.value = true;
 };
@@ -500,8 +503,8 @@ const wakafColumns = [
 
 const openWakafDialog = (row = null) => {
   editWakaf.value = row
-    ? { ...row, target: Number(row.target || 0), divisi: row.divisi || 'WAKAF', tampilWebsite: row.tampilWebsite !== false }
-    : { kode: '', kegiatan: '', deskripsi: '', divisi: 'WAKAF', target: '', urutan: 0, isActive: true, tampilWebsite: true };
+    ? { ...row, target: Number(row.target || 0), divisi: row.divisi?.id || row.divisiId || row.divisi || null, tampilWebsite: row.tampilWebsite !== false }
+    : { kode: '', kegiatan: '', deskripsi: '', divisi: null, target: '', urutan: 0, isActive: true, tampilWebsite: true };
   wakafDialog.value = true;
 };
 
@@ -510,6 +513,11 @@ const saveWakaf = async () => {
     ? await donasiStore.updateWakaf(editWakaf.value.id, editWakaf.value)
     : await donasiStore.createWakaf(editWakaf.value);
   if (ok) { wakafDialog.value = false; donasiStore.fetchAllWakaf(); }
+};
+
+const loadDivisiOptions = async () => {
+  await donasiStore.fetchDivisiOptions();
+  divisiOptions.value = donasiStore.divisiOptions;
 };
 
 const confirmDeleteWakaf = (row) => {
@@ -556,6 +564,7 @@ onMounted(async () => {
     donasiStore.fetchAllProgram(),
     donasiStore.fetchAllWakaf(),
     donasiStore.fetchRekening(),
+    loadDivisiOptions(),
   ]);
 });
 </script>

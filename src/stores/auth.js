@@ -21,9 +21,8 @@ export const useAuthStore = defineStore('auth', {
     // First admin route the current user is allowed to land on.
     landingRoute: (state) => {
       if (state.user?.role === 'SUPERADMIN') return 'admin-dashboard';
-      // Priority: dashboard > finance > donasi > kajian > artikel > pesan > galeri
-      // > streaming > sosial > mustahik > pendidikan > usaha > qurban > profil
-      // > setting > hero-banner > users
+      // Priority: dashboard > finance > donasi > kajian > artikel > pesan > divisi > galeri
+      // > streaming > sosial > mustahik > pendidikan > usaha > profil > setting > hero-banner > users
       const order = [
         ['admin-dashboard',  'admin-dashboard'],
         ['admin-finance',    'admin-finance-dashboard'],
@@ -31,6 +30,7 @@ export const useAuthStore = defineStore('auth', {
         ['admin-kajian',     'admin-kajian'],
         ['admin-artikel',    'admin-artikel'],
         ['admin-pesan',      'admin-pesan'],
+        ['admin-divisi',     'admin-divisi'],
         ['admin-galeri',     'admin-galeri'],
         ['admin-streaming',  'admin-streaming'],
         ['admin-sosial',     'admin-sosial'],

@@ -151,11 +151,18 @@
           <template #avatar>
             <q-icon name="info" color="blue-9" />
           </template>
-          <div class="text-weight-medium">Kode Unik Terdeteksi!</div>
-          <div class="text-caption">
-            Kode: {{ String(detectedProgram.uniqueCode).padStart(3, '0') }} •
-            Program: {{ detectedProgram.program?.name || 'Tidak ditemukan' }} •
-            Nominal Aktual: {{ formatCurrency(detectedProgram.actualAmount) }}
+          <div class="row items-center">
+            <div class="col">
+              <div class="text-weight-medium">Kode Unik Terdeteksi!</div>
+              <div class="text-caption">
+                Kode: {{ String(detectedProgram.uniqueCode).padStart(3, '0') }} •
+                Program: {{ detectedProgram.program?.name || 'Tidak ditemukan' }} •
+                Nominal Aktual: {{ formatCurrency(detectedProgram.actualAmount) }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <q-toggle v-model="applyDetectedProgram" label="Gunakan" color="blue" dense />
+            </div>
           </div>
         </q-banner>
       </div>
@@ -238,16 +245,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useFinanceStore } from 'src/stores/finance';
+import { useDonasiStore } from 'src/stores/donasi';
 import { useQuasar } from 'quasar';
 import { formatCurrency, terbilang } from 'src/utils/format';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
+const donasiStore = useDonasiStore();
 
 const dialogOpen = ref(false);
 const isEdit = ref(false);
 const editId = ref(null);
 const detectedProgram = ref(null);
+const applyDetectedProgram = ref(true);
 
 const filters = ref({
   accountId: null,
@@ -290,19 +300,27 @@ const typeOptions = [
   { label: 'Pengeluaran', value: 'OUT' },
 ];
 
-const divisiOptions = [
-  { label: 'Sosial', value: 'SOSIAL' },
-  { label: 'Pendidikan', value: 'PENDIDIKAN' },
-  { label: 'Usaha', value: 'USAHA' },
-  { label: 'Multimedia', value: 'MULTIMEDIA' },
-  { label: 'Operasional dan Dakwah', value: 'OPERASIONAL' },
-  { label: 'Wakaf', value: 'WAKAF' },
-];
+const divisiOptions = ref([]);
+
+const getProgramDivisiValue = (program) => {
+  if (!program) return null;
+  if (program.divisiId) return program.divisiId;
+  if (program.divisi && typeof program.divisi === 'string') return program.divisi;
+  if (program.divisi && typeof program.divisi === 'object') return program.divisi.id || null;
+  return null;
+};
 
 const filteredPrograms = computed(() => {
-  if (!form.value.divisi) return [];
-  return programs.value.filter((p) => p.divisi === form.value.divisi);
+  if (!form.value.divisi) return programs.value;
+
+  const selectedDivisi = String(form.value.divisi);
+  return programs.value.filter((p) => getProgramDivisiValue(p) === selectedDivisi);
 });
+
+const loadDivisiOptions = async () => {
+  await donasiStore.fetchDivisiOptions();
+  divisiOptions.value = donasiStore.divisiOptions;
+};
 
 const displayAmount = computed({
   get() {
@@ -334,6 +352,7 @@ const onDivisiChange = () => {
 
 const columns = [
   { name: 'transactionDate', label: 'Tanggal', field: 'transactionDate', align: 'left', sortable: true, format: val => new Date(val).toLocaleDateString('id-ID') },
+  { name: 'transactionCode', label: 'Kode Transaksi', field: row => row.transactionCode || '-', align: 'left', sortable: true },
   { name: 'account', label: 'Akun', field: row => row.account?.name, align: 'left' },
   { name: 'type', label: 'Tipe', field: 'type', align: 'center', sortable: true },
   { name: 'amount', label: 'Jumlah', field: 'amount', align: 'left', sortable: true },
@@ -347,13 +366,16 @@ const checkUniqueCode = async () => {
     const result = await financeStore.parseAmountWithUniqueCode(form.value.amount);
     if (result?.hasUniqueCode) {
       detectedProgram.value = result;
-      if (result.program) {
+      if (applyDetectedProgram.value && result.program) {
         form.value.programType = result.program.type;
         form.value.programId = result.program.id;
         form.value.programName = result.program.name;
         // Sync divisi from matched program
         const matched = programs.value.find((p) => p.id === result.program.id);
         if (matched?.divisi) form.value.divisi = matched.divisi;
+        else if (matched?.divisiId) form.value.divisi = matched.divisiId;
+        else if (result.program.divisi) form.value.divisi = result.program.divisi;
+        else if (result.program.divisiId) form.value.divisi = result.program.divisiId;
       }
     } else {
       detectedProgram.value = null;
@@ -373,7 +395,7 @@ const openDialog = (transaction = null, presetType = 'IN') => {
       transactionDate: new Date(transaction.transactionDate).toISOString().split('T')[0],
       type: transaction.type,
       amount: Number(transaction.amount),
-      divisi: matched?.divisi || null,
+      divisi: matched?.divisi || matched?.divisiId || null,
       programType: transaction.programType,
       programId: transaction.programId,
       programName: transaction.programName,
@@ -466,6 +488,7 @@ const onFileRejected = () => {
 onMounted(async () => {
   await financeStore.fetchAccounts();
   await financeStore.fetchPrograms();
+  await loadDivisiOptions();
   await loadTransactions();
 });
 </script>

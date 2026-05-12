@@ -8,6 +8,7 @@ export const useDonasiStore = defineStore('donasi', {
     rekeningList: [],
     programList: [],
     wakafList: [],
+    divisiOptions: [],
     summary: null,
     meta: { total: 0, page: 1, limit: 10, totalPages: 1 },
     loading: false,
@@ -137,6 +138,15 @@ export const useDonasiStore = defineStore('donasi', {
         this.programList = data.data;
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal memuat program infaq.' });
+      }
+    },
+
+    async fetchDivisiOptions() {
+      try {
+        const { data } = await api.get('/divisi/active');
+        this.divisiOptions = data.data.map((item) => ({ label: item.nama, value: item.id }));
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat daftar divisi.' });
       }
     },
 

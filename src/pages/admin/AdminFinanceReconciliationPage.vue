@@ -42,6 +42,9 @@
               emit-value
               map-options
             />
+            <div class="text-caption text-grey-6 q-mt-xs">
+              Untuk format BSI, file tanpa kolom No bisa diproses. Pastikan header mencakup Waktu Transaksi, No Referensi, Nama Pengirim, Bank Pengirim, Nama Penerima, Bank Penerima, Deskripsi, Debet, Kredit, Saldo Riil, dan Kode.
+            </div>
 
             <q-file
               v-model="importForm.file"
@@ -138,9 +141,16 @@
             </q-td>
           </template>
           <template #body-cell-actions="props">
-            <q-td>
+            <q-td class="row items-center q-gutter-sm">
               <q-btn flat dense icon="visibility" color="primary" size="sm" @click="viewDetails(props.row)">
                 <q-tooltip>Lihat Detail</q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="props.row.pendingCount > 0"
+                flat dense icon="check_circle" color="positive" size="sm"
+                @click="confirmImport(props.row)"
+              >
+                <q-tooltip>Konfirmasi Import</q-tooltip>
               </q-btn>
               <q-btn flat dense icon="delete" color="negative" size="sm" @click="confirmDeleteImport(props.row)">
                 <q-tooltip>Hapus</q-tooltip>
@@ -197,11 +207,22 @@
             </q-td>
           </template>
           <template #body-cell-actions="props">
-            <q-td>
+            <q-td class="row items-center q-gutter-sm">
               <q-btn flat dense icon="edit" color="primary" size="sm" @click="openAssignProgramDialog(props.row)">
-                <q-tooltip>Edit Program</q-tooltip>
+                <q-tooltip>{{ props.row.status === 'MATCHED' ? 'Ubah Program' : 'Masuk Transaksi' }}</q-tooltip>
               </q-btn>
-              <q-btn flat dense icon="logout" color="orange" size="sm" @click="confirmUnmatch(props.row)">
+              <q-btn
+                v-if="props.row.status === 'PENDING'"
+                flat dense icon="block" color="orange" size="sm"
+                @click="confirmMarkAsUnmatched(props.row)"
+              >
+                <q-tooltip>Tandai Tidak Masuk</q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="props.row.status === 'MATCHED'"
+                flat dense icon="logout" color="orange" size="sm"
+                @click="confirmUnmatch(props.row)"
+              >
                 <q-tooltip>Unmatch</q-tooltip>
               </q-btn>
             </q-td>
@@ -417,7 +438,7 @@ const handleImportBankCSV = async () => {
   if (result) {
     importDialogOpen.value = false;
     importForm.value = { accountId: null, bankFormat: 'STANDARD', file: null };
-    await Promise.all([financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary()]);
+    await Promise.all([financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary(), loadReconciliations()]);
   }
 };
 
@@ -456,6 +477,21 @@ const confirmDeleteImport = async (importRow) => {
   });
 };
 
+const confirmImport = async (importRow) => {
+  $q.dialog({
+    title: 'Konfirmasi',
+    message: 'Masukkan semua baris hasil import ini ke Transaksi internal?',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7', noCaps: true },
+    ok: { unelevated: true, label: 'Ya, konfirmasi', color: 'positive', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    const result = await financeStore.confirmBankImport(importRow.id);
+    if (result) {
+      await Promise.all([financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary(), loadReconciliations()]);
+    }
+  });
+};
+
 const bankAccountOptions = computed(() =>
   accounts.value.filter(a => a.type === 'BANK' && a.isActive).map(a => ({ label: a.name, value: a.id }))
 );
@@ -472,8 +508,8 @@ const bankFormatOptions = [
 const statusOptions = [
   { label: 'Semua', value: null },
   { label: 'Matched', value: 'MATCHED' },
-  { label: 'Unmatched', value: 'UNMATCHED' },
   { label: 'Pending', value: 'PENDING' },
+  { label: 'Unmatched', value: 'UNMATCHED' },
 ];
 
 const importColumns = [
@@ -481,6 +517,7 @@ const importColumns = [
   { name: 'fileName', label: 'File', field: 'fileName', align: 'left' },
   { name: 'account', label: 'Akun', field: row => row.account?.name, align: 'left' },
   { name: 'totalRows', label: 'Total', field: 'totalRows', align: 'center' },
+  { name: 'pendingCount', label: 'Pending', field: 'pendingCount', align: 'center' },
   { name: 'status', label: 'Status', field: 'id', align: 'left' },
   { name: 'actions', label: 'Aksi', field: 'id', align: 'center' },
 ];
@@ -514,7 +551,18 @@ const reconColumns = [
     align: 'right',
     format: (val) => (val ? formatCurrency(val) : '-'),
   },
-  // Kode Program column
+  {
+    name: 'programName',
+    label: 'Program',
+    field: row => row.transaction?.programName || row.bankImportDetail?.programName || '-',
+    align: 'left',
+  },
+  {
+    name: 'divisiNama',
+    label: 'Divisi',
+    field: row => row.transaction?.programType ? row.transaction.programType : row.bankImportDetail?.divisiNama || '-',
+    align: 'left',
+  },
   {
     name: 'programCode',
     label: 'Kode Program',
@@ -558,10 +606,11 @@ const getStatusLabel = (status) => {
 };
 
 const getReconciliationProgramLabel = (row) => {
-  if (!row?.transaction) return '-';
-  if (row.transaction.programName) return row.transaction.programName;
-  if (row.transaction.uniqueCode) return String(row.transaction.uniqueCode).padStart(3, '0');
-  if (row.transaction.programId) return row.transaction.programId;
+  if (row?.transaction?.programName) return row.transaction.programName;
+  if (row?.bankImportDetail?.programName) return row.bankImportDetail.programName;
+  if (row?.transaction?.uniqueCode) return String(row.transaction.uniqueCode).padStart(3, '0');
+  if (row?.bankImportDetail?.programCode) return row.bankImportDetail.programCode;
+  if (row?.transaction?.programId) return row.transaction.programId;
   return '-';
 };
 
@@ -575,6 +624,20 @@ const confirmUnmatch = (recon) => {
   }).onOk(async () => {
     await financeStore.unmatch(recon.id);
     await loadReconciliations();
+  });
+};
+
+const confirmMarkAsUnmatched = (recon) => {
+  $q.dialog({
+    title: 'Konfirmasi',
+    message: 'Tandai transaksi ini tidak masuk ke Transaksi internal?',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7', noCaps: true },
+    ok: { unelevated: true, label: 'Ya, tidak masuk', color: 'negative', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    await financeStore.markAsUnmatched({ bankImportDetailId: recon.bankImportDetail?.id });
+    await loadReconciliations();
+    await financeStore.fetchReconciliationSummary();
   });
 };
 
@@ -617,7 +680,7 @@ const viewDetails = (importData) => {
 };
 
 const loadReconciliations = async () => {
-  const params = {};
+  const params = { limit: 'all' };
   if (statusFilter.value) params.status = statusFilter.value;
   await financeStore.fetchReconciliations(params);
 };

@@ -247,9 +247,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="d in divisiBreakdown" :key="d.divisi">
+              <tr v-for="d in divisiBreakdown" :key="d.divisiId || d.divisi">
                 <td>
-                  <q-badge :color="divisiColor(d.divisi)" :label="divisiLabel(d.divisi)" />
+                  <q-badge :color="divisiColor(d.divisi)" :label="divisiLabel(d.divisi, d.divisiNama)" />
                 </td>
                 <td class="text-center">{{ d.count }}</td>
                 <td class="text-right text-green-7">{{ formatCurrency(d.totalIn) }}</td>
@@ -275,6 +275,7 @@
             <thead>
               <tr class="bg-grey-2">
                 <th class="text-left">Program</th>
+                <th class="text-left">Nama Akun</th>
                 <th class="text-center">Tipe</th>
                 <th class="text-center">Transaksi</th>
                 <th class="text-right">Pemasukan</th>
@@ -283,8 +284,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="p in programBreakdown" :key="`${p.programType}-${p.programId}`">
+              <tr v-for="p in programBreakdown" :key="`${p.programType}-${p.programId}-${p.accountId}`">
                 <td>{{ p.programName }}</td>
+                <td>{{ p.accountName || '-' }}</td>
                 <td class="text-center">
                   <q-badge :color="p.programType === 'INFAQ' ? 'blue' : 'purple'" :label="p.programType" />
                 </td>
@@ -470,7 +472,10 @@ const divisiLabelMap = {
   OPERASIONAL: 'Operasional dan Dakwah',
   WAKAF: 'Wakaf',
 };
-const divisiLabel = (divisi) => divisiLabelMap[divisi] || divisi;
+const divisiLabel = (divisi, name) => {
+  if (name) return name;
+  return divisiLabelMap[divisi] || divisi;
+};
 
 const loadReport = async () => {
   loading.value = true;

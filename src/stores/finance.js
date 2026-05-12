@@ -405,6 +405,21 @@ export const useFinanceStore = defineStore('finance', {
       }
     },
 
+    async confirmBankImport(importId) {
+      this.submitting = true;
+      try {
+        const { data } = await api.post(`/finance/bank-imports/${importId}/confirm`);
+        Notify.create({ type: 'positive', message: data.message });
+        await Promise.all([this.fetchBankImports(), this.fetchReconciliationSummary(), this.fetchReconciliations()]);
+        return data.data;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal konfirmasi import.' });
+        return false;
+      } finally {
+        this.submitting = false;
+      }
+    },
+
     async deleteBankImport(id) {
       this.submitting = true;
       try {

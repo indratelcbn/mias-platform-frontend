@@ -62,6 +62,7 @@ const routes = [
       { path: 'setting', component: () => import('pages/admin/AdminSettingPage.vue'), name: 'admin-setting', meta: { menuKey: 'admin-setting' } },
       { path: 'hero-banner', component: () => import('pages/admin/AdminHeroBannerPage.vue'), name: 'admin-hero-banner', meta: { menuKey: 'admin-setting' } },
       { path: 'users', component: () => import('pages/admin/AdminUsersPage.vue'), name: 'admin-users', meta: { menuKey: 'admin-users', superadminOnly: true } },
+      { path: 'divisi', component: () => import('pages/admin/DivisiManagementPage.vue'), name: 'admin-divisi', meta: { menuKey: 'admin-divisi' } },
       
       // Finance Routes
       { path: 'finance/dashboard', component: () => import('pages/admin/AdminFinanceDashboardPage.vue'), name: 'admin-finance-dashboard', meta: { menuKey: 'admin-finance' } },

@@ -273,6 +273,7 @@ const allMenuItems = [
     ]
   },
   { name: 'admin-pesan', label: 'Pesan', to: '/admin/pesan', icon: 'mark_email_unread' },
+  { name: 'admin-divisi', label: 'Divisi', to: '/admin/divisi', icon: 'category' },
   { name: 'admin-setting', label: 'Pengaturan', to: '/admin/setting', icon: 'settings' },
   { name: 'admin-users', label: 'Pengguna', to: '/admin/users', icon: 'manage_accounts', superadminOnly: true },
 ];
