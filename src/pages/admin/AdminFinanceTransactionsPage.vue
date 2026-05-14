@@ -12,31 +12,131 @@
       </div>
     </div>
 
-    <!-- Filters -->
-    <q-card flat bordered class="rounded-xl q-mb-md">
-      <q-card-section>
-        <div class="row q-col-gutter-md items-end">
-          <div class="col-12 col-md-3">
-            <q-select v-model="filters.accountId" :options="accountOptions" label="Akun" outlined dense clearable emit-value map-options />
+    <!-- Filters & Actions -->
+<q-card flat bordered class="rounded-xl q-mb-md">
+  <q-card-section>
+    <div class="row q-col-gutter-md items-end">
+
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="filters.accountId"
+          :options="accountOptions"
+          label="Akun"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+        />
+      </div>
+
+      <div class="col-12 col-md-2">
+        <q-select
+          v-model="filters.type"
+          :options="typeOptions"
+          label="Tipe"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+        />
+      </div>
+
+      <div class="col-12 col-md-2">
+        <q-input
+          v-model="filters.startDate"
+          type="date"
+          label="Dari Tanggal"
+          outlined
+          dense
+        />
+      </div>
+
+      <div class="col-12 col-md-2">
+        <q-input
+          v-model="filters.endDate"
+          type="date"
+          label="Sampai Tanggal"
+          outlined
+          dense
+        />
+
+        
+      </div>
+
+        <div class="row q-gutter-sm q-mt-sm justify-md-end">
+          <q-btn
+            flat
+            color="teal"
+            icon="download"
+            label="Export Excel"
+            no-caps
+            @click="exportExcel"
+            :loading="exporting"
+          />
+          <q-btn
+            flat
+            color="deep-orange"
+            icon="picture_as_pdf"
+            label="Cetak PDF"
+            no-caps
+            @click="exportPDF"
+            :loading="exporting"
+          />
+
+      </div>
+
+      <!-- SEARCH BAR: Selalu di kiri, full width di mobile, di atas filter/export di desktop -->
+      <div class="col-12 order-md-1 q-mb-sm q-mb-md-none">
+        <div class="row items-center q-col-gutter-sm">
+          <div class="col">
+            <q-input
+              v-model="filters.search"
+              label="Cari"
+              outlined
+              dense
+              clearable
+              debounce="300"
+              @keyup.enter="loadTransactions"
+              @clear="loadTransactions"
+              
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
           </div>
-          <div class="col-12 col-md-2">
-            <q-select v-model="filters.type" :options="typeOptions" label="Tipe" outlined dense clearable emit-value map-options />
+          <div class="col-auto">
+            <q-btn
+              unelevated
+              color="primary"
+              icon="search"
+              label="Filter"
+              no-caps
+              @click="loadTransactions"
+              :loading="loading"
+            />
           </div>
-          <div class="col-12 col-md-2">
-            <q-input v-model="filters.startDate" type="date" label="Dari Tanggal" outlined dense />
-          </div>
-          <div class="col-12 col-md-2">
-            <q-input v-model="filters.endDate" type="date" label="Sampai Tanggal" outlined dense />
-          </div>
-          <div class="col-12 col-md-3">
-            <div class="row q-gutter-sm">
-              <q-btn unelevated color="primary" icon="search" label="Filter" no-caps @click="loadTransactions" :loading="loading" />
-              <q-btn flat color="grey-7" icon="refresh" label="Reset" no-caps @click="resetFilters" />
-            </div>
+          <div class="col-auto">
+            <q-btn
+              flat
+              color="grey-7"
+              icon="refresh"
+              label="Reset"
+              no-caps
+              @click="resetFilters"
+            />
           </div>
         </div>
-      </q-card-section>
-    </q-card>
+      </div>
+
+      <!-- EXPORT BUTTONS: Selalu di kanan bawah search di desktop, full width di mobile -->
+      
+
+    </div>
+  </q-card-section>
+</q-card>
 
     <!-- Transactions Table -->
     <q-card flat bordered class="rounded-xl">
@@ -244,6 +344,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { api } from 'src/boot/axios';
 import { useFinanceStore } from 'src/stores/finance';
 import { useDonasiStore } from 'src/stores/donasi';
 import { useQuasar } from 'quasar';
@@ -264,7 +365,51 @@ const filters = ref({
   type: null,
   startDate: '',
   endDate: '',
+  search: '',
 });
+const exporting = ref(false);
+
+
+const exportExcel = async () => {
+  exporting.value = true;
+  try {
+    const params = { ...filters.value };
+    const res = await api.get('/finance/transactions/export/excel', { params, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Transaksi-Keuangan.xlsx');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Gagal export Excel.' });
+  } finally {
+    exporting.value = false;
+  }
+};
+
+
+const exportPDF = async () => {
+  exporting.value = true;
+  try {
+    const params = { ...filters.value };
+    const res = await api.get('/finance/transactions/export/pdf', { params, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Transaksi-Keuangan.pdf');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    $q.notify({ type: 'negative', message: 'Gagal export PDF.' });
+  } finally {
+    exporting.value = false;
+  }
+};
 
 const form = ref({
   accountId: null,
@@ -471,15 +616,26 @@ const loadTransactions = async () => {
   pagination.value.rowsNumber = financeStore.transactionMeta.total;
 };
 
+
 const resetFilters = () => {
   filters.value = {
     accountId: null,
     type: null,
     startDate: '',
     endDate: '',
+    search: '',
   };
   loadTransactions();
 };
+
+// Watcher: pencarian langsung saat user mengetik
+import { watch } from 'vue';
+watch(() => filters.value.search, (val, oldVal) => {
+  if (val !== oldVal) {
+    pagination.value.page = 1;
+    loadTransactions();
+  }
+});
 
 const onFileRejected = () => {
   $q.notify({ type: 'negative', message: 'File terlalu besar (max 5MB)' });

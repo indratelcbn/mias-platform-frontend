@@ -248,9 +248,20 @@
             </thead>
             <tbody>
               <tr v-for="d in divisiBreakdown" :key="d.divisiId || d.divisi">
-                <td>
-                  <q-badge :color="divisiColor(d.divisi)" :label="divisiLabel(d.divisi, d.divisiNama)" />
-                </td>
+<td>
+  <q-badge
+    :color="divisiColor(d.divisiNama)"
+    :label="divisiLabel(d.divisi, d.divisiNama)"
+    text-color="white"
+    v-if="divisiColor(d.divisiNama) !== 'grey'"
+  />
+  <q-badge
+    color="grey-3"
+    :label="divisiLabel(d.divisi, d.divisiNama)"
+    text-color="grey-9"
+    v-else
+  />
+</td>
                 <td class="text-center">{{ d.count }}</td>
                 <td class="text-right text-green-7">{{ formatCurrency(d.totalIn) }}</td>
                 <td class="text-right text-red-7">{{ formatCurrency(d.totalOut) }}</td>
@@ -452,29 +463,22 @@ const periodLabel = computed(
   () => `${monthNames[filters.month - 1]} ${filters.year}`
 );
 
-const divisiColor = (divisi) => {
+const divisiColor = (divisiNama) => {
+  const key = String(divisiNama || '').trim().toLowerCase();
   const map = {
-    SOSIAL: 'green',
-    PENDIDIKAN: 'purple',
-    USAHA: 'orange',
-    MULTIMEDIA: 'pink',
-    OPERASIONAL: 'grey',
-    WAKAF: 'teal',
+    'sosial': 'green',
+    'pendidikan': 'purple',
+    'usaha': 'orange',
+    'multimedia': 'pink',
+    'operasional dan dakwah': 'blue-grey',
+    'wakaf': 'teal',
   };
-  return map[divisi] || 'grey';
+  return map[key] || 'grey';
 };
 
-const divisiLabelMap = {
-  SOSIAL: 'Sosial',
-  PENDIDIKAN: 'Pendidikan',
-  USAHA: 'Usaha',
-  MULTIMEDIA: 'Multimedia',
-  OPERASIONAL: 'Operasional dan Dakwah',
-  WAKAF: 'Wakaf',
-};
-const divisiLabel = (divisi, name) => {
-  if (name) return name;
-  return divisiLabelMap[divisi] || divisi;
+
+const divisiLabel = (divisi, divisiNama) => {
+  return divisiNama || divisi || '-';
 };
 
 const loadReport = async () => {
