@@ -145,6 +145,7 @@ const editableRoles = ['ADMIN', 'KEUANGAN', 'SOSIAL', 'DAKWAH', 'PENDIDIKAN', 'U
 
 const allMenuOptions = [
   { value: 'admin-dashboard', label: 'Dashboard' },
+  { value: 'admin-analytics', label: 'Analytics' },
   { value: 'admin-profil', label: 'Profil Masjid' },
   { value: 'admin-kajian', label: 'Kajian Ilmiyyah' },
   { value: 'admin-streaming', label: 'Mias TV' },

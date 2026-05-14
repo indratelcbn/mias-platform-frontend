@@ -249,6 +249,7 @@ const unresolvedPesanCount = computed(() => pesanStore.summary?.belumDitindaklan
 
 const allMenuItems = [
   { name: 'admin-dashboard', label: 'Dashboard', to: '/admin/dashboard', icon: 'dashboard' },
+  { name: 'admin-analytics', label: 'Analytics', to: '/admin/analytics', icon: 'query_stats' },
   { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
   { name: 'admin-kajian', label: 'Kajian Ilmiyyah', to: '/admin/kajian', icon: 'menu_book' },
   { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },

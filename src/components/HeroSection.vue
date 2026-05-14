@@ -115,8 +115,8 @@ const heroStats = ref({
 
 const stats = computed(() => [
   { value: '2012', label: 'Tahun Berdiri' },
-  { value: `${heroStats.value.totalKajian || 0}+`, label: 'Total Kajian' },
-  { value: `${heroStats.value.totalPemateri || 0}+`, label: 'Total Pemateri' },
+  { value: `${heroStats.value.totalKajian || 0}+`, label: 'Total Kajian Rutin' },
+  { value: `${heroStats.value.totalPemateri || 0}+`, label: 'Total Pemateri Kajian Rutin' },
   { value: `${heroStats.value.totalProgram || 0}+`, label: 'Total Program' },
 ]);
 

@@ -1,4 +1,6 @@
 // Quasar SCSS variables
+@use 'sass:color';
+
 $primary   : #1B7A4A;   // hijau islami
 $secondary : #26A65B;   // hijau muda
 $accent    : #D4AF37;   // emas
@@ -39,7 +41,7 @@ $typography-font-family: 'Roboto', 'Segoe UI', sans-serif;
   background-color: $primary;
 }
 .bg-islami-light {
-  background-color: lighten($primary, 55%);
+  background-color: color.scale($primary, $lightness: 55%);
 }
 .rounded-xl {
   border-radius: 16px;

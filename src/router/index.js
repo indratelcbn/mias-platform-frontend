@@ -47,6 +47,7 @@ const routes = [
     children: [
       { path: '', redirect: '/admin/dashboard' },
       { path: 'dashboard', component: () => import('pages/admin/DashboardPage.vue'), name: 'admin-dashboard', meta: { menuKey: 'admin-dashboard' } },
+      { path: 'analytics', component: () => import('pages/admin/Analytics.vue'), name: 'admin-analytics', meta: { menuKey: 'admin-analytics' } },
       { path: 'kajian', component: () => import('pages/admin/AdminKajianPage.vue'), name: 'admin-kajian', meta: { menuKey: 'admin-kajian' } },
       { path: 'artikel', component: () => import('pages/admin/AdminArtikelPage.vue'), name: 'admin-artikel', meta: { menuKey: 'admin-artikel' } },
       { path: 'donasi', component: () => import('pages/admin/AdminDonasiPage.vue'), name: 'admin-donasi', meta: { menuKey: 'admin-donasi' } },

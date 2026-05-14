@@ -20,6 +20,7 @@
     "@tiptap/pm": "^2.27.2",
     "@tiptap/starter-kit": "^2.27.2",
     "@tiptap/vue-3": "^2.27.2",
+    "apexcharts": "^5.11.0",
     "axios": "^1.6.7",
     "pinia": "^2.1.7",
     "quasar": "^2.14.3",
