@@ -150,6 +150,9 @@
         @request="onRequest"
         :rows-per-page-options="[10, 20, 50]"
       >
+        <template #body-cell-no="props">
+          <q-td class="text-center">{{ props.rowIndex + 1 + ((pagination.page - 1) * pagination.rowsPerPage) }}</q-td>
+        </template>
         <template #body-cell-type="props">
           <q-td>
             <q-chip :color="props.value === 'IN' ? 'green-1' : 'red-1'" :text-color="props.value === 'IN' ? 'green-7' : 'red-7'" dense>
@@ -496,6 +499,7 @@ const onDivisiChange = () => {
 };
 
 const columns = [
+  { name: 'no', label: 'No.', align: 'center', style: 'width: 60px' },
   { name: 'transactionDate', label: 'Tanggal', field: 'transactionDate', align: 'left', sortable: true, format: val => new Date(val).toLocaleDateString('id-ID') },
   { name: 'transactionCode', label: 'Kode Transaksi', field: row => row.transactionCode || '-', align: 'left', sortable: true },
   { name: 'account', label: 'Akun', field: row => row.account?.name, align: 'left' },

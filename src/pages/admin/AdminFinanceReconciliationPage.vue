@@ -75,7 +75,7 @@
 
     <!-- Reconciliation Summary -->
     <div class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-2">
         <q-card flat bordered class="rounded-xl">
           <q-card-section class="q-pa-lg">
             <div class="text-caption text-grey-6 q-mb-xs">Total Transaksi Bank</div>
@@ -85,7 +85,7 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-2">
         <q-card flat bordered class="rounded-xl">
           <q-card-section class="q-pa-lg">
             <div class="text-caption text-grey-6 q-mb-xs">Matched</div>
@@ -95,7 +95,7 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-2">
         <q-card flat bordered class="rounded-xl">
           <q-card-section class="q-pa-lg">
             <div class="text-caption text-grey-6 q-mb-xs">Unmatched</div>
@@ -105,12 +105,32 @@
           </q-card-section>
         </q-card>
       </div>
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-2">
         <q-card flat bordered class="rounded-xl">
           <q-card-section class="q-pa-lg">
             <div class="text-caption text-grey-6 q-mb-xs">Pending</div>
             <div class="text-h5 text-weight-bold text-orange-7">
               {{ summary?.pending || 0 }}
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-2">
+        <q-card flat bordered class="rounded-xl">
+          <q-card-section class="q-pa-lg">
+            <div class="text-caption text-grey-6 q-mb-xs">Total Debet</div>
+            <div class="text-h5 text-weight-bold text-red-7">
+              {{ totalDebetFormatted }}
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-2">
+        <q-card flat bordered class="rounded-xl">
+          <q-card-section class="q-pa-lg">
+            <div class="text-caption text-grey-6 q-mb-xs">Total Kredit</div>
+            <div class="text-h5 text-weight-bold text-green-7">
+              {{ totalKreditFormatted }}
             </div>
           </q-card-section>
         </q-card>
@@ -190,6 +210,9 @@
           flat
           dense
         >
+          <template #body-cell-no="props">
+            <q-td class="text-center">{{ props.rowIndex + 1 }}</q-td>
+          </template>
           <template #body-cell-debitCredit="props">
             <q-td>
               <q-badge
@@ -401,6 +424,26 @@ const submitting = computed(() => financeStore.submitting);
 const bankImports = computed(() => financeStore.bankImports);
 const reconciliations = computed(() => financeStore.reconciliations);
 const summary = computed(() => financeStore.reconciliationSummary);
+
+// Hitung total debet dan kredit dari data reconciliations
+const totalDebet = computed(() => {
+  if (!reconciliations.value) return 0;
+  return reconciliations.value.reduce((sum, row) => {
+    const debit = Number(row.bankImportDetail?.debit) || 0;
+    return sum + (debit > 0 ? debit : 0);
+  }, 0);
+});
+
+const totalKredit = computed(() => {
+  if (!reconciliations.value) return 0;
+  return reconciliations.value.reduce((sum, row) => {
+    const credit = Number(row.bankImportDetail?.credit) || 0;
+    return sum + (credit > 0 ? credit : 0);
+  }, 0);
+});
+
+const totalDebetFormatted = computed(() => formatCurrency(totalDebet.value));
+const totalKreditFormatted = computed(() => formatCurrency(totalKredit.value));
 const accounts = computed(() => financeStore.accounts);
 const programs = computed(() => financeStore.programs || []);
 
@@ -523,7 +566,8 @@ const importColumns = [
 ];
 
 const reconColumns = [
-  { name: 'createdAt', label: 'Tanggal', field: 'createdAt', align: 'left', format: val => new Date(val).toLocaleString('id-ID') },
+  { name: 'no', label: 'No.', align: 'center', style: 'width: 60px' },
+  { name: 'transactionDate', label: 'Tanggal Transaksi', field: row => row.bankImportDetail?.transactionDate, align: 'left', format: val => val ? new Date(val).toLocaleString('id-ID') : '-' },
   { name: 'bankDescription', label: 'Deskripsi Bank', field: row => row.bankImportDetail?.description, align: 'left' },
   // Debet/Kredit column
   {
@@ -552,6 +596,14 @@ const reconColumns = [
     format: (val) => (val ? formatCurrency(val) : '-'),
   },
   {
+    name: 'pendingReason',
+    label: 'Alasan Pending',
+    field: row => row.pendingReason || row.bankImportDetail?.pendingReason || '-',
+    align: 'left',
+    format: (val, row) => (row.status === 'PENDING' ? (val && val !== '-' ? val : '-') : '-'),
+    sortable: false,
+  },
+  {
     name: 'programName',
     label: 'Program',
     field: row => row.transaction?.programName || row.bankImportDetail?.programName || '-',
@@ -559,7 +611,7 @@ const reconColumns = [
   },
   {
     name: 'divisiNama',
-    label: 'Divisi',
+    label: 'Tipe Program',
     field: row => row.transaction?.programType ? row.transaction.programType : row.bankImportDetail?.divisiNama || '-',
     align: 'left',
   },
