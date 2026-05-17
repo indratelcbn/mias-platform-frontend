@@ -410,6 +410,15 @@ export const useFinanceStore = defineStore('finance', {
       try {
         const { data } = await api.post(`/finance/bank-imports/${importId}/confirm`);
         Notify.create({ type: 'positive', message: data.message });
+        // Simpan info duplikat pada bankImports (agar bisa diakses ulang)
+        if (data.data && (data.data.skippedCount > 0 || (data.data.skippedTransactionCodes && data.data.skippedTransactionCodes.length > 0))) {
+          // Cari dan update bankImport yang sesuai
+          const idx = this.bankImports.findIndex(bi => bi.id === importId);
+          if (idx !== -1) {
+            this.bankImports[idx].skippedCount = data.data.skippedCount;
+            this.bankImports[idx].skippedTransactionCodes = data.data.skippedTransactionCodes || [];
+          }
+        }
         await Promise.all([this.fetchBankImports(), this.fetchReconciliationSummary(), this.fetchReconciliations()]);
         return data.data;
       } catch (err) {

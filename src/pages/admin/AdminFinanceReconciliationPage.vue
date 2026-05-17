@@ -162,8 +162,12 @@
           </template>
           <template #body-cell-actions="props">
             <q-td class="row items-center q-gutter-sm">
-              <q-btn flat dense icon="visibility" color="primary" size="sm" @click="viewDetails(props.row)">
-                <q-tooltip>Lihat Detail</q-tooltip>
+              <q-btn
+                v-if="sessionDuplicates[props.row.id] && sessionDuplicates[props.row.id].length > 0"
+                flat dense icon="visibility" color="primary" size="sm"
+                @click="showDuplicateDialog(props.row)"
+              >
+                <q-tooltip>Lihat Duplikat</q-tooltip>
               </q-btn>
               <q-btn
                 v-if="props.row.pendingCount > 0"
@@ -178,6 +182,23 @@
             </q-td>
           </template>
         </q-table>
+        <q-dialog v-model="duplicateDialog.open" persistent>
+          <q-card style="min-width: 400px" class="rounded-xl">
+            <q-card-section class="row items-center q-pb-none">
+              <div class="text-h6 text-weight-bold">Daftar Kode Transaksi Duplikat</div>
+              <q-space />
+              <q-btn flat dense icon="close" v-close-popup @click="duplicateDialog.open = false" />
+            </q-card-section>
+            <q-card-section>
+              <div v-if="duplicateDialog.codes && duplicateDialog.codes.length > 0">
+                <ul class="q-pl-md">
+                  <li v-for="code in duplicateDialog.codes" :key="code">{{ code }}</li>
+                </ul>
+              </div>
+              <div v-else class="text-grey">Tidak ada kode duplikat.</div>
+            </q-card-section>
+          </q-card>
+        </q-dialog>
       </q-card-section>
     </q-card>
 
@@ -386,6 +407,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+// State lokal untuk menyimpan info duplikat per importId pada sesi ini saja
+const sessionDuplicates = {};
+// State dialog untuk menampilkan kode duplikat
+const duplicateDialog = ref({ open: false, codes: [] });
+
+function showDuplicateDialog(row) {
+  duplicateDialog.value.codes = sessionDuplicates[row.id] || [];
+  duplicateDialog.value.open = true;
+}
 import { useFinanceStore } from 'src/stores/finance';
 import { useQuasar } from 'quasar';
 import { formatCurrency } from 'src/utils/format';
@@ -530,7 +560,21 @@ const confirmImport = async (importRow) => {
   }).onOk(async () => {
     const result = await financeStore.confirmBankImport(importRow.id);
     if (result) {
-      await Promise.all([financeStore.fetchBankImports(), financeStore.fetchReconciliationSummary(), loadReconciliations()]);
+      // Simpan info duplikat di state lokal sesi
+      if (result.skippedCount && result.skippedCount > 0 && result.skippedTransactionCodes) {
+        sessionDuplicates[importRow.id] = result.skippedTransactionCodes;
+        $q.notify({
+          type: 'warning',
+          message: `${result.skippedCount} transaksi gagal dipindahkan karena kode transaksi sudah ada.`,
+          caption: 'Klik ikon mata untuk melihat detail kode duplikat.',
+          timeout: 8000,
+        });
+      }
+      await Promise.all([
+        financeStore.fetchBankImports(),
+        financeStore.fetchReconciliationSummary(),
+        loadReconciliations()
+      ]);
     }
   });
 };
