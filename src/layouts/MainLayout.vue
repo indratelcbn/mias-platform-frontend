@@ -26,7 +26,7 @@
                 @click.prevent="goToLiveStream"
               >
                 <q-icon name="circle" size="8px" class="q-mr-xs" />
-                LIVE
+                LIVE KAJIAN
               </q-badge>
             </div>
             <span class="text-grey-6" style="font-size: 11px">Depok</span>
@@ -671,13 +671,16 @@ const isProfilActive  = computed(() => ['profil-sejarah','profil-visi-misi','pro
 }
 
 /* Live Badge Animation */
+
 .live-badge {
   animation: pulse-live 1.5s ease-in-out infinite;
   cursor: pointer;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  letter-spacing: 0.5px;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 5px 14px;
+  letter-spacing: 1px;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(255,0,0,0.18);
 }
 
 @keyframes pulse-live {
