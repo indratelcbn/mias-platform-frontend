@@ -35,14 +35,13 @@ const route = useRoute();
 const setting = useSettingStore();
 const visible = ref(false);
 
+
 const imageSrc = computed(() => setting.data.popupImage ? `/uploads/popup/${setting.data.popupImage}` : '');
-const storageKey = computed(() => setting.data.popupImage ? `mias_popup_seen_${setting.data.popupImage}` : 'mias_popup_seen');
 
 function canShowPopup() {
   return !route.path.startsWith('/admin') &&
     setting.data.popupIsActive &&
-    !!setting.data.popupImage &&
-    localStorage.getItem(storageKey.value) !== 'true';
+    !!setting.data.popupImage;
 }
 
 function showWhenReady() {
@@ -50,7 +49,7 @@ function showWhenReady() {
 }
 
 function markSeen() {
-  if (setting.data.popupImage) localStorage.setItem(storageKey.value, 'true');
+  // Tidak perlu set localStorage, agar selalu muncul
 }
 
 function closePopup() {
