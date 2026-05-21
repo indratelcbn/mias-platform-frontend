@@ -351,7 +351,7 @@
                 :label="Number(assignTarget.bankImportDetail?.credit) > 0 ? 'Pemasukan' : 'Pengeluaran'"
               />
             </div>
-            <div><strong>Tanggal:</strong> {{ new Date(assignTarget.bankImportDetail?.transactionDate).toLocaleDateString('id-ID') }}</div>
+            <div><strong>Tanggal:</strong> {{ formatDateShortUTC(assignTarget.bankImportDetail?.transactionDate) }}</div>
           </div>
 
           <q-form @submit="handleAssignProgram" class="q-gutter-md">
@@ -418,7 +418,7 @@ function showDuplicateDialog(row) {
 }
 import { useFinanceStore } from 'src/stores/finance';
 import { useQuasar } from 'quasar';
-import { formatCurrency } from 'src/utils/format';
+import { formatCurrency, formatDateShortUTC } from 'src/utils/format';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
@@ -611,7 +611,7 @@ const importColumns = [
 
 const reconColumns = [
   { name: 'no', label: 'No.', align: 'center', style: 'width: 60px' },
-  { name: 'transactionDate', label: 'Tanggal Transaksi', field: row => row.bankImportDetail?.transactionDate, align: 'left', format: val => val ? new Date(val).toLocaleString('id-ID') : '-' },
+  { name: 'transactionDate', label: 'Tanggal Transaksi', field: row => row.bankImportDetail?.transactionDate, align: 'left', format: val => val ? formatDateShortUTC(val) : '-' },
   { name: 'bankDescription', label: 'Deskripsi Bank', field: row => row.bankImportDetail?.description, align: 'left' },
   // Debet/Kredit column
   {
