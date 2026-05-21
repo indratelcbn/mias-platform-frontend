@@ -351,7 +351,7 @@ import { api } from 'src/boot/axios';
 import { useFinanceStore } from 'src/stores/finance';
 import { useDonasiStore } from 'src/stores/donasi';
 import { useQuasar } from 'quasar';
-import { formatCurrency, terbilang } from 'src/utils/format';
+import { formatCurrency, terbilang, formatDateShortUTC } from 'src/utils/format';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
@@ -500,7 +500,7 @@ const onDivisiChange = () => {
 
 const columns = [
   { name: 'no', label: 'No.', align: 'center', style: 'width: 60px' },
-  { name: 'transactionDate', label: 'Tanggal', field: 'transactionDate', align: 'left', sortable: true, format: val => new Date(val).toLocaleDateString('id-ID') },
+  { name: 'transactionDate', label: 'Tanggal', field: 'transactionDate', align: 'left', sortable: true, format: val => formatDateShortUTC(val) },
   { name: 'Waktu', label: 'Waktu', field: row => row.Waktu || row.waktu || '-', align: 'center', sortable: false },
   { name: 'transactionCode', label: 'Kode Transaksi', field: row => row.transactionCode || '-', align: 'left', sortable: true },
   { name: 'account', label: 'Akun', field: row => row.account?.name, align: 'left' },

@@ -43,6 +43,12 @@ export const formatDateShort = (date) => {
   return new Date(date).toLocaleDateString('id-ID');
 };
 
+export const formatDateShortUTC = (date) => {
+  if (!date) return '-';
+
+  return new Date(date).toLocaleDateString('id-ID', { timeZone: 'UTC' });
+};
+
 /**
  * Format number
  * @param {number} value - The number to format
