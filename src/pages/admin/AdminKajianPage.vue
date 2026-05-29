@@ -172,7 +172,7 @@ const filteredUstadzOptions = ref([]); // filtered for q-select
 const loadingPemateri = ref(false);
 const selectedUstadz = ref(null);
 const selectedWaktu = ref(null);
-const waktuOptions = ['09.00-12.00 WIB', "Ba'da Maghrib - Selesai", "Ba'da Shubuh - Selesai", 'Lainnya'];
+const waktuOptions = [ '08.30-11.00 WIB','09.00-11.00 WIB','09.00-12.00 WIB', "Ba'da Maghrib - Selesai", "Ba'da Shubuh - Selesai", 'Lainnya'];
 
 const buildUstadzList = () => ustadzRaw.value.map(p => p.nama).concat('Lainnya');
 
