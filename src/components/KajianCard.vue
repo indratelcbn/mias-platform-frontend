@@ -71,7 +71,7 @@ const formatRelativeDate = (dateString) => {
   box-shadow: 0 8px 24px rgba(27, 122, 74, 0.15) !important;
 }
 .kajian-thumb-placeholder {
-  height: 180px;
+  height: 480px;
   background: linear-gradient(135deg, #1B7A4A, #26A65B);
   border-radius: 12px 12px 0 0;
 }
