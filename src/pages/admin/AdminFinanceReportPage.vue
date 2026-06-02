@@ -240,10 +240,11 @@
             <thead>
               <tr class="bg-grey-2">
                 <th class="text-left">Divisi</th>
+                <th class="text-right">Saldo Awal</th>
                 <th class="text-center">Transaksi</th>
                 <th class="text-right">Pemasukan</th>
                 <th class="text-right">Pengeluaran</th>
-                <th class="text-right">Saldo Bersih</th>
+                <th class="text-right">Saldo Akhir</th>
               </tr>
             </thead>
             <tbody>
@@ -262,12 +263,15 @@
     v-else
   />
 </td>
+                <td class="text-right text-weight-medium">
+                  {{ formatCurrency(d.openingBalance || 0) }}
+                </td>
                 <td class="text-center">{{ d.count }}</td>
                 <td class="text-right text-green-7">{{ formatCurrency(d.totalIn) }}</td>
                 <td class="text-right text-red-7">{{ formatCurrency(d.totalOut) }}</td>
                 <td class="text-right text-weight-bold"
-                    :class="(d.totalIn - d.totalOut) >= 0 ? 'text-green-9' : 'text-red-9'">
-                  {{ formatCurrency(d.totalIn - d.totalOut) }}
+                    :class="(d.closingBalance || 0) >= 0 ? 'text-green-9' : 'text-red-9'">
+                  {{ formatCurrency(d.closingBalance || 0) }}
                 </td>
               </tr>
             </tbody>
