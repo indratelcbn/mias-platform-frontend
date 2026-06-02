@@ -292,10 +292,11 @@
                 <th class="text-left">Program</th>
                 <th class="text-left">Nama Akun</th>
                 <th class="text-center">Tipe</th>
+                <th class="text-right">Saldo Awal</th>
                 <th class="text-center">Transaksi</th>
                 <th class="text-right">Pemasukan</th>
                 <th class="text-right">Pengeluaran</th>
-                <th class="text-right">Saldo Bersih</th>
+                <th class="text-right">Saldo Akhir</th>
               </tr>
             </thead>
             <tbody>
@@ -305,11 +306,15 @@
                 <td class="text-center">
                   <q-badge :color="p.programType === 'INFAQ' ? 'blue' : 'purple'" :label="p.programType" />
                 </td>
+                <td class="text-right text-weight-medium">
+                  {{ formatCurrency(p.openingBalance || 0) }}
+                </td>
                 <td class="text-center">{{ p.count }}</td>
                 <td class="text-right text-green-7">{{ formatCurrency(p.totalIn) }}</td>
                 <td class="text-right text-red-7">{{ formatCurrency(p.totalOut) }}</td>
-                <td class="text-right text-weight-bold">
-                  {{ formatCurrency(p.totalIn - p.totalOut) }}
+                <td class="text-right text-weight-bold"
+                    :class="(p.closingBalance || 0) >= 0 ? 'text-green-9' : 'text-red-9'">
+                  {{ formatCurrency(p.closingBalance || 0) }}
                 </td>
               </tr>
             </tbody>
