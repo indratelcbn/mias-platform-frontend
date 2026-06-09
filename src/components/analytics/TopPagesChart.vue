@@ -71,10 +71,9 @@ const initChart = async () => {
     },
     tooltip: {
       theme: 'light',
-      x: {
+      y: {
         formatter: (val) => {
-          const full = props.data[val]?.pagePath || val
-          return `Path: ${full}`
+          return `${val} views`
         },
       },
     },

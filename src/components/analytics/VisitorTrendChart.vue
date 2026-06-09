@@ -80,16 +80,24 @@ const initChart = async () => {
     series: [
       {
         name: 'Total Visitors',
-        data: props.data.map((d) => d.totalVisitors || 0),
+        data: props.data.map((d) => ({
+          x: new Date(d.date).getTime(),
+          y: d.totalVisitors || 0,
+        })),
       },
       {
         name: 'Unique Visitors',
-        data: props.data.map((d) => d.uniqueVisitors || 0),
+        data: props.data.map((d) => ({
+          x: new Date(d.date).getTime(),
+          y: d.uniqueVisitors || 0,
+        })),
       },
     ],
     xaxis: {
-      categories: props.data.map((d) => new Date(d.date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })),
       type: 'datetime',
+      labels: {
+        format: 'dd MMM',
+      },
     },
     yaxis: {
       title: {
