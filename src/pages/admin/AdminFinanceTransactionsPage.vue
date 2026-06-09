@@ -7,6 +7,24 @@
         <div class="text-caption text-grey-6">Kelola pemasukan dan pengeluaran</div>
       </div>
       <div class="row q-gutter-sm">
+        <q-btn
+          flat
+          color="teal"
+          icon="download"
+          label="Export Excel"
+          no-caps
+          @click="exportExcel"
+          :loading="exporting"
+        />
+        <q-btn
+          flat
+          color="deep-orange"
+          icon="picture_as_pdf"
+          label="Cetak PDF"
+          no-caps
+          @click="exportPDF"
+          :loading="exporting"
+        />
         <q-btn unelevated color="positive" icon="trending_up" label="Tambah Pemasukan" no-caps @click="openDialog(null, 'IN')" />
         <q-btn unelevated color="negative" icon="trending_down" label="Tambah Pengeluaran" no-caps @click="openDialog(null, 'OUT')" />
       </div>
@@ -17,7 +35,7 @@
   <q-card-section>
     <div class="row q-col-gutter-md items-end">
 
-      <div class="col-12 col-md-3">
+      <div class="col-12 col-md-1">
         <q-select
           v-model="filters.accountId"
           :options="accountOptions"
@@ -44,6 +62,36 @@
       </div>
 
       <div class="col-12 col-md-2">
+        <q-select
+          v-model="filters.divisi"
+          :options="divisiOptions"
+          label="Divisi"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          @update:model-value="onFilterDivisiChange"
+        />
+      </div>
+
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="filters.programId"
+          :options="filteredProgramsForFilter"
+          option-value="id"
+          option-label="name"
+          label="Program"
+          outlined
+          dense
+          clearable
+          emit-value
+          map-options
+          :disable="!filters.divisi"
+        />
+      </div>
+
+      <div class="col-12 col-md-2">
         <q-input
           v-model="filters.startDate"
           type="date"
@@ -61,30 +109,6 @@
           outlined
           dense
         />
-
-        
-      </div>
-
-        <div class="row q-gutter-sm q-mt-sm justify-md-end">
-          <q-btn
-            flat
-            color="teal"
-            icon="download"
-            label="Export Excel"
-            no-caps
-            @click="exportExcel"
-            :loading="exporting"
-          />
-          <q-btn
-            flat
-            color="deep-orange"
-            icon="picture_as_pdf"
-            label="Cetak PDF"
-            no-caps
-            @click="exportPDF"
-            :loading="exporting"
-          />
-
       </div>
 
       <!-- SEARCH BAR: Selalu di kiri, full width di mobile, di atas filter/export di desktop -->
@@ -366,6 +390,8 @@ const applyDetectedProgram = ref(true);
 const filters = ref({
   accountId: null,
   type: null,
+  divisi: null,
+  programId: null,
   startDate: '',
   endDate: '',
   search: '',
@@ -465,6 +491,12 @@ const filteredPrograms = computed(() => {
   return programs.value.filter((p) => getProgramDivisiValue(p) === selectedDivisi);
 });
 
+const filteredProgramsForFilter = computed(() => {
+  if (!filters.value.divisi) return programs.value;
+  const selectedDivisi = String(filters.value.divisi);
+  return programs.value.filter((p) => getProgramDivisiValue(p) === selectedDivisi);
+});
+
 const loadDivisiOptions = async () => {
   await donasiStore.fetchDivisiOptions();
   divisiOptions.value = donasiStore.divisiOptions;
@@ -496,6 +528,10 @@ const onDivisiChange = () => {
   form.value.programId = null;
   form.value.programType = null;
   form.value.programName = null;
+};
+
+const onFilterDivisiChange = () => {
+  filters.value.programId = null;
 };
 
 const columns = [
@@ -626,6 +662,8 @@ const resetFilters = () => {
   filters.value = {
     accountId: null,
     type: null,
+    divisi: null,
+    programId: null,
     startDate: '',
     endDate: '',
     search: '',
