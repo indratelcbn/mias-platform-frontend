@@ -66,11 +66,11 @@ const routes = [
       { path: 'divisi', component: () => import('pages/admin/DivisiManagementPage.vue'), name: 'admin-divisi', meta: { menuKey: 'admin-divisi' } },
       
       // Finance Routes
-      { path: 'finance/dashboard', component: () => import('pages/admin/AdminFinanceDashboardPage.vue'), name: 'admin-finance-dashboard', meta: { menuKey: 'admin-finance' } },
-      { path: 'finance/accounts', component: () => import('pages/admin/AdminFinanceAccountsPage.vue'), name: 'admin-finance-accounts', meta: { menuKey: 'admin-finance' } },
-      { path: 'finance/transactions', component: () => import('pages/admin/AdminFinanceTransactionsPage.vue'), name: 'admin-finance-transactions', meta: { menuKey: 'admin-finance' } },
-      { path: 'finance/reconciliation', component: () => import('pages/admin/AdminFinanceReconciliationPage.vue'), name: 'admin-finance-reconciliation', meta: { menuKey: 'admin-finance' } },
-      { path: 'finance/report', component: () => import('pages/admin/AdminFinanceReportPage.vue'), name: 'admin-finance-report', meta: { menuKey: 'admin-finance' } },
+      { path: 'finance/dashboard', component: () => import('pages/admin/AdminFinanceDashboardPage.vue'), name: 'admin-finance-dashboard', meta: { menuKey: 'admin-finance-dashboard' } },
+      { path: 'finance/accounts', component: () => import('pages/admin/AdminFinanceAccountsPage.vue'), name: 'admin-finance-accounts', meta: { menuKey: 'admin-finance-accounts' } },
+      { path: 'finance/transactions', component: () => import('pages/admin/AdminFinanceTransactionsPage.vue'), name: 'admin-finance-transactions', meta: { menuKey: 'admin-finance-transactions' } },
+      { path: 'finance/reconciliation', component: () => import('pages/admin/AdminFinanceReconciliationPage.vue'), name: 'admin-finance-reconciliation', meta: { menuKey: 'admin-finance-reconciliation' } },
+      { path: 'finance/report', component: () => import('pages/admin/AdminFinanceReportPage.vue'), name: 'admin-finance-report', meta: { menuKey: 'admin-finance-report' } },
     ],
   },
 

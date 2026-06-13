@@ -62,15 +62,27 @@
                   <q-btn flat dense color="primary" icon="save" label="Simpan" no-caps size="sm" @click="savePermissions(role)" />
                 </div>
                 <div class="q-gutter-sm">
-                  <q-checkbox
-                    v-for="menu in allMenuOptions"
-                    :key="menu.value"
-                    v-model="permForm[role]"
-                    :val="menu.value"
-                    :label="menu.label"
-                    dense
-                    class="full-width"
-                  />
+                  <template v-for="menu in allMenuOptions" :key="menu.value || ('group-' + menu.label)">
+                    <!-- Group header -->
+                    <div
+                      v-if="menu.type === 'group'"
+                      class="text-caption text-weight-bold text-grey-6 q-mt-sm q-mb-xs"
+                      style="border-bottom:1px solid #e0e0e0;padding-bottom:2px"
+                    >
+                      <q-icon name="account_balance_wallet" size="14px" class="q-mr-xs" />
+                      {{ menu.label }}
+                    </div>
+                    <!-- Checkbox -->
+                    <q-checkbox
+                      v-else
+                      v-model="permForm[role]"
+                      :val="menu.value"
+                      :label="menu.label"
+                      dense
+                      class="full-width"
+                      :style="menu.indent ? 'padding-left:16px' : ''"
+                    />
+                  </template>
                 </div>
               </q-card-section>
             </q-card>
@@ -156,7 +168,13 @@ const allMenuOptions = [
   { value: 'admin-usaha', label: 'Usaha' },
   { value: 'admin-artikel', label: 'Artikel' },
   { value: 'admin-donasi', label: 'Infaq' },
-  { value: 'admin-finance', label: 'Keuangan' },
+  // ── Keuangan (sub-menu per halaman) ──
+  { type: 'group', label: 'Keuangan' },
+  { value: 'admin-finance-dashboard',      label: 'Dashboard Keuangan',  indent: true },
+  { value: 'admin-finance-accounts',       label: 'Akun Keuangan',       indent: true },
+  { value: 'admin-finance-transactions',   label: 'Transaksi',           indent: true },
+  { value: 'admin-finance-reconciliation', label: 'Rekonsiliasi Bank',   indent: true },
+  { value: 'admin-finance-report',         label: 'Laporan Keuangan',    indent: true },
   { value: 'admin-qurban', label: 'Qurban' },
   { value: 'admin-pesan', label: 'Pesan' },
   { value: 'admin-setting', label: 'Pengaturan' },
