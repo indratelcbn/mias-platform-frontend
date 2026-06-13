@@ -216,6 +216,177 @@
       </div>
     </div>
 
+    <!-- Grafik Tren Keuangan -->
+    <div class="row q-col-gutter-md q-mb-xl q-mt-md">
+      <div class="col-12">
+        <q-card flat bordered class="rounded-xl">
+          <q-card-section>
+            <div class="row items-center justify-between q-mb-lg">
+              <div class="text-subtitle1 text-weight-bold">
+                <q-icon name="trending_up" color="primary" class="q-mr-sm" />
+                Filter Grafik Tren
+              </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="row q-col-gutter-md q-mb-md">
+              <!-- Divisi Filter -->
+              <div class="col-12 col-sm-6 col-md-3">
+                <q-select
+                  v-model="chartFilters.divisiId"
+                  :options="divisiOptions"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  label="Pilih Divisi"
+                  @update:model-value="loadChartData"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="groups" />
+                  </template>
+                </q-select>
+              </div>
+
+              <!-- Period Filter -->
+              <div class="col-12 col-sm-6 col-md-2">
+                <q-select
+                  v-model="chartFilters.period"
+                  :options="periodOptions"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  label="Periode"
+                  @update:model-value="onPeriodChange"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="date_range" />
+                  </template>
+                </q-select>
+              </div>
+
+              <!-- Year Filter (hidden for YEARLY — uses startYear/endYear instead) -->
+              <div v-if="chartFilters.period !== 'YEARLY'" class="col-12 col-sm-6 col-md-2">
+                <q-input
+                  v-model.number="chartFilters.year"
+                  type="number"
+                  outlined
+                  dense
+                  label="Tahun"
+                  :min="2020"
+                  :max="2030"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+
+              <!-- Start Month Filter (for MONTHLY) -->
+              <div v-if="chartFilters.period === 'MONTHLY'" class="col-12 col-sm-6 col-md-2">
+                <q-select
+                  v-model.number="chartFilters.startMonth"
+                  :options="monthOptions"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  label="Dari Bulan"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+
+              <!-- End Month Filter (for MONTHLY) -->
+              <div v-if="chartFilters.period === 'MONTHLY'" class="col-12 col-sm-6 col-md-2">
+                <q-select
+                  v-model.number="chartFilters.endMonth"
+                  :options="monthOptions"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  label="Sampai Bulan"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+
+              <!-- Semester Filter (for SEMESTER) -->
+              <div v-if="chartFilters.period === 'SEMESTER'" class="col-12 col-sm-6 col-md-2">
+                <q-select
+                  v-model.number="chartFilters.semester"
+                  :options="semesterOptions"
+                  option-value="value"
+                  option-label="label"
+                  emit-value
+                  map-options
+                  outlined
+                  dense
+                  label="Semester"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+
+              <!-- Year Range (for YEARLY) -->
+              <div v-if="chartFilters.period === 'YEARLY'" class="col-12 col-sm-6 col-md-2">
+                <q-input
+                  v-model.number="chartFilters.startYear"
+                  type="number"
+                  outlined
+                  dense
+                  label="Tahun Awal"
+                  :min="2020"
+                  :max="chartFilters.endYear"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+              <div v-if="chartFilters.period === 'YEARLY'" class="col-12 col-sm-6 col-md-2">
+                <q-input
+                  v-model.number="chartFilters.endYear"
+                  type="number"
+                  outlined
+                  dense
+                  label="Tahun Akhir"
+                  :min="chartFilters.startYear"
+                  :max="2030"
+                  @update:model-value="loadChartData"
+                />
+              </div>
+
+              <!-- Refresh Button -->
+              <div class="col-12 col-sm-12 col-md-auto">
+                <q-btn
+                  unelevated
+                  color="primary"
+                  icon="refresh"
+                  label="Muat Ulang"
+                  no-caps
+                  class="full-width"
+                  @click="loadChartData"
+                  :loading="chartLoading"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <!-- Chart Component -->
+      <div class="col-12">
+        <FinanceTrendChart
+          :data="trendsData"
+          :loading="chartLoading"
+          :divisi-name="selectedDivisiName"
+          :period="chartFilters.period"
+        />
+      </div>
+    </div>
+
     <!-- Accounts with Balance -->
     <div class="row q-col-gutter-md">
       <div class="col-12">
@@ -270,14 +441,78 @@
 import { ref, computed, onMounted } from 'vue';
 import { useFinanceStore } from 'src/stores/finance';
 import { formatCurrency } from 'src/utils/format';
+import FinanceTrendChart from 'src/components/finance/FinanceTrendChart.vue';
 
 const financeStore = useFinanceStore();
 
 const startDate = ref('');
 const endDate = ref('');
 
+// Chart Filters
+const chartLoading = ref(false);
+const currentDate = new Date();
+const chartFilters = ref({
+  divisiId: null,
+  period: 'MONTHLY',
+  year: currentDate.getFullYear(),
+  startMonth: 1,
+  endMonth: currentDate.getMonth() + 1,
+  semester: currentDate.getMonth() < 6 ? 1 : 2,
+  startYear: currentDate.getFullYear() - 2,
+  endYear: currentDate.getFullYear(),
+});
+
 const loading = computed(() => financeStore.loading);
 const dashboardSummary = computed(() => financeStore.dashboardSummary);
+const trendsData = computed(() => financeStore.trendsData);
+
+// Divisi Options
+const divisiOptions = computed(() => {
+  const options = [{ label: 'Semua Divisi', value: null }];
+  const divisiBalances = dashboardSummary.value?.divisiBalances || [];
+  
+  divisiBalances.forEach((d) => {
+    options.push({
+      label: divisiLabel(d.divisiNama || d.divisi || d.divisiId),
+      value: d.divisi || d.divisiId,
+    });
+  });
+  
+  return options;
+});
+
+const selectedDivisiName = computed(() => {
+  if (!chartFilters.value.divisiId) return 'Semua Divisi';
+  const selected = divisiOptions.value.find((d) => d.value === chartFilters.value.divisiId);
+  return selected?.label || 'Semua Divisi';
+});
+
+// Period Options
+const periodOptions = [
+  { label: 'Bulanan', value: 'MONTHLY' },
+  { label: 'Semester', value: 'SEMESTER' },
+  { label: 'Tahunan', value: 'YEARLY' },
+];
+
+const monthOptions = [
+  { label: 'Januari', value: 1 },
+  { label: 'Februari', value: 2 },
+  { label: 'Maret', value: 3 },
+  { label: 'April', value: 4 },
+  { label: 'Mei', value: 5 },
+  { label: 'Juni', value: 6 },
+  { label: 'Juli', value: 7 },
+  { label: 'Agustus', value: 8 },
+  { label: 'September', value: 9 },
+  { label: 'Oktober', value: 10 },
+  { label: 'November', value: 11 },
+  { label: 'Desember', value: 12 },
+];
+
+const semesterOptions = [
+  { label: 'Semester 1 (Jan-Jun)', value: 1 },
+  { label: 'Semester 2 (Jul-Des)', value: 2 },
+];
 
 const cashflowColor = computed(() => {
   const cashflow = dashboardSummary.value?.cashflow || 0;
@@ -330,8 +565,52 @@ const resetFilter = () => {
   loadDashboard();
 };
 
+// Chart Methods
+const loadChartData = async () => {
+  chartLoading.value = true;
+  try {
+    const params = {
+      period: chartFilters.value.period,
+      year: chartFilters.value.year,
+    };
+
+    if (chartFilters.value.divisiId) {
+      params.divisiId = chartFilters.value.divisiId;
+    }
+
+    if (chartFilters.value.period === 'MONTHLY') {
+      params.startMonth = chartFilters.value.startMonth;
+      params.endMonth = chartFilters.value.endMonth;
+    } else if (chartFilters.value.period === 'SEMESTER') {
+      params.semester = chartFilters.value.semester;
+    } else if (chartFilters.value.period === 'YEARLY') {
+      params.startYear = chartFilters.value.startYear;
+      params.endYear = chartFilters.value.endYear;
+    }
+
+    await financeStore.fetchTrendsData(params);
+  } finally {
+    chartLoading.value = false;
+  }
+};
+
+const onPeriodChange = () => {
+  // Reset specific filters based on period
+  if (chartFilters.value.period === 'MONTHLY') {
+    chartFilters.value.startMonth = 1;
+    chartFilters.value.endMonth = currentDate.getMonth() + 1;
+  } else if (chartFilters.value.period === 'SEMESTER') {
+    chartFilters.value.semester = currentDate.getMonth() < 6 ? 1 : 2;
+  } else if (chartFilters.value.period === 'YEARLY') {
+    chartFilters.value.startYear = currentDate.getFullYear() - 2;
+    chartFilters.value.endYear = currentDate.getFullYear();
+  }
+  loadChartData();
+};
+
 onMounted(() => {
   loadDashboard();
+  loadChartData();
 });
 </script>
 

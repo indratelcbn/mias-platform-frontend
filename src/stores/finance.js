@@ -18,6 +18,7 @@ export const useFinanceStore = defineStore('finance', {
     dashboardSummary: null,
     fundTracking: [],
     monthlyReport: null,
+    trendsData: null,
 
     // Programs
     programs: [],
@@ -275,6 +276,20 @@ export const useFinanceStore = defineStore('finance', {
         return true;
       } catch (err) {
         Notify.create({ type: 'negative', message: 'Gagal memuat laporan bulanan.' });
+        return false;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchTrendsData(params = {}) {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/finance/charts/trends', { params });
+        this.trendsData = data.data;
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: 'Gagal memuat data tren.' });
         return false;
       } finally {
         this.loading = false;
