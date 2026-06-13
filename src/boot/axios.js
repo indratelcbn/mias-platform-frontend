@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers';
 import axios from 'axios';
+import { Notify } from 'quasar';
 
 const api = axios.create({
   baseURL: '/api',
@@ -27,6 +28,15 @@ api.interceptors.response.use(
       localStorage.removeItem('mias_token');
       localStorage.removeItem('mias_user');
       window.location.href = '/admin/login';
+    }
+    if (error.response?.status === 403) {
+      Notify.create({
+        type: 'negative',
+        icon: 'block',
+        message: error.response?.data?.message || 'Anda tidak bisa melakukan tindakan ini. Role tidak sesuai.',
+        position: 'top',
+        timeout: 4000,
+      });
     }
     return Promise.reject(error);
   }

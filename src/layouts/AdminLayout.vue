@@ -131,6 +131,7 @@
               </q-item-label>
               <q-item-label caption class="q-px-md q-pb-sm text-grey">
                 {{ authStore.currentUser?.role }}
+                <q-badge v-if="authStore.isViewer" color="grey-5" label="Hanya Lihat" dense class="q-ml-xs" />
               </q-item-label>
               <q-separator />
               <q-item clickable v-close-popup to="/" target="_blank">

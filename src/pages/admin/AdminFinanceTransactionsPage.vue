@@ -376,10 +376,12 @@ import { useFinanceStore } from 'src/stores/finance';
 import { useDonasiStore } from 'src/stores/donasi';
 import { useQuasar } from 'quasar';
 import { formatCurrency, terbilang, formatDateShortUTC } from 'src/utils/format';
+import { useViewerGuard } from 'src/composables/useViewerGuard';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
 const donasiStore = useDonasiStore();
+const isViewerBlocked = useViewerGuard();
 
 const dialogOpen = ref(false);
 const isEdit = ref(false);
@@ -570,6 +572,7 @@ const checkUniqueCode = async () => {
 };
 
 const openDialog = (transaction = null, presetType = 'IN') => {
+  if (isViewerBlocked()) return;
   detectedProgram.value = null;
   if (transaction) {
     isEdit.value = true;
@@ -608,7 +611,7 @@ const openDialog = (transaction = null, presetType = 'IN') => {
 };
 
 const handleSubmit = async () => {
-  // Sync programType / programName from selected program
+  if (isViewerBlocked()) return;
   if (form.value.programId) {
     const sel = programs.value.find((p) => p.id === form.value.programId);
     if (sel) {
@@ -634,6 +637,7 @@ const handleSubmit = async () => {
 };
 
 const confirmDelete = (transaction) => {
+  if (isViewerBlocked()) return;
   $q.dialog({
     title: 'Konfirmasi',
     message: 'Hapus transaksi ini?',

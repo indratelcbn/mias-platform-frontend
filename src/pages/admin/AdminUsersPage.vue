@@ -151,9 +151,10 @@ const roleOptions = [
   { label: 'DAKWAH', value: 'DAKWAH' },
   { label: 'PENDIDIKAN', value: 'PENDIDIKAN' },
   { label: 'USAHA', value: 'USAHA' },
+  { label: 'VIEWER (Hanya Lihat)', value: 'VIEWER' },
 ];
 
-const editableRoles = ['ADMIN', 'KEUANGAN', 'SOSIAL', 'DAKWAH', 'PENDIDIKAN', 'USAHA'];
+const editableRoles = ['ADMIN', 'KEUANGAN', 'SOSIAL', 'DAKWAH', 'PENDIDIKAN', 'USAHA', 'VIEWER'];
 
 const allMenuOptions = [
   { value: 'admin-dashboard', label: 'Dashboard' },
@@ -191,7 +192,7 @@ const columns = [
 ];
 
 const roleColor = (role) => {
-  const map = { SUPERADMIN: 'deep-purple', ADMIN: 'primary', KEUANGAN: 'green', SOSIAL: 'teal', DAKWAH: 'orange', PENDIDIKAN: 'blue', USAHA: 'brown' };
+  const map = { SUPERADMIN: 'deep-purple', ADMIN: 'primary', KEUANGAN: 'green', SOSIAL: 'teal', DAKWAH: 'orange', PENDIDIKAN: 'blue', USAHA: 'brown', VIEWER: 'grey-6' };
   return map[role] || 'grey';
 };
 

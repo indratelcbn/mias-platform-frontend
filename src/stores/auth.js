@@ -14,6 +14,7 @@ export const useAuthStore = defineStore('auth', {
     isLoggedIn: (state) => !!state.token,
     currentUser: (state) => state.user,
     isSuperadmin: (state) => state.user?.role === 'SUPERADMIN',
+    isViewer: (state) => state.user?.role === 'VIEWER',
     hasPermission: (state) => (menuKey) => {
       if (state.user?.role === 'SUPERADMIN') return true;
       return state.permissions.includes(menuKey);
@@ -21,26 +22,28 @@ export const useAuthStore = defineStore('auth', {
     // First admin route the current user is allowed to land on.
     landingRoute: (state) => {
       if (state.user?.role === 'SUPERADMIN') return 'admin-dashboard';
-      // Priority: dashboard > analytics > finance > donasi > kajian > artikel > pesan > divisi
-      // > galeri > streaming > sosial > mustahik > pendidikan > usaha > profil > setting > hero-banner > users
       const order = [
-        ['admin-dashboard',  'admin-dashboard'],
-        ['admin-analytics',  'admin-analytics'],
-        ['admin-finance',    'admin-finance-dashboard'],
-        ['admin-donasi',     'admin-donasi'],
-        ['admin-kajian',     'admin-kajian'],
-        ['admin-artikel',    'admin-artikel'],
-        ['admin-pesan',      'admin-pesan'],
-        ['admin-divisi',     'admin-divisi'],
-        ['admin-galeri',     'admin-galeri'],
-        ['admin-streaming',  'admin-streaming'],
-        ['admin-sosial',     'admin-sosial'],
-        ['admin-mustahik',   'admin-mustahik'],
-        ['admin-pendidikan', 'admin-pendidikan'],
-        ['admin-usaha',      'admin-usaha'],
-        ['admin-profil',     'admin-profil'],
-        ['admin-setting',    'admin-setting'],
-        ['admin-users',      'admin-users'],
+        ['admin-dashboard',              'admin-dashboard'],
+        ['admin-analytics',              'admin-analytics'],
+        ['admin-finance-dashboard',      'admin-finance-dashboard'],
+        ['admin-finance-transactions',   'admin-finance-transactions'],
+        ['admin-finance-report',         'admin-finance-report'],
+        ['admin-finance-accounts',       'admin-finance-accounts'],
+        ['admin-finance-reconciliation', 'admin-finance-reconciliation'],
+        ['admin-donasi',                 'admin-donasi'],
+        ['admin-kajian',                 'admin-kajian'],
+        ['admin-artikel',                'admin-artikel'],
+        ['admin-pesan',                  'admin-pesan'],
+        ['admin-divisi',                 'admin-divisi'],
+        ['admin-galeri',                 'admin-galeri'],
+        ['admin-streaming',              'admin-streaming'],
+        ['admin-sosial',                 'admin-sosial'],
+        ['admin-mustahik',               'admin-mustahik'],
+        ['admin-pendidikan',             'admin-pendidikan'],
+        ['admin-usaha',                  'admin-usaha'],
+        ['admin-profil',                 'admin-profil'],
+        ['admin-setting',                'admin-setting'],
+        ['admin-users',                  'admin-users'],
       ];
       for (const [perm, name] of order) {
         if (state.permissions.includes(perm)) return name;
