@@ -14,6 +14,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
   const os = ref([])
   const referrers = ref([])
   const heatmap = ref([])
+  const countries = ref([])
   const loading = ref(false)
   const error = ref(null)
 
@@ -78,7 +79,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
 
       const params = buildParams()
 
-      const [summaryRes, trendsRes, pagesRes, devicesRes, browsersRes, osRes, referrersRes, heatmapRes] = await Promise.all([
+      const [summaryRes, trendsRes, pagesRes, devicesRes, browsersRes, osRes, referrersRes, heatmapRes, countriesRes] = await Promise.all([
         analyticsApi.getSummary(params.filter, params.startDate, params.endDate),
         analyticsApi.getTrends(params.filter, params.startDate, params.endDate),
         analyticsApi.getTopPages(params.filter, 10, params.startDate, params.endDate),
@@ -87,6 +88,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
         analyticsApi.getOS(params.filter, params.startDate, params.endDate),
         analyticsApi.getReferrers(params.filter, params.startDate, params.endDate),
         analyticsApi.getHeatmap(params.filter, params.startDate, params.endDate),
+        analyticsApi.getCountries(params.filter, params.startDate, params.endDate),
       ])
 
       summary.value = summaryRes.data
@@ -97,6 +99,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
       os.value = osRes.data
       referrers.value = referrersRes.data
       heatmap.value = heatmapRes.data
+      countries.value = countriesRes.data
     } catch (err) {
       error.value = err.message || 'Error fetching analytics data'
       console.error('Error fetching analytics data:', err)
@@ -145,6 +148,7 @@ export const useAnalyticsStore = defineStore('analytics', () => {
     os,
     referrers,
     heatmap,
+    countries,
     loading,
     error,
     currentFilter,

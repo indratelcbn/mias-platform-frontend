@@ -160,6 +160,16 @@
         </div>
       </div>
 
+      <!-- Charts Row 4: Country -->
+      <div class="row q-col-gutter-lg q-mb-lg">
+        <div class="col-12">
+          <CountryStatistics
+            :data="analyticsStore.countries"
+            :loading="analyticsStore.loading"
+          />
+        </div>
+      </div>
+
       <!-- Heatmap -->
       <div class="row q-col-gutter-lg q-mb-lg">
         <div class="col-12">
@@ -184,6 +194,7 @@ import DeviceStatistics from '../../components/analytics/DeviceStatistics.vue'
 import PieStatistics from '../../components/analytics/PieStatistics.vue'
 import ReferrerStatistics from '../../components/analytics/ReferrerStatistics.vue'
 import VisitorHeatmap from '../../components/analytics/VisitorHeatmap.vue'
+import CountryStatistics from '../../components/analytics/CountryStatistics.vue'
 
 const analyticsStore = useAnalyticsStore()
 

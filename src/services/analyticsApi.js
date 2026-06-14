@@ -167,6 +167,23 @@ class AnalyticsApi {
       throw error
     }
   }
+
+  /**
+   * Get country statistics
+   */
+  async getCountries(filter = 'last30days', startDate = null, endDate = null) {
+    try {
+      const params = { filter }
+      if (startDate) params.startDate = startDate
+      if (endDate) params.endDate = endDate
+
+      const response = await api.get('/analytics/countries', { params })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching country statistics:', error)
+      throw error
+    }
+  }
 }
 
 export default new AnalyticsApi()
