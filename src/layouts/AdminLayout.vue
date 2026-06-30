@@ -80,16 +80,6 @@
         </template>
       </q-list>
 
-      <div class="absolute-bottom q-pb-md q-px-md">
-        <q-btn
-          flat
-          :icon="miniMode ? 'chevron_right' : 'chevron_left'"
-          :label="miniMode ? '' : 'Perkecil'"
-          no-caps
-          class="full-width"
-          @click="miniMode = !miniMode"
-        />
-      </div>
     </q-drawer>
 
     <!-- ─── Header ──────────────────────────────────────────────────────── -->
@@ -261,15 +251,16 @@ const allMenuItems = [
   { name: 'admin-usaha', label: 'Usaha', to: '/admin/usaha', icon: 'storefront' },
   { name: 'admin-artikel', label: 'Artikel', to: '/admin/artikel', icon: 'article' },
   { name: 'admin-donasi', label: 'Infaq', to: '/admin/donasi', icon: 'volunteer_activism' },
-  { 
-    name: 'admin-finance', 
-    label: 'Keuangan', 
+  {
+    name: 'admin-finance',
+    label: 'Keuangan',
     icon: 'account_balance_wallet',
     basePath: '/admin/finance',
     children: [
       { name: 'admin-finance-dashboard', label: 'Dashboard', to: '/admin/finance/dashboard', icon: 'dashboard' },
       { name: 'admin-finance-accounts', label: 'Akun', to: '/admin/finance/accounts', icon: 'account_balance' },
       { name: 'admin-finance-transactions', label: 'Transaksi', to: '/admin/finance/transactions', icon: 'receipt_long' },
+      { name: 'admin-finance-submissions', label: 'Pengajuan Keuangan', to: '/admin/finance/submissions', icon: 'request_quote' },
       { name: 'admin-finance-reconciliation', label: 'Rekonsiliasi', to: '/admin/finance/reconciliation', icon: 'rule' },
       { name: 'admin-finance-report', label: 'Laporan', to: '/admin/finance/report', icon: 'assessment' },
     ]

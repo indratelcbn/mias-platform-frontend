@@ -71,6 +71,7 @@ const routes = [
       { path: 'finance/transactions', component: () => import('pages/admin/AdminFinanceTransactionsPage.vue'), name: 'admin-finance-transactions', meta: { menuKey: 'admin-finance-transactions' } },
       { path: 'finance/reconciliation', component: () => import('pages/admin/AdminFinanceReconciliationPage.vue'), name: 'admin-finance-reconciliation', meta: { menuKey: 'admin-finance-reconciliation' } },
       { path: 'finance/report', component: () => import('pages/admin/AdminFinanceReportPage.vue'), name: 'admin-finance-report', meta: { menuKey: 'admin-finance-report' } },
+      { path: 'finance/submissions', component: () => import('pages/admin/AdminFinanceSubmissionPage.vue'), name: 'admin-finance-submissions', meta: { menuKey: 'admin-finance-submissions' } },
     ],
   },
 

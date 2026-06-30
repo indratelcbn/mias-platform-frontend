@@ -30,6 +30,7 @@ export const useAuthStore = defineStore('auth', {
         ['admin-finance-report',         'admin-finance-report'],
         ['admin-finance-accounts',       'admin-finance-accounts'],
         ['admin-finance-reconciliation', 'admin-finance-reconciliation'],
+        ['admin-finance-submissions',    'admin-finance-submissions'],
         ['admin-donasi',                 'admin-donasi'],
         ['admin-kajian',                 'admin-kajian'],
         ['admin-artikel',                'admin-artikel'],

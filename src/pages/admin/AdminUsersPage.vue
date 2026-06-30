@@ -174,6 +174,7 @@ const allMenuOptions = [
   { value: 'admin-finance-dashboard',      label: 'Dashboard Keuangan',  indent: true },
   { value: 'admin-finance-accounts',       label: 'Akun Keuangan',       indent: true },
   { value: 'admin-finance-transactions',   label: 'Transaksi',           indent: true },
+  { value: 'admin-finance-submissions',    label: 'Pengajuan Keuangan',  indent: true },
   { value: 'admin-finance-reconciliation', label: 'Rekonsiliasi Bank',   indent: true },
   { value: 'admin-finance-report',         label: 'Laporan Keuangan',    indent: true },
   { value: 'admin-qurban', label: 'Qurban' },
