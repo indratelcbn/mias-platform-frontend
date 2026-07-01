@@ -692,9 +692,9 @@ const statusLabel = (status) => {
 const columns = [
   { name: 'nomor', label: 'Nomor', field: 'nomor', align: 'left', sortable: true },
   { name: 'judul', label: 'Judul', field: 'judul', align: 'left', sortable: true },
-  { name: 'amount', label: 'Jumlah', field: 'amount', align: 'right', sortable: true },
-  { name: 'status', label: 'Status', field: 'status', align: 'center', sortable: true },
-  { name: 'actions', label: 'Aksi', field: 'actions', align: 'center' },
+  { name: 'amount', label: 'Jumlah', field: 'amount', align: 'left', sortable: true },
+  { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
+  { name: 'actions', label: 'Aksi', field: 'actions', align: 'left' },
 ];
 
 const itemColumns = [
