@@ -28,7 +28,7 @@
         </div>
 
         <div v-if="kajianStore.loading" class="row q-col-gutter-md">
-          <div v-for="i in 3" :key="i" class="col-12 col-md-4">
+          <div v-for="i in 6" :key="i" class="col-12 col-md-4">
             <q-skeleton type="rect" height="200px" class="rounded-xl" />
           </div>
         </div>
@@ -99,7 +99,7 @@ const kajianStore = useKajianStore();
 const artikelStore = useArtikelStore();
 
 onMounted(() => {
-  kajianStore.fetchAll({ page: 1, limit: 3 });
+  kajianStore.fetchAll({ page: 1, limit: 6 });
   artikelStore.fetchAll({ page: 1, limit: 3 });
 });
 </script>

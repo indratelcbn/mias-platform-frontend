@@ -12,7 +12,7 @@ export const useKajianStore = defineStore('kajian', {
   }),
 
   getters: {
-    kajianTerdekat: (state) => state.list.slice(0, 3),
+    kajianTerdekat: (state) => state.list.slice(0, 6),
   },
 
   actions: {
