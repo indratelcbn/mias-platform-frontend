@@ -76,9 +76,9 @@
         </template>
 
         <template #body-cell-judul="props">
-          <q-td>
+          <q-td style="white-space: normal; max-width: 350px">
             <div class="text-weight-medium">{{ props.row.judul }}</div>
-            <div v-if="props.row.deskripsi" class="text-caption text-grey-6 text-truncate" style="max-width: 250px">
+            <div v-if="props.row.deskripsi" class="text-caption text-grey-6" style="word-break: break-word">
               {{ props.row.deskripsi }}
             </div>
           </q-td>
