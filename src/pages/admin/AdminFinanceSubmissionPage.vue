@@ -1,20 +1,20 @@
 <template>
-  <q-page class="q-pa-lg">
+  <q-page class="q-pa-sm q-pa-md-lg">
     <!-- Header -->
-    <div class="row items-center justify-between q-mb-lg">
-      <div>
+    <div class="row items-start justify-between q-mb-lg">
+      <div class="q-mb-sm">
         <div class="text-h5 text-weight-bold">Pengajuan Keuangan</div>
         <div class="text-caption text-grey-6">Buat dan kelola pengajuan dana</div>
       </div>
-      <div class="row q-gutter-sm">
+      <div class="row q-gutter-xs">
         <q-btn flat color="deep-orange" icon="picture_as_pdf" label="Cetak Laporan" no-caps @click="exportListPDF" />
-        <q-btn unelevated color="primary" icon="add" label="Buat Pengajuan" no-caps @click="openFormDialog()" />
+        <q-btn unelevated color="primary" icon="add" label="Tambah Pengajuan" no-caps @click="openJenisDialog()" />
       </div>
     </div>
 
     <!-- Summary Cards -->
-    <div class="row q-col-gutter-md q-mb-lg" v-if="submissionStore.summary">
-      <div class="col-12 col-sm-6 col-md-3" v-for="card in summaryCards" :key="card.key">
+    <div class="row q-col-gutter-sm q-mb-lg" v-if="submissionStore.summary">
+      <div class="col-6 col-sm-6 col-md-3" v-for="card in summaryCards" :key="card.key">
         <q-card flat bordered class="rounded-xl cursor-pointer" @click="filterByStatus(card.status)">
           <q-card-section>
             <div class="row items-center">
@@ -141,18 +141,49 @@
             <div class="text-grey-6 text-center">
               <q-icon name="inbox" size="48px" />
               <div class="text-h6 q-mt-sm">Belum ada pengajuan</div>
-              <q-btn unelevated color="primary" icon="add" label="Buat Pengajuan Pertama" no-caps class="q-mt-md" @click="openFormDialog()" />
+              <q-btn unelevated color="primary" icon="add" label="Buat Pengajuan Pertama" no-caps class="q-mt-md" @click="openJenisDialog()" />
             </div>
           </div>
         </template>
       </q-table>
     </q-card>
 
-    <!-- Form Dialog (Create/Edit) -->
-    <q-dialog v-model="formDialogOpen" persistent>
-      <q-card style="min-width: 700px; max-width: 80vw" class="rounded-xl">
+    <!-- Jenis Pengajuan Dialog -->
+    <q-dialog v-model="jenisDialogOpen" persistent>
+      <q-card style="width: min(440px, 95vw); max-width: 95vw" class="rounded-xl">
         <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">{{ isEdit ? 'Edit Pengajuan' : 'Buat Pengajuan Baru' }}</div>
+          <div class="text-h6 text-weight-bold">Pilih Jenis Pengajuan</div>
+          <q-space />
+          <q-btn flat dense icon="close" v-close-popup />
+        </q-card-section>
+        <q-card-section>
+          <div class="text-caption text-grey-7 q-mb-sm">Tentukan jenis pengajuan yang akan dibuat.</div>
+          <q-option-group
+            v-model="selectedJenis"
+            :options="jenisOptions"
+            color="primary"
+            type="radio"
+          >
+            <template #label="opt">
+              <div class="q-ml-xs">
+                <div class="text-weight-medium">{{ opt.label }}</div>
+                <div class="text-caption text-grey-6">{{ opt.desc }}</div>
+              </div>
+            </template>
+          </q-option-group>
+          <div class="row justify-end q-gutter-sm q-mt-md">
+            <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
+            <q-btn unelevated label="Lanjutkan" color="primary" no-caps @click="proceedJenis" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- Form Dialog (Create/Edit) -->
+    <q-dialog v-model="formDialogOpen" persistent full-width>
+      <q-card style="width: min(700px, 95vw); max-width: 95vw" class="rounded-xl">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">{{ formDialogTitle }}</div>
           <q-space />
           <q-btn flat dense icon="close" v-close-popup />
         </q-card-section>
@@ -181,73 +212,268 @@
 
             <q-separator />
 
-            <!-- Rincian Item -->
-            <div>
-              <div class="row items-center justify-between q-mb-sm">
-                <div class="text-subtitle2 text-weight-bold">Rincian Item</div>
-                <q-btn dense flat icon="add_circle" color="primary" label="Tambah Item" no-caps @click="addItem" />
-              </div>
+            <!-- Rincian Item (Pengajuan Umum) -->
+            <div v-if="form.jenis !== 'KAJIAN'">
+              <div class="text-subtitle2 text-weight-bold q-mb-sm">Rincian Item</div>
 
-              <div v-if="form.items.length === 0" class="text-center q-py-md text-grey-6">
+              <!-- Input Tambah Item -->
+              <q-card flat bordered class="bg-blue-1 q-mb-sm">
+                <q-card-section class="q-pa-sm">
+                  <div class="row q-col-gutter-sm items-end">
+                    <div class="col-12 col-sm-4">
+                      <q-select
+                        v-model="newItem.namaBarang"
+                        :options="itemNameFiltered"
+                        label="Nama Item *"
+                        outlined
+                        dense
+                        bg-color="white"
+                        use-input
+                        hide-selected
+                        fill-input
+                        hide-dropdown-icon
+                        input-debounce="0"
+                        new-value-mode="add-unique"
+                        @filter="filterItemName"
+                        @input-value="val => newItem.namaBarang = val"
+                        @keyup.enter="addItem"
+                      />
+                    </div>
+                    <div class="col-6 col-sm-1">
+                      <q-input
+                        v-model.number="newItem.qty"
+                        label="Qty"
+                        outlined
+                        dense
+                        type="number"
+                        min="1"
+                        bg-color="white"
+                      />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-input
+                        :model-value="formatNumberInput(newItem.hargaSatuan)"
+                        @update:model-value="val => newItem.hargaSatuan = parseNumberInput(val)"
+                        label="Harga Satuan"
+                        outlined
+                        dense
+                        prefix="Rp"
+                        inputmode="numeric"
+                        bg-color="white"
+                      />
+                    </div>
+                    <div class="col-12 col-sm-3">
+                      <q-input
+                        v-model="newItem.keterangan"
+                        label="Keterangan (opsional)"
+                        outlined
+                        dense
+                        bg-color="white"
+                        @keyup.enter="addItem"
+                      />
+                    </div>
+                    <div class="col-12 col-sm-2">
+                      <q-btn
+                        unelevated
+                        :color="editingItemIdx !== null ? 'orange-8' : 'primary'"
+                        :icon="editingItemIdx !== null ? 'save' : 'add'"
+                        :label="editingItemIdx !== null ? 'Update' : 'Tambah Item'"
+                        no-caps
+                        @click="addItem"
+                      />
+                      <q-btn
+                        v-if="editingItemIdx !== null"
+                        flat
+                        dense
+                        size="sm"
+                        color="grey-7"
+                        label="Batal"
+                        no-caps
+                        class="q-mt-xs"
+                        @click="cancelEditItem"
+                      />
+                    </div>
+                    <div class="col-12 col-sm-6 flex justify-end">
+                      <div class="text-caption text-grey-7 self-center q-mr-sm" v-if="newItem.qty && newItem.hargaSatuan">
+                        Subtotal: <strong class="text-primary">{{ formatCurrency(newItem.qty * newItem.hargaSatuan) }}</strong>
+                      </div>
+                      
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <!-- Tabel Item yang Sudah Ditambahkan -->
+              <div v-if="form.items.length === 0" class="text-center q-py-md text-grey-6 rounded-borders" style="border: 1px dashed #ccc">
                 <q-icon name="shopping_cart" size="28px" />
-                <div class="text-caption q-mt-xs">Belum ada item</div>
+                <div class="text-caption q-mt-xs">Belum ada item — isi form di atas lalu klik Tambah Item</div>
+              </div>
+              <q-table
+                v-else
+                :rows="form.items"
+                :columns="formItemColumns"
+                row-key="idx"
+                flat
+                bordered
+                dense
+                hide-pagination
+                :rows-per-page-options="[0]"
+              >
+                <template #body-cell-no="props">
+                  <q-td class="text-center text-grey-7">{{ props.rowIndex + 1 }}</q-td>
+                </template>
+                <template #body-cell-hargaSatuan="props">
+                  <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
+                </template>
+                <template #body-cell-subtotal="props">
+                  <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty * props.row.hargaSatuan) }}</q-td>
+                </template>
+                <template #body-cell-aksi="props">
+                  <q-td class="text-center">
+                    <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editItem(props.rowIndex)">
+                      <q-tooltip>Edit</q-tooltip>
+                    </q-btn>
+                    <q-btn flat dense round icon="delete" color="negative" size="sm" @click="removeItem(props.rowIndex)">
+                      <q-tooltip>Hapus</q-tooltip>
+                    </q-btn>
+                  </q-td>
+                </template>
+                <template v-slot:bottom-row>
+                  <q-tr class="bg-grey-2">
+                    <q-td colspan="4" class="text-right text-weight-bold">Total</q-td>
+                    <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(totalAmount) }}</q-td>
+                    <q-td colspan="2"></q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </div>
+
+            <!-- Rincian Item (Pengajuan Kajian) -->
+            <div v-else>
+              <div class="row items-center q-mb-sm">
+                <div class="text-subtitle2 text-weight-bold">Rincian Sub Judul & Item</div>
+                <q-space />
+                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Sub Judul" no-caps size="sm" @click="addGroup" />
               </div>
 
-              <div v-else>
-                <q-list bordered separator class="rounded-borders">
-                  <q-item v-for="(item, idx) in form.items" :key="idx">
-                    <q-item-section>
-                      <div class="row q-col-gutter-sm">
-                        <div class="col-12 col-md-5">
-                          <q-input
-                            v-model="item.namaBarang"
-                            label="Nama Item *"
-                            outlined
-                            dense
-                            :rules="[val => !!val || 'Wajib diisi']"
-                          />
-                        </div>
-                        <div class="col-4 col-md-2">
-                          <q-input
-                            v-model.number="item.qty"
-                            label="Qty"
-                            outlined
-                            dense
-                            type="number"
-                            :rules="[val => val > 0 || 'Min. 1']"
-                          />
-                        </div>
-                        <div class="col-4 col-md-2">
-                          <q-input
-                            v-model.number="item.hargaSatuan"
-                            label="Harga"
-                            outlined
-                            dense
-                            type="number"
-                            :rules="[val => val >= 0 || 'Min. 0']"
-                          />
-                        </div>
-                        <div class="col-4 col-md-3">
-                          <q-input
-                            v-model="item.keterangan"
-                            label="Keterangan"
-                            outlined
-                            dense
-                          />
-                        </div>
-                      </div>
-                      <div class="text-caption text-primary q-mt-xs">
-                        Subtotal: <strong>{{ formatCurrency(item.qty * item.hargaSatuan) }}</strong>
-                      </div>
-                    </q-item-section>
-                    <q-item-section side>
-                      <q-btn flat dense round icon="delete" color="negative" size="sm" @click="removeItem(idx)">
-                        <q-tooltip>Hapus</q-tooltip>
-                      </q-btn>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
+              <div v-if="form.groups.length === 0" class="text-center q-py-md text-grey-6 rounded-borders" style="border: 1px dashed #ccc">
+                <q-icon name="playlist_add" size="28px" />
+                <div class="text-caption q-mt-xs">Belum ada sub judul — klik "Tambah Sub Judul"</div>
               </div>
+
+              <q-card v-for="(group, gIdx) in form.groups" :key="gIdx" flat bordered class="q-mb-md">
+                <q-card-section class="q-pa-sm">
+                  <div class="row items-center q-col-gutter-sm q-mb-sm">
+                    <div class="col">
+                      <q-input
+                        v-model="group.subJudul"
+                        :label="'Sub Judul Pengajuan #' + (gIdx + 1) + ' *'"
+                        outlined
+                        dense
+                        placeholder="Contoh: Kajian Ustadz Fadhlan"
+                      />
+                    </div>
+                    <div class="col-auto">
+                      <q-btn flat dense round icon="delete" color="negative" @click="removeGroup(gIdx)">
+                        <q-tooltip>Hapus Sub Judul</q-tooltip>
+                      </q-btn>
+                    </div>
+                  </div>
+
+                  <!-- Input Tambah Item ke Sub Judul -->
+                  <div class="row q-col-gutter-sm items-end bg-blue-1 rounded-borders q-pa-sm q-mb-sm">
+                    <div class="col-12 col-sm-4">
+                      <q-select
+                        v-model="group.newItem.namaBarang"
+                        :options="itemNameFiltered"
+                        label="Nama Item *"
+                        outlined
+                        dense
+                        bg-color="white"
+                        use-input
+                        hide-selected
+                        fill-input
+                        hide-dropdown-icon
+                        input-debounce="0"
+                        new-value-mode="add-unique"
+                        @filter="filterItemName"
+                        @input-value="val => group.newItem.namaBarang = val"
+                        @keyup.enter="addGroupItem(gIdx)"
+                      />
+                    </div>
+                    <div class="col-6 col-sm-1">
+                      <q-input v-model.number="group.newItem.qty" label="Qty" outlined dense type="number" min="1" bg-color="white" />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-input :model-value="formatNumberInput(group.newItem.hargaSatuan)" @update:model-value="val => group.newItem.hargaSatuan = parseNumberInput(val)" label="Harga Satuan" outlined dense prefix="Rp" inputmode="numeric" bg-color="white" />
+                    </div>
+                    <div class="col-12 col-sm-3">
+                      <q-input v-model="group.newItem.keterangan" label="Keterangan (opsional)" outlined dense bg-color="white" @keyup.enter="addGroupItem(gIdx)" />
+                    </div>
+                    <div class="col-12 col-sm-2">
+                      <q-btn
+                        unelevated
+                        :color="group.editingIdx != null ? 'orange-8' : 'primary'"
+                        :icon="group.editingIdx != null ? 'save' : 'add'"
+                        :label="group.editingIdx != null ? 'Update' : 'Item'"
+                        no-caps
+                        @click="addGroupItem(gIdx)"
+                      />
+                      <q-btn
+                        v-if="group.editingIdx != null"
+                        flat
+                        dense
+                        size="sm"
+                        color="grey-7"
+                        label="Batal"
+                        no-caps
+                        class="q-mt-xs"
+                        @click="cancelEditGroupItem(gIdx)"
+                      />
+                    </div>
+                  </div>
+
+                  <q-table
+                    v-if="group.items.length"
+                    :rows="group.items"
+                    :columns="formItemColumns"
+                    row-key="idx"
+                    flat
+                    bordered
+                    dense
+                    hide-pagination
+                    :rows-per-page-options="[0]"
+                  >
+                    <template #body-cell-no="props">
+                      <q-td class="text-center text-grey-7">{{ props.rowIndex + 1 }}</q-td>
+                    </template>
+                    <template #body-cell-hargaSatuan="props">
+                      <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
+                    </template>
+                    <template #body-cell-subtotal="props">
+                      <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty * props.row.hargaSatuan) }}</q-td>
+                    </template>
+                    <template #body-cell-aksi="props">
+                      <q-td class="text-center">
+                        <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editGroupItem(gIdx, props.rowIndex)">
+                          <q-tooltip>Edit</q-tooltip>
+                        </q-btn>
+                        <q-btn flat dense round icon="delete" color="negative" size="sm" @click="removeGroupItem(gIdx, props.rowIndex)">
+                          <q-tooltip>Hapus</q-tooltip>
+                        </q-btn>
+                      </q-td>
+                    </template>
+                    <template v-slot:bottom-row>
+                      <q-tr class="bg-grey-2">
+                        <q-td colspan="4" class="text-right text-weight-bold">Subtotal</q-td>
+                        <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(groupSubtotal(group)) }}</q-td>
+                        <q-td colspan="2"></q-td>
+                      </q-tr>
+                    </template>
+                  </q-table>
+                  <div v-else class="text-caption text-grey-6 q-pl-xs">Belum ada item pada sub judul ini.</div>
+                </q-card-section>
+              </q-card>
             </div>
 
             <q-separator class="q-my-md" />
@@ -320,75 +546,87 @@
     <q-dialog v-model="detailDialogOpen" maximized transition-show="slide-up" transition-hide="slide-down">
       <q-card v-if="detailData">
         <q-toolbar class="bg-primary text-white">
-          <q-toolbar-title>
-            <div class="text-h6">Detail Pengajuan</div>
-            <div class="text-caption">{{ detailData.judul }}</div>
+          <q-toolbar-title class="ellipsis">
+            <div class="text-subtitle1 text-weight-bold ellipsis">Detail Pengajuan</div>
+            <div class="text-caption ellipsis" style="max-width: 60vw">{{ detailData.judul }}</div>
           </q-toolbar-title>
-          <q-badge :color="statusColor(detailData.status)" :label="statusLabel(detailData.status)" class="q-mr-md" />
+          <q-badge :color="statusColor(detailData.status)" :label="statusLabel(detailData.status)" class="q-mr-sm" />
           <q-btn flat dense round icon="close" v-close-popup />
         </q-toolbar>
 
-        <q-card-section class="scroll" style="max-height: calc(100vh - 100px)">
-          <div class="row q-col-gutter-md">
+        <q-card-section class="scroll q-pa-sm q-pa-md-md" style="max-height: calc(100vh - 60px)">
+          <div class="row q-col-gutter-sm">
             <div class="col-12 col-md-6">
               <q-card flat bordered class="rounded-xl">
-                <q-card-section>
+                <q-card-section class="q-pa-sm q-pa-md-md">
                   <div class="text-subtitle2 text-weight-bold q-mb-sm">Informasi Pengajuan</div>
                   <q-list dense>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Nomor</q-item-label>
                       </q-item-section>
                       <q-item-section class="text-weight-medium">{{ detailData.nomor || '-' }}</q-item-section>
                     </q-item>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
+                        <q-item-label caption>Jenis</q-item-label>
+                      </q-item-section>
+                      <q-item-section>
+                        <q-chip dense :color="detailData.jenis === 'KAJIAN' ? 'purple' : 'blue-grey'" text-color="white" size="sm">
+                          {{ detailData.jenis === 'KAJIAN' ? 'Pengajuan Kajian' : 'Pengajuan Umum' }}
+                        </q-chip>
+                      </q-item-section>
+                    </q-item>
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Judul</q-item-label>
                       </q-item-section>
-                      <q-item-section>{{ detailData.judul }}</q-item-section>
+                      <q-item-section style="word-break: break-word">{{ detailData.judul }}</q-item-section>
                     </q-item>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Total</q-item-label>
                       </q-item-section>
                       <q-item-section class="text-weight-bold text-primary">
                         {{ formatCurrency(detailData.amount) }}
                       </q-item-section>
                     </q-item>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Pemohon</q-item-label>
                       </q-item-section>
                       <q-item-section>{{ detailData.submittedBy?.nama || '-' }}</q-item-section>
                     </q-item>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Tanggal</q-item-label>
                       </q-item-section>
                       <q-item-section>{{ formatDateShort(detailData.createdAt) }}</q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.deskripsi">
-                      <q-item-section side style="min-width: 120px">
+                    <q-item v-if="detailData.deskripsi" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Deskripsi</q-item-label>
                       </q-item-section>
-                      <q-item-section>{{ detailData.deskripsi }}</q-item-section>
+                      <q-item-section style="word-break: break-word">{{ detailData.deskripsi }}</q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.notes">
-                      <q-item-section side style="min-width: 120px">
+                    <q-item v-if="detailData.notes" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Catatan</q-item-label>
                       </q-item-section>
-                      <q-item-section>{{ detailData.notes }}</q-item-section>
+                      <q-item-section style="word-break: break-word">{{ detailData.notes }}</q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.metodePencairan">
-                      <q-item-section side style="min-width: 120px">
-                        <q-item-label caption>Metode Pencairan</q-item-label>
+                    <q-item v-if="detailData.metodePencairan" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
+                        <q-item-label caption>Metode</q-item-label>
                       </q-item-section>
                       <q-item-section>
-                        <q-chip :color="detailData.metodePencairan === 'CASH' ? 'blue' : 'green'" text-color="white" size="sm">
-                          {{ detailData.metodePencairan === 'CASH' ? 'Cash' : 'Transfer' }}
-                        </q-chip>
-                        <div v-if="detailData.rekening" class="text-caption q-mt-xs">
-                          {{ detailData.rekening.namaBank }} — {{ detailData.rekening.noRekening }} (a.n. {{ detailData.rekening.atasNama }})
+                        <div>
+                          <q-chip :color="detailData.metodePencairan === 'CASH' ? 'blue' : 'green'" text-color="white" size="sm">
+                            {{ detailData.metodePencairan === 'CASH' ? 'Cash' : 'Transfer' }}
+                          </q-chip>
+                        </div>
+                        <div v-if="detailData.rekening" class="text-caption q-mt-xs" style="word-break: break-word">
+                          {{ detailData.rekening.namaBank }} — {{ detailData.rekening.noRekening }}<br />(a.n. {{ detailData.rekening.atasNama }})
                         </div>
                       </q-item-section>
                     </q-item>
@@ -399,19 +637,19 @@
 
             <div class="col-12 col-md-6">
               <q-card flat bordered class="rounded-xl">
-                <q-card-section>
+                <q-card-section class="q-pa-sm q-pa-md-md">
                   <div class="text-subtitle2 text-weight-bold q-mb-sm">Status & Persetujuan</div>
                   <q-list dense>
-                    <q-item>
-                      <q-item-section side style="min-width: 120px">
+                    <q-item class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Status</q-item-label>
                       </q-item-section>
                       <q-item-section>
                         <q-badge :color="statusColor(detailData.status)" :label="statusLabel(detailData.status)" />
                       </q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.approvedBy">
-                      <q-item-section side style="min-width: 120px">
+                    <q-item v-if="detailData.approvedBy" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Disetujui</q-item-label>
                       </q-item-section>
                       <q-item-section>
@@ -419,20 +657,20 @@
                         <div class="text-caption text-grey-6">{{ formatDateShort(detailData.approvedAt) }}</div>
                       </q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.rejectedBy">
-                      <q-item-section side style="min-width: 120px">
+                    <q-item v-if="detailData.rejectedBy" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Ditolak</q-item-label>
                       </q-item-section>
                       <q-item-section>
                         <div>{{ detailData.rejectedBy.nama }}</div>
                         <div class="text-caption text-grey-6">{{ formatDateShort(detailData.rejectedAt) }}</div>
-                        <div v-if="detailData.rejectionNote" class="text-caption text-negative">
+                        <div v-if="detailData.rejectionNote" class="text-caption text-negative" style="word-break: break-word">
                           Alasan: {{ detailData.rejectionNote }}
                         </div>
                       </q-item-section>
                     </q-item>
-                    <q-item v-if="detailData.disbursedBy">
-                      <q-item-section side style="min-width: 120px">
+                    <q-item v-if="detailData.disbursedBy" class="q-px-none">
+                      <q-item-section side style="min-width: 100px; max-width: 110px">
                         <q-item-label caption>Dicairkan</q-item-label>
                       </q-item-section>
                       <q-item-section>
@@ -455,10 +693,52 @@
           </div>
 
           <!-- Items Table -->
-          <q-card flat bordered class="rounded-xl q-mt-md">
-            <q-card-section>
+          <q-card flat bordered class="rounded-xl q-mt-sm">
+            <q-card-section class="q-pa-sm q-pa-md-md">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Rincian Item</div>
+
+              <!-- Pengajuan Kajian: dikelompokkan per Sub Judul -->
+              <template v-if="detailData.jenis === 'KAJIAN'">
+                <div v-for="(group, gIdx) in detailGroups" :key="gIdx" class="q-mb-md">
+                  <div class="text-weight-bold text-primary q-mb-xs">
+                    <q-icon name="folder" size="18px" class="q-mr-xs" />{{ group.subJudul }}
+                  </div>
+                  <q-table
+                    :rows="group.items"
+                    :columns="itemColumns"
+                    row-key="id"
+                    flat
+                    dense
+                    hide-pagination
+                    :rows-per-page-options="[0]"
+                  >
+                    <template #body-cell-qty="props">
+                      <q-td class="text-center">{{ props.row.qty }}</q-td>
+                    </template>
+                    <template #body-cell-hargaSatuan="props">
+                      <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
+                    </template>
+                    <template #body-cell-jumlah="props">
+                      <q-td class="text-right text-weight-medium">{{ formatCurrency(props.row.jumlah) }}</q-td>
+                    </template>
+                    <template v-slot:bottom-row>
+                      <q-tr>
+                        <q-td colspan="3" class="text-right text-weight-medium">Subtotal</q-td>
+                        <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(group.subtotal) }}</q-td>
+                      </q-tr>
+                    </template>
+                  </q-table>
+                </div>
+                <q-separator class="q-my-sm" />
+                <div class="row justify-end items-center q-gutter-sm">
+                  <div class="text-subtitle2 text-grey-7">Total</div>
+                  <div class="text-h6 text-weight-bold text-primary">{{ formatCurrency(detailData.amount) }}</div>
+                </div>
+              </template>
+
+              <!-- Pengajuan Umum -->
               <q-table
+                v-else
                 :rows="detailData.items || []"
                 :columns="itemColumns"
                 row-key="id"
@@ -487,8 +767,8 @@
           </q-card>
 
           <!-- Approval Logs -->
-          <q-card v-if="detailData.approvalLogs?.length" flat bordered class="rounded-xl q-mt-md">
-            <q-card-section>
+          <q-card v-if="detailData.approvalLogs?.length" flat bordered class="rounded-xl q-mt-sm">
+            <q-card-section class="q-pa-sm q-pa-md-md">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Riwayat Persetujuan</div>
               <q-timeline color="primary">
                 <q-timeline-entry
@@ -509,8 +789,8 @@
     </q-dialog>
 
     <!-- Reject Dialog -->
-    <q-dialog v-model="rejectDialogOpen" persistent>
-      <q-card style="min-width: 400px" class="rounded-xl">
+    <q-dialog v-model="rejectDialogOpen" persistent full-width>
+      <q-card style="width: min(400px, 95vw); max-width: 95vw" class="rounded-xl">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6 text-weight-bold text-negative">Tolak Pengajuan</div>
           <q-space />
@@ -537,8 +817,8 @@
     </q-dialog>
 
     <!-- Disburse Dialog -->
-    <q-dialog v-model="disburseDialogOpen" persistent>
-      <q-card style="min-width: 400px" class="rounded-xl">
+    <q-dialog v-model="disburseDialogOpen" persistent full-width>
+      <q-card style="width: min(400px, 95vw); max-width: 95vw" class="rounded-xl">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6 text-weight-bold text-green-7">Cairkan Dana</div>
           <q-space />
@@ -576,8 +856,8 @@
     </q-dialog>
 
     <!-- Rekening Management Dialog -->
-    <q-dialog v-model="rekeningDialogOpen" persistent>
-      <q-card style="min-width: 500px" class="rounded-xl">
+    <q-dialog v-model="rekeningDialogOpen" persistent full-width>
+      <q-card style="width: min(500px, 95vw); max-width: 95vw" class="rounded-xl">
         <q-card-section class="row items-center q-pb-none">
           <div class="text-h6 text-weight-bold">Kelola Rekening Pencairan</div>
           <q-space />
@@ -645,14 +925,43 @@ const rekeningForm = ref({ namaBank: '', noRekening: '', atasNama: '' });
 const filters = ref({ status: null });
 const pagination = ref({ page: 1, limit: 20 });
 
+const jenisDialogOpen = ref(false);
+const selectedJenis = ref('UMUM');
+const jenisOptions = [
+  { label: 'Pengajuan Umum', value: 'UMUM', desc: 'Pengajuan dana dengan rincian item biasa.' },
+  { label: 'Pengajuan Kajian', value: 'KAJIAN', desc: 'Pengajuan anggaran kajian dengan sub judul per kajian.' },
+];
+
 const form = ref({
+  jenis: 'UMUM',
   judul: '',
   deskripsi: '',
   notes: '',
   metodePencairan: null,
   rekeningId: null,
   items: [],
+  groups: [],
 });
+
+const newItem = ref({ namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' });
+const editingItemIdx = ref(null);
+
+const itemNameOptions = ref([]);
+const itemNameFiltered = ref([]);
+
+// Format angka ke tampilan rupiah (mis. 1000000 -> "1.000.000")
+const formatNumberInput = (val) => {
+  if (val === null || val === undefined || val === '' || Number(val) === 0) return '';
+  const n = Number(val);
+  return isNaN(n) ? '' : n.toLocaleString('id-ID');
+};
+
+// Parse tampilan rupiah kembali ke angka (mis. "1.000.000" -> 1000000)
+const parseNumberInput = (val) => {
+  if (val === null || val === undefined) return 0;
+  const digits = String(val).replace(/[^\d]/g, '');
+  return digits ? Number(digits) : 0;
+};
 
 const canApprove = computed(() => {
   const role = authStore.currentUser?.role;
@@ -676,7 +985,39 @@ const summaryCards = computed(() => {
 });
 
 const totalAmount = computed(() => {
+  if (form.value.jenis === 'KAJIAN') {
+    return form.value.groups.reduce((sum, g) => sum + groupSubtotal(g), 0);
+  }
   return form.value.items.reduce((sum, item) => sum + (Number(item.qty) || 0) * (Number(item.hargaSatuan) || 0), 0);
+});
+
+const groupSubtotal = (group) => {
+  return group.items.reduce((sum, item) => sum + (Number(item.qty) || 0) * (Number(item.hargaSatuan) || 0), 0);
+};
+
+const formDialogTitle = computed(() => {
+  if (form.value.jenis === 'KAJIAN') {
+    return isEdit.value ? 'Edit Pengajuan Anggaran Kajian' : 'Pengajuan Anggaran Kajian';
+  }
+  return isEdit.value ? 'Edit Pengajuan' : 'Buat Pengajuan Baru';
+});
+
+const detailGroups = computed(() => {
+  const items = detailData.value?.items || [];
+  const groups = [];
+  const map = new Map();
+  items.forEach((item) => {
+    const key = item.subJudul || 'Lainnya';
+    if (!map.has(key)) {
+      const g = { subJudul: key, items: [], subtotal: 0 };
+      map.set(key, g);
+      groups.push(g);
+    }
+    const g = map.get(key);
+    g.items.push(item);
+    g.subtotal += Number(item.jumlah) || 0;
+  });
+  return groups;
 });
 
 const statusColor = (status) => {
@@ -702,6 +1043,16 @@ const itemColumns = [
   { name: 'qty', label: 'Qty', field: 'qty', align: 'center' },
   { name: 'hargaSatuan', label: 'Harga', field: 'hargaSatuan', align: 'right' },
   { name: 'jumlah', label: 'Jumlah', field: 'jumlah', align: 'right' },
+];
+
+const formItemColumns = [
+  { name: 'no', label: '#', field: 'no', align: 'center', style: 'width: 40px' },
+  { name: 'namaBarang', label: 'Nama Item', field: 'namaBarang', align: 'left' },
+  { name: 'qty', label: 'Qty', field: 'qty', align: 'center', style: 'width: 50px' },
+  { name: 'hargaSatuan', label: 'Harga Satuan', field: 'hargaSatuan', align: 'right' },
+  { name: 'subtotal', label: 'Subtotal', field: row => row.qty * row.hargaSatuan, align: 'right' },
+  { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
+  { name: 'aksi', label: '', field: 'aksi', align: 'center', style: 'width: 84px' },
 ];
 
 const statusOptions = [
@@ -747,35 +1098,181 @@ const handleTambahRekening = async () => {
 };
 
 const addItem = () => {
-  form.value.items.push({ namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' });
+  if (!newItem.value.namaBarang?.trim()) {
+    $q.notify({ type: 'warning', message: 'Nama item wajib diisi.' });
+    return;
+  }
+  if (editingItemIdx.value !== null) {
+    form.value.items.splice(editingItemIdx.value, 1, { ...newItem.value });
+    editingItemIdx.value = null;
+  } else {
+    form.value.items.push({ ...newItem.value });
+  }
+  newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
+};
+
+const editItem = (idx) => {
+  const it = form.value.items[idx];
+  newItem.value = { namaBarang: it.namaBarang, qty: it.qty, hargaSatuan: it.hargaSatuan, keterangan: it.keterangan || '' };
+  editingItemIdx.value = idx;
+};
+
+const cancelEditItem = () => {
+  editingItemIdx.value = null;
+  newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
 };
 
 const removeItem = (idx) => {
   form.value.items.splice(idx, 1);
+  if (editingItemIdx.value === idx) {
+    cancelEditItem();
+  } else if (editingItemIdx.value !== null && idx < editingItemIdx.value) {
+    editingItemIdx.value -= 1;
+  }
 };
 
-const openFormDialog = (row = null) => {
+// ─── Pengajuan Kajian: Sub Judul Groups ───────────────────────────────────────
+const addGroup = () => {
+  form.value.groups.push({
+    subJudul: '',
+    items: [],
+    editingIdx: null,
+    newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' },
+  });
+};
+
+const removeGroup = (gIdx) => {
+  form.value.groups.splice(gIdx, 1);
+};
+
+const addGroupItem = (gIdx) => {
+  const group = form.value.groups[gIdx];
+  if (!group.newItem.namaBarang?.trim()) {
+    $q.notify({ type: 'warning', message: 'Nama item wajib diisi.' });
+    return;
+  }
+  if (group.editingIdx != null) {
+    group.items.splice(group.editingIdx, 1, { ...group.newItem });
+    group.editingIdx = null;
+  } else {
+    group.items.push({ ...group.newItem });
+  }
+  group.newItem = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
+};
+
+const editGroupItem = (gIdx, iIdx) => {
+  const group = form.value.groups[gIdx];
+  const it = group.items[iIdx];
+  group.newItem = { namaBarang: it.namaBarang, qty: it.qty, hargaSatuan: it.hargaSatuan, keterangan: it.keterangan || '' };
+  group.editingIdx = iIdx;
+};
+
+const cancelEditGroupItem = (gIdx) => {
+  const group = form.value.groups[gIdx];
+  group.editingIdx = null;
+  group.newItem = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
+};
+
+const removeGroupItem = (gIdx, iIdx) => {
+  const group = form.value.groups[gIdx];
+  group.items.splice(iIdx, 1);
+  if (group.editingIdx === iIdx) {
+    cancelEditGroupItem(gIdx);
+  } else if (group.editingIdx != null && iIdx < group.editingIdx) {
+    group.editingIdx -= 1;
+  }
+};
+
+// ─── Item Name Suggestions (auto-complete) ────────────────────────────────────
+const fetchItemSuggestions = async () => {
+  try {
+    const { data } = await api.get('/finance/submissions/items/suggestions');
+    itemNameOptions.value = data.data || [];
+    itemNameFiltered.value = itemNameOptions.value;
+  } catch (e) { /* silent */ }
+};
+
+const filterItemName = (val, update) => {
+  update(() => {
+    if (!val) {
+      itemNameFiltered.value = itemNameOptions.value;
+    } else {
+      const needle = val.toLowerCase();
+      itemNameFiltered.value = itemNameOptions.value.filter((o) => o.toLowerCase().includes(needle));
+    }
+  });
+};
+
+// ─── Jenis Pengajuan Selection ────────────────────────────────────────────────
+const openJenisDialog = () => {
+  selectedJenis.value = 'UMUM';
+  jenisDialogOpen.value = true;
+};
+
+const proceedJenis = () => {
+  jenisDialogOpen.value = false;
+  openFormDialog(null, selectedJenis.value);
+};
+
+const openFormDialog = (row = null, jenis = 'UMUM') => {
   if (row) {
     isEdit.value = true;
     editId.value = row.id;
+    const rowJenis = row.jenis === 'KAJIAN' ? 'KAJIAN' : 'UMUM';
+    const mappedItems = (row.items || []).map(i => ({
+      subJudul: i.subJudul || null,
+      namaBarang: i.namaBarang,
+      qty: i.qty,
+      hargaSatuan: Number(i.hargaSatuan),
+      keterangan: i.keterangan || '',
+    }));
+
+    let groups = [];
+    if (rowJenis === 'KAJIAN') {
+      const map = new Map();
+      mappedItems.forEach((i) => {
+        const key = i.subJudul || 'Lainnya';
+        if (!map.has(key)) {
+          const g = { subJudul: key, items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } };
+          map.set(key, g);
+          groups.push(g);
+        }
+        map.get(key).items.push({
+          namaBarang: i.namaBarang,
+          qty: i.qty,
+          hargaSatuan: i.hargaSatuan,
+          keterangan: i.keterangan,
+        });
+      });
+    }
+
     form.value = {
+      jenis: rowJenis,
       judul: row.judul,
       deskripsi: row.deskripsi || '',
       notes: row.notes || '',
       metodePencairan: row.metodePencairan || null,
       rekeningId: row.rekening?.id || null,
-      items: (row.items || []).map(i => ({
-        namaBarang: i.namaBarang,
-        qty: i.qty,
-        hargaSatuan: Number(i.hargaSatuan),
-        keterangan: i.keterangan || '',
-      })),
+      items: rowJenis === 'KAJIAN' ? [] : mappedItems,
+      groups,
     };
   } else {
     isEdit.value = false;
     editId.value = null;
-    form.value = { judul: '', deskripsi: '', notes: '', metodePencairan: null, rekeningId: null, items: [{ namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' }] };
+    const isKajian = jenis === 'KAJIAN';
+    form.value = {
+      jenis: isKajian ? 'KAJIAN' : 'UMUM',
+      judul: isKajian ? 'Pengajuan Anggaran Kajian' : '',
+      deskripsi: '',
+      notes: '',
+      metodePencairan: null,
+      rekeningId: null,
+      items: [],
+      groups: isKajian ? [{ subJudul: '', items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } }] : [],
+    };
   }
+  newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
+  editingItemIdx.value = null;
   formDialogOpen.value = true;
 };
 
@@ -820,13 +1317,52 @@ const handleDisburse = async () => {
 };
 
 const handleSubmit = async () => {
+  let items = [];
+
+  if (form.value.jenis === 'KAJIAN') {
+    const groups = form.value.groups || [];
+    if (groups.length === 0) {
+      $q.notify({ type: 'warning', message: 'Tambahkan minimal satu sub judul.' });
+      return;
+    }
+    for (const g of groups) {
+      if (!g.subJudul?.trim()) {
+        $q.notify({ type: 'warning', message: 'Sub judul pengajuan wajib diisi.' });
+        return;
+      }
+      if (!g.items.length) {
+        $q.notify({ type: 'warning', message: `Sub judul "${g.subJudul}" belum memiliki item.` });
+        return;
+      }
+    }
+    groups.forEach((g) => {
+      g.items.forEach((it) => {
+        items.push({
+          subJudul: g.subJudul.trim(),
+          namaBarang: it.namaBarang,
+          qty: it.qty,
+          hargaSatuan: it.hargaSatuan,
+          keterangan: it.keterangan,
+          urutan: items.length,
+        });
+      });
+    });
+  } else {
+    if (!form.value.items.length) {
+      $q.notify({ type: 'warning', message: 'Tambahkan minimal satu item.' });
+      return;
+    }
+    items = form.value.items.map((it, idx) => ({ ...it, urutan: idx }));
+  }
+
   const payload = {
+    jenis: form.value.jenis,
     judul: form.value.judul,
     deskripsi: form.value.deskripsi || null,
     notes: form.value.notes || null,
     metodePencairan: form.value.metodePencairan,
     rekeningId: form.value.rekeningId,
-    items: form.value.items,
+    items,
   };
 
   let success;
@@ -839,6 +1375,7 @@ const handleSubmit = async () => {
   if (success) {
     formDialogOpen.value = false;
     await loadData();
+    await fetchItemSuggestions();
   }
 };
 
@@ -958,7 +1495,7 @@ const exportSinglePDF = async (row) => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadData(), fetchRekening()]);
+  await Promise.all([loadData(), fetchRekening(), fetchItemSuggestions()]);
 });
 </script>
 
