@@ -34,19 +34,8 @@
     <q-card flat bordered class="rounded-xl q-mb-md">
       <q-card-section>
         <div class="row q-gutter-md items-center">
-          <q-select
-            v-model="filters.status"
-            :options="statusOptions"
-            label="Status"
-            outlined
-            dense
-            emit-value
-            map-options
-            clearable
-            class="col-auto"
-            style="min-width: 180px"
-            @update:model-value="applyFilters"
-          />
+          <q-select v-model="filters.status" :options="statusOptions" label="Status" outlined dense emit-value
+            map-options clearable class="col-auto" style="min-width: 180px" @update:model-value="applyFilters" />
           <q-btn flat dense icon="filter_list_off" label="Reset" no-caps @click="resetFilters" />
         </div>
       </q-card-section>
@@ -59,16 +48,8 @@
 
     <!-- Table -->
     <q-card v-else flat bordered class="rounded-xl">
-      <q-table
-        :rows="submissionStore.submissions"
-        :columns="columns"
-        row-key="id"
-        :loading="submissionStore.loading"
-        flat
-        :rows-per-page-options="[10, 20, 50]"
-        :pagination="pagination"
-        @request="onRequest"
-      >
+      <q-table :rows="submissionStore.submissions" :columns="columns" row-key="id" :loading="submissionStore.loading"
+        flat :rows-per-page-options="[10, 20, 50]" :pagination="pagination" @request="onRequest">
         <template #body-cell-nomor="props">
           <q-td>
             <span class="text-weight-medium">{{ props.row.nomor || '-' }}</span>
@@ -141,7 +122,8 @@
             <div class="text-grey-6 text-center">
               <q-icon name="inbox" size="48px" />
               <div class="text-h6 q-mt-sm">Belum ada pengajuan</div>
-              <q-btn unelevated color="primary" icon="add" label="Buat Pengajuan Pertama" no-caps class="q-mt-md" @click="openJenisDialog()" />
+              <q-btn unelevated color="primary" icon="add" label="Buat Pengajuan Pertama" no-caps class="q-mt-md"
+                @click="openJenisDialog()" />
             </div>
           </div>
         </template>
@@ -158,12 +140,7 @@
         </q-card-section>
         <q-card-section>
           <div class="text-caption text-grey-7 q-mb-sm">Tentukan jenis pengajuan yang akan dibuat.</div>
-          <q-option-group
-            v-model="selectedJenis"
-            :options="jenisOptions"
-            color="primary"
-            type="radio"
-          >
+          <q-option-group v-model="selectedJenis" :options="jenisOptions" color="primary" type="radio">
             <template #label="opt">
               <div class="q-ml-xs">
                 <div class="text-weight-medium">{{ opt.label }}</div>
@@ -191,24 +168,11 @@
         <q-card-section class="scroll" style="max-height: 70vh">
           <q-form @submit="handleSubmit" class="q-gutter-md" ref="formRef">
             <!-- Info Pengajuan -->
-            <q-input
-              v-model="form.judul"
-              label="Judul Pengajuan *"
-              outlined
-              dense
-              hint="Contoh: Pengadaan Sound System untuk Kajian Akbar"
-              :rules="[val => !!val || 'Judul wajib diisi']"
-            />
+            <q-input v-model="form.judul" label="Judul Pengajuan *" outlined dense
+              hint="Contoh: Pengadaan Sound System untuk Kajian Akbar" :rules="[val => !!val || 'Judul wajib diisi']" />
 
-            <q-input
-              v-model="form.deskripsi"
-              label="Deskripsi (opsional)"
-              outlined
-              dense
-              type="textarea"
-              rows="2"
-              hint="Jelaskan tujuan dan rincian kebutuhan"
-            />
+            <q-input v-model="form.deskripsi" label="Deskripsi (opsional)" outlined dense type="textarea" rows="2"
+              hint="Jelaskan tujuan dan rincian kebutuhan" />
 
             <q-separator />
 
@@ -221,104 +185,51 @@
                 <q-card-section class="q-pa-sm">
                   <div class="row q-col-gutter-sm items-end">
                     <div class="col-12 col-sm-4">
-                      <q-select
-                        v-model="newItem.namaBarang"
-                        :options="itemNameFiltered"
-                        label="Nama Item *"
-                        outlined
-                        dense
-                        bg-color="white"
-                        use-input
-                        hide-selected
-                        fill-input
-                        hide-dropdown-icon
-                        input-debounce="0"
-                        new-value-mode="add-unique"
-                        @filter="filterItemName"
-                        @input-value="val => newItem.namaBarang = val"
-                        @keyup.enter="addItem"
-                      />
+                      <q-select v-model="newItem.namaBarang" :options="itemNameFiltered" label="Nama Item *" outlined
+                        dense bg-color="white" use-input hide-selected fill-input hide-dropdown-icon input-debounce="0"
+                        new-value-mode="add-unique" @filter="filterItemName"
+                        @input-value="val => newItem.namaBarang = val" @keyup.enter="addItem" />
                     </div>
                     <div class="col-6 col-sm-1">
-                      <q-input
-                        v-model.number="newItem.qty"
-                        label="Qty"
-                        outlined
-                        dense
-                        type="number"
-                        min="1"
-                        bg-color="white"
-                      />
+                      <q-input v-model.number="newItem.qty" label="Qty" outlined dense type="number" min="1"
+                        bg-color="white" />
                     </div>
                     <div class="col-6 col-sm-2">
-                      <q-input
-                        :model-value="formatNumberInput(newItem.hargaSatuan)"
-                        @update:model-value="val => newItem.hargaSatuan = parseNumberInput(val)"
-                        label="Harga Satuan"
-                        outlined
-                        dense
-                        prefix="Rp"
-                        inputmode="numeric"
-                        bg-color="white"
-                      />
+                      <q-input :model-value="formatNumberInput(newItem.hargaSatuan)"
+                        @update:model-value="val => newItem.hargaSatuan = parseNumberInput(val)" label="Harga Satuan"
+                        outlined dense prefix="Rp" inputmode="numeric" bg-color="white" />
                     </div>
                     <div class="col-12 col-sm-3">
-                      <q-input
-                        v-model="newItem.keterangan"
-                        label="Keterangan (opsional)"
-                        outlined
-                        dense
-                        bg-color="white"
-                        @keyup.enter="addItem"
-                      />
+                      <q-input v-model="newItem.keterangan" label="Keterangan (opsional)" outlined dense
+                        bg-color="white" @keyup.enter="addItem" />
                     </div>
                     <div class="col-12 col-sm-2">
-                      <q-btn
-                        unelevated
-                        :color="editingItemIdx !== null ? 'orange-8' : 'primary'"
+                      <q-btn unelevated :color="editingItemIdx !== null ? 'orange-8' : 'primary'"
                         :icon="editingItemIdx !== null ? 'save' : 'add'"
-                        :label="editingItemIdx !== null ? 'Update' : 'Tambah Item'"
-                        no-caps
-                        @click="addItem"
-                      />
-                      <q-btn
-                        v-if="editingItemIdx !== null"
-                        flat
-                        dense
-                        size="sm"
-                        color="grey-7"
-                        label="Batal"
-                        no-caps
-                        class="q-mt-xs"
-                        @click="cancelEditItem"
-                      />
+                        :label="editingItemIdx !== null ? 'Update' : 'Tambah Item'" no-caps @click="addItem" />
+                      <q-btn v-if="editingItemIdx !== null" flat dense size="sm" color="grey-7" label="Batal" no-caps
+                        class="q-mt-xs" @click="cancelEditItem" />
                     </div>
                     <div class="col-12 col-sm-6 flex justify-end">
-                      <div class="text-caption text-grey-7 self-center q-mr-sm" v-if="newItem.qty && newItem.hargaSatuan">
-                        Subtotal: <strong class="text-primary">{{ formatCurrency(newItem.qty * newItem.hargaSatuan) }}</strong>
+                      <div class="text-caption text-grey-7 self-center q-mr-sm"
+                        v-if="newItem.qty && newItem.hargaSatuan">
+                        Subtotal: <strong class="text-primary">{{ formatCurrency(newItem.qty * newItem.hargaSatuan)
+                          }}</strong>
                       </div>
-                      
+
                     </div>
                   </div>
                 </q-card-section>
               </q-card>
 
               <!-- Tabel Item yang Sudah Ditambahkan -->
-              <div v-if="form.items.length === 0" class="text-center q-py-md text-grey-6 rounded-borders" style="border: 1px dashed #ccc">
+              <div v-if="form.items.length === 0" class="text-center q-py-md text-grey-6 rounded-borders"
+                style="border: 1px dashed #ccc">
                 <q-icon name="shopping_cart" size="28px" />
                 <div class="text-caption q-mt-xs">Belum ada item — isi form di atas lalu klik Tambah Item</div>
               </div>
-              <q-table
-                v-else
-                :rows="form.items"
-                :columns="formItemColumns"
-                row-key="idx"
-                flat
-                bordered
-                dense
-                hide-pagination
-                :rows-per-page-options="[0]"
-              >
+              <q-table v-else :rows="form.items" :columns="formItemColumns" row-key="idx" flat bordered dense
+                hide-pagination :rows-per-page-options="[0]">
                 <template #body-cell-no="props">
                   <q-td class="text-center text-grey-7">{{ props.rowIndex + 1 }}</q-td>
                 </template>
@@ -326,14 +237,16 @@
                   <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
                 </template>
                 <template #body-cell-subtotal="props">
-                  <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty * props.row.hargaSatuan) }}</q-td>
+                  <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty *
+                    props.row.hargaSatuan) }}</q-td>
                 </template>
                 <template #body-cell-aksi="props">
                   <q-td class="text-center">
                     <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editItem(props.rowIndex)">
                       <q-tooltip>Edit</q-tooltip>
                     </q-btn>
-                    <q-btn flat dense round icon="delete" color="negative" size="sm" @click="removeItem(props.rowIndex)">
+                    <q-btn flat dense round icon="delete" color="negative" size="sm"
+                      @click="removeItem(props.rowIndex)">
                       <q-tooltip>Hapus</q-tooltip>
                     </q-btn>
                   </q-td>
@@ -353,25 +266,40 @@
               <div class="row items-center q-mb-sm">
                 <div class="text-subtitle2 text-weight-bold">Rincian Sub Judul & Item</div>
                 <q-space />
-                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Sub Judul" no-caps size="sm" @click="addGroup" />
+                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Sub Judul" no-caps size="sm"
+                  @click="addGroup" />
               </div>
 
-              <div v-if="form.groups.length === 0" class="text-center q-py-md text-grey-6 rounded-borders" style="border: 1px dashed #ccc">
+              <div v-if="form.groups.length === 0" class="text-center q-py-md text-grey-6 rounded-borders"
+                style="border: 1px dashed #ccc">
                 <q-icon name="playlist_add" size="28px" />
                 <div class="text-caption q-mt-xs">Belum ada sub judul — klik "Tambah Sub Judul"</div>
               </div>
 
               <q-card v-for="(group, gIdx) in form.groups" :key="gIdx" flat bordered class="q-mb-md">
                 <q-card-section class="q-pa-sm">
-                  <div class="row items-center q-col-gutter-sm q-mb-sm">
-                    <div class="col">
-                      <q-input
-                        v-model="group.subJudul"
-                        :label="'Sub Judul Pengajuan #' + (gIdx + 1) + ' *'"
-                        outlined
-                        dense
-                        placeholder="Contoh: Kajian Ustadz Fadhlan"
-                      />
+                  <div class="row items-start q-col-gutter-sm q-mb-sm">
+                    <div class="col-12 col-sm-3">
+                      <q-input v-model="group.subJudul" :label="'Sub Judul Pengajuan #' + (gIdx + 1) + ' *'" outlined
+                        dense placeholder="Contoh: Kajian Ustadz Fadhlan" />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-input :model-value="group.subTanggal"
+                        @update:model-value="val => onGroupTanggalChange(group, val)" label="Tanggal" outlined dense
+                        type="date" />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-input :model-value="group.subHari" label="Hari" outlined dense readonly placeholder="Otomatis"
+                        bg-color="grey-2" />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-select :model-value="group.waktuOption"
+                        @update:model-value="val => onGroupWaktuChange(group, val)" :options="waktuOptions" label="Jam"
+                        outlined dense clearable />
+                    </div>
+                    <div v-if="group.waktuOption === 'Lainnya'" class="col-6 col-sm-2">
+                      <q-input v-model="group.subWaktu" label="Isi Jam Manual *" outlined dense
+                        placeholder="Contoh: 19.30 - 21.00 WIB" />
                     </div>
                     <div class="col-auto">
                       <q-btn flat dense round icon="delete" color="negative" @click="removeGroup(gIdx)">
@@ -383,67 +311,35 @@
                   <!-- Input Tambah Item ke Sub Judul -->
                   <div class="row q-col-gutter-sm items-end bg-blue-1 rounded-borders q-pa-sm q-mb-sm">
                     <div class="col-12 col-sm-4">
-                      <q-select
-                        v-model="group.newItem.namaBarang"
-                        :options="itemNameFiltered"
-                        label="Nama Item *"
-                        outlined
-                        dense
-                        bg-color="white"
-                        use-input
-                        hide-selected
-                        fill-input
-                        hide-dropdown-icon
-                        input-debounce="0"
-                        new-value-mode="add-unique"
-                        @filter="filterItemName"
-                        @input-value="val => group.newItem.namaBarang = val"
-                        @keyup.enter="addGroupItem(gIdx)"
-                      />
+                      <q-select v-model="group.newItem.namaBarang" :options="itemNameFiltered" label="Nama Item *"
+                        outlined dense bg-color="white" use-input hide-selected fill-input hide-dropdown-icon
+                        input-debounce="0" new-value-mode="add-unique" @filter="filterItemName"
+                        @input-value="val => group.newItem.namaBarang = val" @keyup.enter="addGroupItem(gIdx)" />
                     </div>
                     <div class="col-6 col-sm-1">
-                      <q-input v-model.number="group.newItem.qty" label="Qty" outlined dense type="number" min="1" bg-color="white" />
+                      <q-input v-model.number="group.newItem.qty" label="Qty" outlined dense type="number" min="1"
+                        bg-color="white" />
                     </div>
                     <div class="col-6 col-sm-2">
-                      <q-input :model-value="formatNumberInput(group.newItem.hargaSatuan)" @update:model-value="val => group.newItem.hargaSatuan = parseNumberInput(val)" label="Harga Satuan" outlined dense prefix="Rp" inputmode="numeric" bg-color="white" />
+                      <q-input :model-value="formatNumberInput(group.newItem.hargaSatuan)"
+                        @update:model-value="val => group.newItem.hargaSatuan = parseNumberInput(val)"
+                        label="Harga Satuan" outlined dense prefix="Rp" inputmode="numeric" bg-color="white" />
                     </div>
                     <div class="col-12 col-sm-3">
-                      <q-input v-model="group.newItem.keterangan" label="Keterangan (opsional)" outlined dense bg-color="white" @keyup.enter="addGroupItem(gIdx)" />
+                      <q-input v-model="group.newItem.keterangan" label="Keterangan (opsional)" outlined dense
+                        bg-color="white" @keyup.enter="addGroupItem(gIdx)" />
                     </div>
                     <div class="col-12 col-sm-2">
-                      <q-btn
-                        unelevated
-                        :color="group.editingIdx != null ? 'orange-8' : 'primary'"
+                      <q-btn unelevated :color="group.editingIdx != null ? 'orange-8' : 'primary'"
                         :icon="group.editingIdx != null ? 'save' : 'add'"
-                        :label="group.editingIdx != null ? 'Update' : 'Item'"
-                        no-caps
-                        @click="addGroupItem(gIdx)"
-                      />
-                      <q-btn
-                        v-if="group.editingIdx != null"
-                        flat
-                        dense
-                        size="sm"
-                        color="grey-7"
-                        label="Batal"
-                        no-caps
-                        class="q-mt-xs"
-                        @click="cancelEditGroupItem(gIdx)"
-                      />
+                        :label="group.editingIdx != null ? 'Update' : 'Item'" no-caps @click="addGroupItem(gIdx)" />
+                      <q-btn v-if="group.editingIdx != null" flat dense size="sm" color="grey-7" label="Batal" no-caps
+                        class="q-mt-xs" @click="cancelEditGroupItem(gIdx)" />
                     </div>
                   </div>
 
-                  <q-table
-                    v-if="group.items.length"
-                    :rows="group.items"
-                    :columns="formItemColumns"
-                    row-key="idx"
-                    flat
-                    bordered
-                    dense
-                    hide-pagination
-                    :rows-per-page-options="[0]"
-                  >
+                  <q-table v-if="group.items.length" :rows="group.items" :columns="formItemColumns" row-key="idx" flat
+                    bordered dense hide-pagination :rows-per-page-options="[0]">
                     <template #body-cell-no="props">
                       <q-td class="text-center text-grey-7">{{ props.rowIndex + 1 }}</q-td>
                     </template>
@@ -451,14 +347,17 @@
                       <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
                     </template>
                     <template #body-cell-subtotal="props">
-                      <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty * props.row.hargaSatuan) }}</q-td>
+                      <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty *
+                        props.row.hargaSatuan) }}</q-td>
                     </template>
                     <template #body-cell-aksi="props">
                       <q-td class="text-center">
-                        <q-btn flat dense round icon="edit" color="primary" size="sm" @click="editGroupItem(gIdx, props.rowIndex)">
+                        <q-btn flat dense round icon="edit" color="primary" size="sm"
+                          @click="editGroupItem(gIdx, props.rowIndex)">
                           <q-tooltip>Edit</q-tooltip>
                         </q-btn>
-                        <q-btn flat dense round icon="delete" color="negative" size="sm" @click="removeGroupItem(gIdx, props.rowIndex)">
+                        <q-btn flat dense round icon="delete" color="negative" size="sm"
+                          @click="removeGroupItem(gIdx, props.rowIndex)">
                           <q-tooltip>Hapus</q-tooltip>
                         </q-btn>
                       </q-td>
@@ -466,7 +365,8 @@
                     <template v-slot:bottom-row>
                       <q-tr class="bg-grey-2">
                         <q-td colspan="4" class="text-right text-weight-bold">Subtotal</q-td>
-                        <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(groupSubtotal(group)) }}</q-td>
+                        <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(groupSubtotal(group))
+                          }}</q-td>
                         <q-td colspan="2"></q-td>
                       </q-tr>
                     </template>
@@ -483,29 +383,13 @@
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Metode Pencairan</div>
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-4">
-                  <q-select
-                    v-model="form.metodePencairan"
-                    :options="metodeOptions"
-                    label="Metode"
-                    outlined
-                    dense
-                    emit-value
-                    map-options
-                    clearable
-                  />
+                  <q-select v-model="form.metodePencairan" :options="metodeOptions" label="Metode" outlined dense
+                    emit-value map-options clearable />
                 </div>
                 <div v-if="form.metodePencairan === 'TRANSFER'" class="col-12 col-md-8">
                   <div class="row q-gutter-sm items-end">
-                    <q-select
-                      v-model="form.rekeningId"
-                      :options="rekeningOptions"
-                      label="Rekening Tujuan"
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                      class="col"
-                    />
+                    <q-select v-model="form.rekeningId" :options="rekeningOptions" label="Rekening Tujuan" outlined
+                      dense emit-value map-options class="col" />
                     <q-btn dense flat icon="add" color="primary" size="sm" @click="openRekeningDialog">
                       <q-tooltip>Tambah Rekening</q-tooltip>
                     </q-btn>
@@ -516,14 +400,8 @@
 
             <q-separator class="q-my-md" />
 
-            <q-input
-              v-model="form.notes"
-              label="Catatan untuk Approver (opsional)"
-              outlined
-              dense
-              type="textarea"
-              rows="2"
-            />
+            <q-input v-model="form.notes" label="Catatan untuk Approver (opsional)" outlined dense type="textarea"
+              rows="2" />
 
             <!-- Total -->
             <q-card flat class="bg-grey-1">
@@ -535,7 +413,8 @@
 
             <div class="row justify-end q-gutter-sm">
               <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
-              <q-btn unelevated type="submit" label="Simpan Draft" color="primary" no-caps :loading="submissionStore.submitting" />
+              <q-btn unelevated type="submit" label="Simpan Draft" color="primary" no-caps
+                :loading="submissionStore.submitting" />
             </div>
           </q-form>
         </q-card-section>
@@ -572,7 +451,8 @@
                         <q-item-label caption>Jenis</q-item-label>
                       </q-item-section>
                       <q-item-section>
-                        <q-chip dense :color="detailData.jenis === 'KAJIAN' ? 'purple' : 'blue-grey'" text-color="white" size="sm">
+                        <q-chip dense :color="detailData.jenis === 'KAJIAN' ? 'purple' : 'blue-grey'" text-color="white"
+                          size="sm">
                           {{ detailData.jenis === 'KAJIAN' ? 'Pengajuan Kajian' : 'Pengajuan Umum' }}
                         </q-chip>
                       </q-item-section>
@@ -621,12 +501,14 @@
                       </q-item-section>
                       <q-item-section>
                         <div>
-                          <q-chip :color="detailData.metodePencairan === 'CASH' ? 'blue' : 'green'" text-color="white" size="sm">
+                          <q-chip :color="detailData.metodePencairan === 'CASH' ? 'blue' : 'green'" text-color="white"
+                            size="sm">
                             {{ detailData.metodePencairan === 'CASH' ? 'Cash' : 'Transfer' }}
                           </q-chip>
                         </div>
                         <div v-if="detailData.rekening" class="text-caption q-mt-xs" style="word-break: break-word">
-                          {{ detailData.rekening.namaBank }} — {{ detailData.rekening.noRekening }}<br />(a.n. {{ detailData.rekening.atasNama }})
+                          {{ detailData.rekening.namaBank }} — {{ detailData.rekening.noRekening }}<br />(a.n. {{
+                          detailData.rekening.atasNama }})
                         </div>
                       </q-item-section>
                     </q-item>
@@ -664,7 +546,8 @@
                       <q-item-section>
                         <div>{{ detailData.rejectedBy.nama }}</div>
                         <div class="text-caption text-grey-6">{{ formatDateShort(detailData.rejectedAt) }}</div>
-                        <div v-if="detailData.rejectionNote" class="text-caption text-negative" style="word-break: break-word">
+                        <div v-if="detailData.rejectionNote" class="text-caption text-negative"
+                          style="word-break: break-word">
                           Alasan: {{ detailData.rejectionNote }}
                         </div>
                       </q-item-section>
@@ -703,15 +586,15 @@
                   <div class="text-weight-bold text-primary q-mb-xs">
                     <q-icon name="folder" size="18px" class="q-mr-xs" />{{ group.subJudul }}
                   </div>
-                  <q-table
-                    :rows="group.items"
-                    :columns="itemColumns"
-                    row-key="id"
-                    flat
-                    dense
-                    hide-pagination
-                    :rows-per-page-options="[0]"
-                  >
+                  <div v-if="group.subTanggal || group.subWaktu" class="text-caption text-grey-7 q-mb-xs">
+                    <q-icon v-if="group.subTanggal" name="event" size="14px" class="q-mr-xs" />
+                    <span v-if="group.subTanggal">{{ group.subHari ? group.subHari + ', ' : '' }}{{
+                      formatDateShort(group.subTanggal) }}</span>
+                    <q-icon v-if="group.subWaktu" name="schedule" size="14px" class="q-mr-xs q-ml-sm" />
+                    <span v-if="group.subWaktu">{{ group.subWaktu }}</span>
+                  </div>
+                  <q-table :rows="group.items" :columns="itemColumns" row-key="id" flat dense hide-pagination
+                    :rows-per-page-options="[0]">
                     <template #body-cell-qty="props">
                       <q-td class="text-center">{{ props.row.qty }}</q-td>
                     </template>
@@ -724,7 +607,8 @@
                     <template v-slot:bottom-row>
                       <q-tr>
                         <q-td colspan="3" class="text-right text-weight-medium">Subtotal</q-td>
-                        <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(group.subtotal) }}</q-td>
+                        <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(group.subtotal)
+                          }}</q-td>
                       </q-tr>
                     </template>
                   </q-table>
@@ -737,16 +621,8 @@
               </template>
 
               <!-- Pengajuan Umum -->
-              <q-table
-                v-else
-                :rows="detailData.items || []"
-                :columns="itemColumns"
-                row-key="id"
-                flat
-                dense
-                hide-pagination
-                :rows-per-page-options="[0]"
-              >
+              <q-table v-else :rows="detailData.items || []" :columns="itemColumns" row-key="id" flat dense
+                hide-pagination :rows-per-page-options="[0]">
                 <template #body-cell-qty="props">
                   <q-td class="text-center">{{ props.row.qty }}</q-td>
                 </template>
@@ -759,7 +635,8 @@
                 <template v-slot:bottom-row>
                   <q-tr>
                     <q-td colspan="3" class="text-right text-weight-bold">Total</q-td>
-                    <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(detailData.amount) }}</q-td>
+                    <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(detailData.amount)
+                      }}</q-td>
                   </q-tr>
                 </template>
               </q-table>
@@ -771,13 +648,10 @@
             <q-card-section class="q-pa-sm q-pa-md-md">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Riwayat Persetujuan</div>
               <q-timeline color="primary">
-                <q-timeline-entry
-                  v-for="log in detailData.approvalLogs"
-                  :key="log.id"
+                <q-timeline-entry v-for="log in detailData.approvalLogs" :key="log.id"
                   :subtitle="formatDateShort(log.createdAt) + ' — ' + (log.user?.nama || 'Sistem')"
                   :icon="log.action === 'APPROVED' ? 'check_circle' : 'cancel'"
-                  :color="log.action === 'APPROVED' ? 'positive' : 'negative'"
-                >
+                  :color="log.action === 'APPROVED' ? 'positive' : 'negative'">
                   <div class="text-weight-medium">{{ log.action === 'APPROVED' ? 'Disetujui' : 'Ditolak' }}</div>
                   <div v-if="log.notes" class="text-caption text-grey-7">{{ log.notes }}</div>
                 </q-timeline-entry>
@@ -798,18 +672,12 @@
         </q-card-section>
         <q-card-section>
           <q-form @submit="handleReject">
-            <q-input
-              v-model="rejectNote"
-              label="Alasan Penolakan *"
-              outlined
-              dense
-              type="textarea"
-              rows="3"
-              :rules="[val => !!val || 'Alasan wajib diisi']"
-            />
+            <q-input v-model="rejectNote" label="Alasan Penolakan *" outlined dense type="textarea" rows="3"
+              :rules="[val => !!val || 'Alasan wajib diisi']" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
-              <q-btn unelevated type="submit" label="Tolak" color="negative" no-caps :loading="submissionStore.submitting" />
+              <q-btn unelevated type="submit" label="Tolak" color="negative" no-caps
+                :loading="submissionStore.submitting" />
             </div>
           </q-form>
         </q-card-section>
@@ -826,26 +694,14 @@
         </q-card-section>
         <q-card-section>
           <div class="text-caption text-grey-7 q-mb-md">
-            Konfirmasi pencairan dana sebesar <strong class="text-primary">{{ formatCurrency(disburseTarget?.amount) }}</strong>
+            Konfirmasi pencairan dana sebesar <strong class="text-primary">{{ formatCurrency(disburseTarget?.amount)
+              }}</strong>
           </div>
           <q-form @submit="handleDisburse">
-            <q-input
-              v-model="disbursementRef"
-              label="Nomor Referensi (opsional)"
-              outlined
-              dense
-              hint="Misal: nomor transfer, nomor cek, dll"
-            />
-            <q-file
-              v-model="buktiPencairanFile"
-              label="Bukti Transfer"
-              outlined
-              dense
-              accept="image/*"
-              max-file-size="5242880"
-              hint="Upload screenshot/struk transfer (max 5MB)"
-              class="q-mt-md"
-            />
+            <q-input v-model="disbursementRef" label="Nomor Referensi (opsional)" outlined dense
+              hint="Misal: nomor transfer, nomor cek, dll" />
+            <q-file v-model="buktiPencairanFile" label="Bukti Transfer" outlined dense accept="image/*"
+              max-file-size="5242880" hint="Upload screenshot/struk transfer (max 5MB)" class="q-mt-md" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
               <q-btn unelevated type="submit" label="Cairkan" color="green-7" no-caps :loading="disburseSubmitting" />
@@ -876,12 +732,16 @@
             </q-item>
           </q-list>
           <q-form @submit="handleTambahRekening" class="q-gutter-sm">
-            <q-input v-model="rekeningForm.namaBank" label="Nama Bank *" outlined dense :rules="[val => !!val || 'Wajib']" />
-            <q-input v-model="rekeningForm.noRekening" label="No. Rekening *" outlined dense :rules="[val => !!val || 'Wajib']" />
-            <q-input v-model="rekeningForm.atasNama" label="Atas Nama *" outlined dense :rules="[val => !!val || 'Wajib']" />
+            <q-input v-model="rekeningForm.namaBank" label="Nama Bank *" outlined dense
+              :rules="[val => !!val || 'Wajib']" />
+            <q-input v-model="rekeningForm.noRekening" label="No. Rekening *" outlined dense
+              :rules="[val => !!val || 'Wajib']" />
+            <q-input v-model="rekeningForm.atasNama" label="Atas Nama *" outlined dense
+              :rules="[val => !!val || 'Wajib']" />
             <div class="row justify-end q-gutter-sm q-mt-md">
               <q-btn flat label="Tutup" color="grey-7" no-caps v-close-popup />
-              <q-btn unelevated type="submit" label="Tambah Rekening" color="primary" no-caps :loading="rekeningSubmitting" />
+              <q-btn unelevated type="submit" label="Tambah Rekening" color="primary" no-caps
+                :loading="rekeningSubmitting" />
             </div>
           </q-form>
         </q-card-section>
@@ -963,6 +823,42 @@ const parseNumberInput = (val) => {
   return digits ? Number(digits) : 0;
 };
 
+// ─── Jadwal Sub Judul (Hari otomatis & pilihan Jam) ──────────────────────────
+const HARI_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const getDayName = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return isNaN(d.getTime()) ? '' : HARI_NAMES[d.getDay()];
+};
+
+const WAKTU_PRESETS = [
+  '08.30 - 11.00 WIB',
+  '09.00 - 11.00 WIB',
+  "Ba'da Maghrib - Selesai",
+  '09.00 - Selesai',
+  "Ba'da Shubuh - Selesai",
+];
+const waktuOptions = [...WAKTU_PRESETS, 'Lainnya'];
+
+const determineWaktuOption = (w) => {
+  if (!w) return null;
+  return WAKTU_PRESETS.includes(w) ? w : 'Lainnya';
+};
+
+const onGroupTanggalChange = (group, val) => {
+  group.subTanggal = val;
+  group.subHari = getDayName(val);
+};
+
+const onGroupWaktuChange = (group, val) => {
+  group.waktuOption = val;
+  if (val === 'Lainnya') {
+    if (WAKTU_PRESETS.includes(group.subWaktu)) group.subWaktu = '';
+  } else {
+    group.subWaktu = val || '';
+  }
+};
+
 const canApprove = computed(() => {
   const role = authStore.currentUser?.role;
   return ['VIEWER', 'KETUA_DKM', 'WAKIL_DKM', 'SUPERADMIN', 'ADMIN'].includes(role);
@@ -1009,7 +905,7 @@ const detailGroups = computed(() => {
   items.forEach((item) => {
     const key = item.subJudul || 'Lainnya';
     if (!map.has(key)) {
-      const g = { subJudul: key, items: [], subtotal: 0 };
+      const g = { subJudul: key, subTanggal: item.subTanggal || null, subHari: item.subHari || null, subWaktu: item.subWaktu || null, items: [], subtotal: 0 };
       map.set(key, g);
       groups.push(g);
     }
@@ -1135,6 +1031,10 @@ const removeItem = (idx) => {
 const addGroup = () => {
   form.value.groups.push({
     subJudul: '',
+    subTanggal: '',
+    subHari: '',
+    subWaktu: '',
+    waktuOption: null,
     items: [],
     editingIdx: null,
     newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' },
@@ -1221,6 +1121,9 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
     const rowJenis = row.jenis === 'KAJIAN' ? 'KAJIAN' : 'UMUM';
     const mappedItems = (row.items || []).map(i => ({
       subJudul: i.subJudul || null,
+      subTanggal: i.subTanggal || null,
+      subHari: i.subHari || null,
+      subWaktu: i.subWaktu || null,
       namaBarang: i.namaBarang,
       qty: i.qty,
       hargaSatuan: Number(i.hargaSatuan),
@@ -1233,7 +1136,7 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
       mappedItems.forEach((i) => {
         const key = i.subJudul || 'Lainnya';
         if (!map.has(key)) {
-          const g = { subJudul: key, items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } };
+          const g = { subJudul: key, subTanggal: i.subTanggal || '', subHari: i.subHari || getDayName(i.subTanggal), subWaktu: i.subWaktu || '', waktuOption: determineWaktuOption(i.subWaktu), items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } };
           map.set(key, g);
           groups.push(g);
         }
@@ -1268,7 +1171,7 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
       metodePencairan: null,
       rekeningId: null,
       items: [],
-      groups: isKajian ? [{ subJudul: '', items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } }] : [],
+      groups: isKajian ? [{ subJudul: '', subTanggal: '', subHari: '', subWaktu: '', waktuOption: null, items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } }] : [],
     };
   }
   newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
@@ -1330,6 +1233,10 @@ const handleSubmit = async () => {
         $q.notify({ type: 'warning', message: 'Sub judul pengajuan wajib diisi.' });
         return;
       }
+      if (g.waktuOption === 'Lainnya' && !g.subWaktu?.trim()) {
+        $q.notify({ type: 'warning', message: `Isi jam manual untuk sub judul "${g.subJudul}".` });
+        return;
+      }
       if (!g.items.length) {
         $q.notify({ type: 'warning', message: `Sub judul "${g.subJudul}" belum memiliki item.` });
         return;
@@ -1339,6 +1246,9 @@ const handleSubmit = async () => {
       g.items.forEach((it) => {
         items.push({
           subJudul: g.subJudul.trim(),
+          subTanggal: g.subTanggal || null,
+          subHari: g.subHari || null,
+          subWaktu: g.subWaktu || null,
           namaBarang: it.namaBarang,
           qty: it.qty,
           hargaSatuan: it.hargaSatuan,
