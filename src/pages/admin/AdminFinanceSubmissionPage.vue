@@ -177,7 +177,7 @@
             <q-separator />
 
             <!-- Rincian Item (Pengajuan Umum) -->
-            <div v-if="form.jenis !== 'KAJIAN'">
+            <div v-if="form.jenis === 'UMUM'">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Rincian Item</div>
 
               <!-- Input Tambah Item -->
@@ -262,7 +262,7 @@
             </div>
 
             <!-- Rincian Item (Pengajuan Kajian) -->
-            <div v-else>
+            <div v-else-if="form.jenis === 'KAJIAN'">
               <div class="row items-center q-mb-sm">
                 <div class="text-subtitle2 text-weight-bold">Rincian Sub Judul & Item</div>
                 <q-space />
@@ -376,6 +376,127 @@
               </q-card>
             </div>
 
+            <!-- Rincian Item (Pengajuan Sosial) -->
+            <div v-else-if="form.jenis === 'SOSIAL'">
+              <div class="row items-center q-mb-sm">
+                <div class="text-subtitle2 text-weight-bold">Rincian Program & Item</div>
+                <q-space />
+                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Program" no-caps size="sm"
+                  @click="addGroup" />
+              </div>
+              <div class="text-caption text-grey-6 q-mb-sm">
+                <q-icon name="info" size="14px" class="q-mr-xs" />Pilih <strong>Sub Judul</strong> dari daftar program
+                Divisi Sosial, lalu tambahkan rincian item untuk tiap program.
+              </div>
+
+              <div v-if="form.groups.length === 0" class="text-center q-py-md text-grey-6 rounded-borders"
+                style="border: 1px dashed #ccc">
+                <q-icon name="volunteer_activism" size="28px" />
+                <div class="text-caption q-mt-xs">Belum ada program — klik "Tambah Program"</div>
+              </div>
+
+              <q-card v-for="(group, gIdx) in form.groups" :key="gIdx" flat bordered class="q-mb-md">
+                <q-card-section class="q-pa-sm">
+                  <div class="row items-start q-col-gutter-sm q-mb-sm">
+                    <div class="col-12 col-sm-5">
+                      <q-select v-model="group.subJudul" :options="sosialProgramFiltered"
+                        :label="'Sub Judul (Program Sosial) #' + (gIdx + 1) + ' *'" outlined dense use-input
+                        input-debounce="0" new-value-mode="add-unique" hide-dropdown-icon fill-input hide-selected
+                        @filter="filterSosialProgram" @input-value="val => group.subJudul = val"
+                        placeholder="Pilih program Divisi Sosial">
+                        <template #no-option>
+                          <q-item>
+                            <q-item-section class="text-grey-6 text-caption">
+                              Belum ada program Divisi Sosial — ketik manual untuk menambah.
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                      <q-input :model-value="group.subTanggal"
+                        @update:model-value="val => onGroupTanggalChange(group, val)" label="Tanggal Kegiatan" outlined
+                        dense type="date" />
+                    </div>
+                    <div class="col-6 col-sm-3">
+                      <q-input :model-value="group.subHari" label="Hari" outlined dense readonly placeholder="Otomatis"
+                        bg-color="grey-2" />
+                    </div>
+                    <div class="col-auto">
+                      <q-btn flat dense round icon="delete" color="negative" @click="removeGroup(gIdx)">
+                        <q-tooltip>Hapus Program</q-tooltip>
+                      </q-btn>
+                    </div>
+                  </div>
+
+                  <!-- Input Tambah Item ke Program -->
+                  <div class="row q-col-gutter-sm items-end bg-blue-1 rounded-borders q-pa-sm q-mb-sm">
+                    <div class="col-12 col-sm-4">
+                      <q-select v-model="group.newItem.namaBarang" :options="itemNameFiltered" label="Nama Item *"
+                        outlined dense bg-color="white" use-input hide-selected fill-input hide-dropdown-icon
+                        input-debounce="0" new-value-mode="add-unique" @filter="filterItemName"
+                        @input-value="val => group.newItem.namaBarang = val" @keyup.enter="addGroupItem(gIdx)" />
+                    </div>
+                    <div class="col-6 col-sm-1">
+                      <q-input v-model.number="group.newItem.qty" label="Qty" outlined dense type="number" min="1"
+                        bg-color="white" />
+                    </div>
+                    <div class="col-6 col-sm-2">
+                      <q-input :model-value="formatNumberInput(group.newItem.hargaSatuan)"
+                        @update:model-value="val => group.newItem.hargaSatuan = parseNumberInput(val)"
+                        label="Harga Satuan" outlined dense prefix="Rp" inputmode="numeric" bg-color="white" />
+                    </div>
+                    <div class="col-12 col-sm-3">
+                      <q-input v-model="group.newItem.keterangan" label="Keterangan (opsional)" outlined dense
+                        bg-color="white" @keyup.enter="addGroupItem(gIdx)" />
+                    </div>
+                    <div class="col-12 col-sm-2">
+                      <q-btn unelevated :color="group.editingIdx != null ? 'orange-8' : 'primary'"
+                        :icon="group.editingIdx != null ? 'save' : 'add'"
+                        :label="group.editingIdx != null ? 'Update' : 'Item'" no-caps @click="addGroupItem(gIdx)" />
+                      <q-btn v-if="group.editingIdx != null" flat dense size="sm" color="grey-7" label="Batal" no-caps
+                        class="q-mt-xs" @click="cancelEditGroupItem(gIdx)" />
+                    </div>
+                  </div>
+
+                  <q-table v-if="group.items.length" :rows="group.items" :columns="formItemColumns" row-key="idx" flat
+                    bordered dense hide-pagination :rows-per-page-options="[0]">
+                    <template #body-cell-no="props">
+                      <q-td class="text-center text-grey-7">{{ props.rowIndex + 1 }}</q-td>
+                    </template>
+                    <template #body-cell-hargaSatuan="props">
+                      <q-td class="text-right">{{ formatCurrency(props.row.hargaSatuan) }}</q-td>
+                    </template>
+                    <template #body-cell-subtotal="props">
+                      <q-td class="text-right text-weight-medium text-primary">{{ formatCurrency(props.row.qty *
+                        props.row.hargaSatuan) }}</q-td>
+                    </template>
+                    <template #body-cell-aksi="props">
+                      <q-td class="text-center">
+                        <q-btn flat dense round icon="edit" color="primary" size="sm"
+                          @click="editGroupItem(gIdx, props.rowIndex)">
+                          <q-tooltip>Edit</q-tooltip>
+                        </q-btn>
+                        <q-btn flat dense round icon="delete" color="negative" size="sm"
+                          @click="removeGroupItem(gIdx, props.rowIndex)">
+                          <q-tooltip>Hapus</q-tooltip>
+                        </q-btn>
+                      </q-td>
+                    </template>
+                    <template v-slot:bottom-row>
+                      <q-tr class="bg-grey-2">
+                        <q-td colspan="4" class="text-right text-weight-bold">Subtotal</q-td>
+                        <q-td class="text-right text-weight-bold text-primary">{{ formatCurrency(groupSubtotal(group))
+                          }}</q-td>
+                        <q-td colspan="2"></q-td>
+                      </q-tr>
+                    </template>
+                  </q-table>
+                  <div v-else class="text-caption text-grey-6 q-pl-xs">Belum ada item pada program ini.</div>
+                </q-card-section>
+              </q-card>
+            </div>
+
             <q-separator class="q-my-md" />
 
             <!-- Metode Pencairan -->
@@ -451,9 +572,9 @@
                         <q-item-label caption>Jenis</q-item-label>
                       </q-item-section>
                       <q-item-section>
-                        <q-chip dense :color="detailData.jenis === 'KAJIAN' ? 'purple' : 'blue-grey'" text-color="white"
+                        <q-chip dense :color="detailJenisChip.color" text-color="white"
                           size="sm">
-                          {{ detailData.jenis === 'KAJIAN' ? 'Pengajuan Kajian' : 'Pengajuan Umum' }}
+                          {{ detailJenisChip.label }}
                         </q-chip>
                       </q-item-section>
                     </q-item>
@@ -580,8 +701,8 @@
             <q-card-section class="q-pa-sm q-pa-md-md">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Rincian Item</div>
 
-              <!-- Pengajuan Kajian: dikelompokkan per Sub Judul -->
-              <template v-if="detailData.jenis === 'KAJIAN'">
+              <!-- Pengajuan Kajian / Sosial: dikelompokkan per Sub Judul -->
+              <template v-if="detailData.jenis === 'KAJIAN' || detailData.jenis === 'SOSIAL'">
                 <div v-for="(group, gIdx) in detailGroups" :key="gIdx" class="q-mb-md">
                   <div class="text-weight-bold text-primary q-mb-xs">
                     <q-icon name="folder" size="18px" class="q-mr-xs" />{{ group.subJudul }}
@@ -790,6 +911,7 @@ const selectedJenis = ref('UMUM');
 const jenisOptions = [
   { label: 'Pengajuan Umum', value: 'UMUM', desc: 'Pengajuan dana dengan rincian item biasa.' },
   { label: 'Pengajuan Kajian', value: 'KAJIAN', desc: 'Pengajuan anggaran kajian dengan sub judul per kajian.' },
+  { label: 'Pengajuan Sosial', value: 'SOSIAL', desc: 'Pengajuan anggaran sosial dengan sub judul dari program Divisi Sosial.' },
 ];
 
 const form = ref({
@@ -808,6 +930,13 @@ const editingItemIdx = ref(null);
 
 const itemNameOptions = ref([]);
 const itemNameFiltered = ref([]);
+
+// Nama program Divisi Sosial untuk pilihan Sub Judul (Pengajuan Sosial)
+const sosialProgramOptions = ref([]);
+const sosialProgramFiltered = ref([]);
+
+// Jenis pengajuan yang dikelompokkan per sub judul (Kajian & Sosial)
+const isGrouped = computed(() => ['KAJIAN', 'SOSIAL'].includes(form.value.jenis));
 
 // Format angka ke tampilan rupiah (mis. 1000000 -> "1.000.000")
 const formatNumberInput = (val) => {
@@ -881,7 +1010,7 @@ const summaryCards = computed(() => {
 });
 
 const totalAmount = computed(() => {
-  if (form.value.jenis === 'KAJIAN') {
+  if (isGrouped.value) {
     return form.value.groups.reduce((sum, g) => sum + groupSubtotal(g), 0);
   }
   return form.value.items.reduce((sum, item) => sum + (Number(item.qty) || 0) * (Number(item.hargaSatuan) || 0), 0);
@@ -894,6 +1023,9 @@ const groupSubtotal = (group) => {
 const formDialogTitle = computed(() => {
   if (form.value.jenis === 'KAJIAN') {
     return isEdit.value ? 'Edit Pengajuan Anggaran Kajian' : 'Pengajuan Anggaran Kajian';
+  }
+  if (form.value.jenis === 'SOSIAL') {
+    return isEdit.value ? 'Edit Pengajuan Anggaran Sosial' : 'Pengajuan Anggaran Sosial';
   }
   return isEdit.value ? 'Edit Pengajuan' : 'Buat Pengajuan Baru';
 });
@@ -925,6 +1057,13 @@ const statusLabel = (status) => {
   const labels = { DRAFT: 'Draft', SUBMITTED: 'Menunggu', APPROVED: 'Disetujui', REJECTED: 'Ditolak' };
   return labels[status] || status;
 };
+
+const detailJenisChip = computed(() => {
+  const jenis = detailData.value?.jenis;
+  if (jenis === 'KAJIAN') return { label: 'Pengajuan Kajian', color: 'purple' };
+  if (jenis === 'SOSIAL') return { label: 'Pengajuan Sosial', color: 'teal' };
+  return { label: 'Pengajuan Umum', color: 'blue-grey' };
+});
 
 const columns = [
   { name: 'nomor', label: 'Nomor', field: 'nomor', align: 'left', sortable: true },
@@ -1103,6 +1242,26 @@ const filterItemName = (val, update) => {
   });
 };
 
+// ─── Program Divisi Sosial (Sub Judul Pengajuan Sosial) ───────────────────────
+const fetchSosialPrograms = async () => {
+  try {
+    const { data } = await api.get('/finance/submissions/sosial/programs');
+    sosialProgramOptions.value = data.data || [];
+    sosialProgramFiltered.value = sosialProgramOptions.value;
+  } catch (e) { /* silent */ }
+};
+
+const filterSosialProgram = (val, update) => {
+  update(() => {
+    if (!val) {
+      sosialProgramFiltered.value = sosialProgramOptions.value;
+    } else {
+      const needle = val.toLowerCase();
+      sosialProgramFiltered.value = sosialProgramOptions.value.filter((o) => o.toLowerCase().includes(needle));
+    }
+  });
+};
+
 // ─── Jenis Pengajuan Selection ────────────────────────────────────────────────
 const openJenisDialog = () => {
   selectedJenis.value = 'UMUM';
@@ -1118,7 +1277,8 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
   if (row) {
     isEdit.value = true;
     editId.value = row.id;
-    const rowJenis = row.jenis === 'KAJIAN' ? 'KAJIAN' : 'UMUM';
+    const rowJenis = ['KAJIAN', 'SOSIAL'].includes(row.jenis) ? row.jenis : 'UMUM';
+    const isGroupedRow = rowJenis === 'KAJIAN' || rowJenis === 'SOSIAL';
     const mappedItems = (row.items || []).map(i => ({
       subJudul: i.subJudul || null,
       subTanggal: i.subTanggal || null,
@@ -1131,7 +1291,7 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
     }));
 
     let groups = [];
-    if (rowJenis === 'KAJIAN') {
+    if (isGroupedRow) {
       const map = new Map();
       mappedItems.forEach((i) => {
         const key = i.subJudul || 'Lainnya';
@@ -1156,22 +1316,27 @@ const openFormDialog = (row = null, jenis = 'UMUM') => {
       notes: row.notes || '',
       metodePencairan: row.metodePencairan || null,
       rekeningId: row.rekening?.id || null,
-      items: rowJenis === 'KAJIAN' ? [] : mappedItems,
+      items: isGroupedRow ? [] : mappedItems,
       groups,
     };
   } else {
     isEdit.value = false;
     editId.value = null;
     const isKajian = jenis === 'KAJIAN';
+    const isSosial = jenis === 'SOSIAL';
+    const isGroupedNew = isKajian || isSosial;
+    let defaultJudul = '';
+    if (isKajian) defaultJudul = 'Pengajuan Anggaran Kajian';
+    else if (isSosial) defaultJudul = 'Pengajuan Anggaran Sosial';
     form.value = {
-      jenis: isKajian ? 'KAJIAN' : 'UMUM',
-      judul: isKajian ? 'Pengajuan Anggaran Kajian' : '',
+      jenis: isGroupedNew ? jenis : 'UMUM',
+      judul: defaultJudul,
       deskripsi: '',
       notes: '',
       metodePencairan: null,
       rekeningId: null,
       items: [],
-      groups: isKajian ? [{ subJudul: '', subTanggal: '', subHari: '', subWaktu: '', waktuOption: null, items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } }] : [],
+      groups: isGroupedNew ? [{ subJudul: '', subTanggal: '', subHari: '', subWaktu: '', waktuOption: null, items: [], editingIdx: null, newItem: { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' } }] : [],
     };
   }
   newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
@@ -1222,23 +1387,25 @@ const handleDisburse = async () => {
 const handleSubmit = async () => {
   let items = [];
 
-  if (form.value.jenis === 'KAJIAN') {
+  if (form.value.jenis === 'KAJIAN' || form.value.jenis === 'SOSIAL') {
+    const isSosial = form.value.jenis === 'SOSIAL';
+    const subJudulLabel = isSosial ? 'Program' : 'Sub judul';
     const groups = form.value.groups || [];
     if (groups.length === 0) {
-      $q.notify({ type: 'warning', message: 'Tambahkan minimal satu sub judul.' });
+      $q.notify({ type: 'warning', message: `Tambahkan minimal satu ${isSosial ? 'program' : 'sub judul'}.` });
       return;
     }
     for (const g of groups) {
       if (!g.subJudul?.trim()) {
-        $q.notify({ type: 'warning', message: 'Sub judul pengajuan wajib diisi.' });
+        $q.notify({ type: 'warning', message: `${subJudulLabel} pengajuan wajib diisi.` });
         return;
       }
-      if (g.waktuOption === 'Lainnya' && !g.subWaktu?.trim()) {
+      if (!isSosial && g.waktuOption === 'Lainnya' && !g.subWaktu?.trim()) {
         $q.notify({ type: 'warning', message: `Isi jam manual untuk sub judul "${g.subJudul}".` });
         return;
       }
       if (!g.items.length) {
-        $q.notify({ type: 'warning', message: `Sub judul "${g.subJudul}" belum memiliki item.` });
+        $q.notify({ type: 'warning', message: `${subJudulLabel} "${g.subJudul}" belum memiliki item.` });
         return;
       }
     }
@@ -1405,7 +1572,7 @@ const exportSinglePDF = async (row) => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadData(), fetchRekening(), fetchItemSuggestions()]);
+  await Promise.all([loadData(), fetchRekening(), fetchItemSuggestions(), fetchSosialPrograms()]);
 });
 </script>
 
