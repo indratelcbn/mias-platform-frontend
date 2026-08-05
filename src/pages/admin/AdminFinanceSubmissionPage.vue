@@ -265,9 +265,6 @@
             <div v-else-if="form.jenis === 'KAJIAN'">
               <div class="row items-center q-mb-sm">
                 <div class="text-subtitle2 text-weight-bold">Rincian Sub Judul & Item</div>
-                <q-space />
-                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Sub Judul" no-caps size="sm"
-                  @click="addGroup" />
               </div>
 
               <div v-if="form.groups.length === 0" class="text-center q-py-md text-grey-6 rounded-borders"
@@ -374,15 +371,16 @@
                   <div v-else class="text-caption text-grey-6 q-pl-xs">Belum ada item pada sub judul ini.</div>
                 </q-card-section>
               </q-card>
+
+              <div class="row justify-center q-mt-sm">
+                <q-btn unelevated color="secondary" icon="add" label="Tambah Sub Judul" no-caps @click="addGroup" />
+              </div>
             </div>
 
             <!-- Rincian Item (Pengajuan Sosial) -->
             <div v-else-if="form.jenis === 'SOSIAL'">
               <div class="row items-center q-mb-sm">
                 <div class="text-subtitle2 text-weight-bold">Rincian Program & Item</div>
-                <q-space />
-                <q-btn dense unelevated color="secondary" icon="add" label="Tambah Program" no-caps size="sm"
-                  @click="addGroup" />
               </div>
               <div class="text-caption text-grey-6 q-mb-sm">
                 <q-icon name="info" size="14px" class="q-mr-xs" />Pilih <strong>Sub Judul</strong> dari daftar program
@@ -495,6 +493,10 @@
                   <div v-else class="text-caption text-grey-6 q-pl-xs">Belum ada item pada program ini.</div>
                 </q-card-section>
               </q-card>
+
+              <div class="row justify-center q-mt-sm">
+                <q-btn unelevated color="secondary" icon="add" label="Tambah Program" no-caps @click="addGroup" />
+              </div>
             </div>
 
             <q-separator class="q-my-md" />
@@ -533,7 +535,7 @@
             </q-card>
 
             <div class="row justify-end q-gutter-sm">
-              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup />
+              <q-btn flat label="Batal" color="grey-7" no-caps v-close-popup @click="clearDraft" />
               <q-btn unelevated type="submit" label="Simpan Draft" color="primary" no-caps
                 :loading="submissionStore.submitting" />
             </div>
@@ -872,7 +874,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useFinanceSubmissionStore } from 'src/stores/financeSubmission';
 import { useAuthStore } from 'src/stores/auth';
 import { useQuasar } from 'quasar';
@@ -927,6 +929,64 @@ const form = ref({
 
 const newItem = ref({ namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' });
 const editingItemIdx = ref(null);
+
+// ─── Auto-save Draft (anti kehilangan data saat refresh tak sengaja) ──────────
+const DRAFT_KEY = 'finance-submission-draft';
+
+const saveDraft = () => {
+  if (!formDialogOpen.value || isEdit.value) return;
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(form.value));
+  } catch (e) { /* ignore */ }
+};
+
+const clearDraft = () => {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) { /* ignore */ }
+};
+
+watch(form, saveDraft, { deep: true });
+
+const draftHasContent = (draft) =>
+  !!draft && (
+    (draft.judul && draft.judul.trim()) ||
+    (Array.isArray(draft.items) && draft.items.length > 0) ||
+    (Array.isArray(draft.groups) && draft.groups.some((g) => (g.subJudul && g.subJudul.trim()) || (Array.isArray(g.items) && g.items.length > 0)))
+  );
+
+const restoreDraft = (draft) => {
+  isEdit.value = false;
+  editId.value = null;
+  form.value = {
+    jenis: draft.jenis || 'UMUM',
+    judul: draft.judul || '',
+    deskripsi: draft.deskripsi || '',
+    notes: draft.notes || '',
+    metodePencairan: draft.metodePencairan || null,
+    rekeningId: draft.rekeningId || null,
+    items: Array.isArray(draft.items) ? draft.items : [],
+    groups: Array.isArray(draft.groups) ? draft.groups : [],
+  };
+  newItem.value = { namaBarang: '', qty: 1, hargaSatuan: 0, keterangan: '' };
+  editingItemIdx.value = null;
+  formDialogOpen.value = true;
+};
+
+const maybeRestoreDraft = () => {
+  let draft = null;
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    draft = JSON.parse(raw);
+  } catch (e) { clearDraft(); return; }
+  if (!draftHasContent(draft)) { clearDraft(); return; }
+  $q.dialog({
+    title: 'Lanjutkan Pengajuan?',
+    message: 'Ada draft pengajuan yang belum tersimpan dari sesi sebelumnya. Lanjutkan mengisi?',
+    cancel: { flat: true, label: 'Buang', color: 'grey-7', noCaps: true },
+    ok: { unelevated: true, label: 'Lanjutkan', color: 'primary', noCaps: true },
+    persistent: true,
+  }).onOk(() => restoreDraft(draft)).onCancel(() => clearDraft());
+};
 
 const itemNameOptions = ref([]);
 const itemNameFiltered = ref([]);
@@ -1450,6 +1510,7 @@ const handleSubmit = async () => {
   }
 
   if (success) {
+    clearDraft();
     formDialogOpen.value = false;
     await loadData();
     await fetchItemSuggestions();
@@ -1573,6 +1634,7 @@ const exportSinglePDF = async (row) => {
 
 onMounted(async () => {
   await Promise.all([loadData(), fetchRekening(), fetchItemSuggestions(), fetchSosialPrograms()]);
+  maybeRestoreDraft();
 });
 </script>
 
