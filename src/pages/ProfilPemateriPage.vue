@@ -20,7 +20,7 @@
       </div>
 
       <q-tab-panels v-else v-model="tab" animated class="bg-transparent">
-        <!-- ── KAJIAN RUTIN: per Hari ─────────────────────────────── -->
+        <!-- ── KAJIAN RUTIN: tabel statis ─────────────────────────── -->
         <q-tab-panel name="RUTIN" class="q-pa-none">
           <div v-if="!rutinGroups.length" class="text-center q-py-xl text-grey-6">
             <q-icon name="person_off" size="72px" color="grey-4" />
@@ -34,84 +34,108 @@
               bordered
               class="day-card"
             >
-              <q-expansion-item
-                :label="group.label"
-                :icon="group.icon"
-                :default-opened="group.defaultOpen"
-                header-class="day-header text-weight-bold"
-                expand-icon-class="text-primary"
+              <div class="group-header text-weight-bold">
+                {{ group.label }}
+              </div>
+              <q-table
+                v-if="!isMobile"
+                :rows="group.rows"
+                :columns="rutinColumns"
+                row-key="rowKey"
+                flat
+                hide-pagination
+                :rows-per-page-options="[0]"
+                :pagination="{ rowsPerPage: 0 }"
+                class="day-table"
               >
-                <q-separator />
-                <q-table
-                  :rows="group.rows"
-                  :columns="rutinColumns"
-                  row-key="id"
-                  flat
-                  hide-pagination
-                  :rows-per-page-options="[0]"
-                  :pagination="{ rowsPerPage: 0 }"
-                  class="day-table"
-                >
-                  <template #body-cell-no="props">
-                    <q-td class="text-center text-weight-medium text-grey-8">
-                      {{ props.rowIndex + 1 }}
-                    </q-td>
-                  </template>
-                  <template #body-cell-foto="props">
-                    <q-td class="text-center">
-                      <q-avatar
-                        size="48px"
-                        :class="props.value ? 'cursor-pointer' : ''"
-                        @click="props.value && open(props.value, props.row.nama)"
-                      >
-                        <img v-if="props.value" :src="props.value" />
-                        <q-icon v-else name="person" size="28px" color="grey-5" />
-                      </q-avatar>
-                    </q-td>
-                  </template>
-                  <template #body-cell-waktu="props">
-                    <q-td class="text-center">{{ props.value || '-' }}</q-td>
-                  </template>
-                  <template #body-cell-jam="props">
-                    <q-td class="text-center">{{ props.value || '-' }}</q-td>
-                  </template>
-                  <template #body-cell-kitab="props">
-                    <q-td>
-                      <div v-if="props.value" class="column q-gutter-xs">
-                        <div v-for="k in kitabList(props.value)" :key="k" class="row items-center q-gutter-xs no-wrap">
-                          <q-icon name="menu_book" size="14px" color="primary" />
-                          <span class="text-caption">{{ k }}</span>
-                        </div>
+                <template #body-cell-no="props">
+                  <q-td class="text-center text-weight-medium text-grey-8">
+                    {{ props.rowIndex + 1 }}
+                  </q-td>
+                </template>
+                <template #body-cell-waktu="props">
+                  <q-td class="text-center">{{ props.value || '-' }}</q-td>
+                </template>
+                <template #body-cell-hari="props">
+                  <q-td class="text-center">{{ props.value || '-' }}</q-td>
+                </template>
+                <template #body-cell-kitab="props">
+                  <q-td>
+                    <div v-if="props.value" class="column q-gutter-xs">
+                      <div v-for="k in kitabList(props.value)" :key="k" class="row items-center q-gutter-xs no-wrap">
+                        <q-icon name="menu_book" size="14px" color="primary" />
+                        <span class="text-caption">{{ k }}</span>
                       </div>
-                      <span v-else class="text-grey-5">-</span>
-                    </q-td>
-                  </template>
-                  <template #body-cell-keterangan="props">
-                    <q-td style="white-space: pre-line; max-width: 180px">
-                      {{ props.value || '-' }}
-                    </q-td>
-                  </template>
-                  <template #body-cell-youtube="props">
-                    <q-td class="text-center">
-                      <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" class="youtube-link">
-                        <q-icon name="fab fa-youtube" color="red" size="20px" />
-                        <q-tooltip>Buka YouTube</q-tooltip>
+                    </div>
+                    <span v-else class="text-grey-5">-</span>
+                  </q-td>
+                </template>
+                <template #body-cell-keterangan="props">
+                  <q-td style="white-space: pre-line; max-width: 180px">
+                    {{ props.value || '-' }}
+                  </q-td>
+                </template>
+                <template #body-cell-youtube="props">
+                  <q-td class="text-center">
+                    <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" class="youtube-link">
+                      <q-icon name="fab fa-youtube" color="red" size="20px" />
+                      <q-tooltip>Buka YouTube</q-tooltip>
+                    </a>
+                    <span v-else class="text-grey-5">-</span>
+                  </q-td>
+                </template>
+                <template #body-cell-kitabFile="props">
+                  <q-td class="text-center">
+                    <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                      <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
+                        <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                      </q-btn>
+                    </a>
+                    <span v-else class="text-grey-5">-</span>
+                  </q-td>
+                </template>
+              </q-table>
+              <div v-else class="mobile-list q-pa-sm">
+                <q-card
+                  v-for="(row, index) in group.rows"
+                  :key="row.rowKey"
+                  flat
+                  bordered
+                  class="mobile-item"
+                >
+                  <div class="mobile-item__header row items-start no-wrap q-col-gutter-sm">
+                    <div class="mobile-item__number">{{ index + 1 }}</div>
+                    <div class="col min-width-0">
+                      <div class="text-subtitle2 text-weight-bold">{{ row.nama }}</div>
+                      <div class="mobile-meta q-mt-xs">
+                        <div><strong>Hari:</strong> {{ row.hariDisplay || '-' }}</div>
+                        <div><strong>Waktu:</strong> {{ row.jam || '-' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mobile-item__body q-mt-sm">
+                    <div v-if="row.kitab" class="q-mb-sm">
+                      <div class="mobile-section-title">Kitab / Materi</div>
+                      <div v-for="k in kitabList(row.kitab)" :key="k" class="row items-start q-gutter-xs no-wrap text-caption q-mb-xs">
+                        <q-icon name="menu_book" size="14px" color="primary" class="q-mt-xs" />
+                        <span>{{ k }}</span>
+                      </div>
+                    </div>
+                    <div v-if="row.keterangan" class="q-mb-sm">
+                      <div class="mobile-section-title">Keterangan</div>
+                      <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
+                    </div>
+                    <div v-if="row.youtube || row.kitabFile" class="row q-gutter-sm q-mt-sm">
+                      <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
+                        <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
                       </a>
-                      <span v-else class="text-grey-5">-</span>
-                    </q-td>
-                  </template>
-                  <template #body-cell-kitabFile="props">
-                    <q-td class="text-center">
-                      <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
-                        <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
-                          <q-tooltip>Unduh PDF Kitab</q-tooltip>
-                        </q-btn>
+                      <a v-if="row.kitabFile" :href="row.kitabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                        <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Download Kitab" size="sm" />
                       </a>
-                      <span v-else class="text-grey-5">-</span>
-                    </q-td>
-                  </template>
-                </q-table>
-              </q-expansion-item>
+                    </div>
+                  </div>
+                </q-card>
+              </div>
             </q-card>
           </div>
         </q-tab-panel>
@@ -124,6 +148,7 @@
           </div>
           <q-card v-else flat bordered class="day-card">
             <q-table
+              v-if="!isMobile"
               :rows="tematikRows"
               :columns="tematikColumns"
               row-key="id"
@@ -136,18 +161,6 @@
               <template #body-cell-no="props">
                 <q-td class="text-center text-weight-medium text-grey-8">
                   {{ props.rowIndex + 1 }}
-                </q-td>
-              </template>
-              <template #body-cell-foto="props">
-                <q-td class="text-center">
-                  <q-avatar
-                    size="48px"
-                    :class="props.value ? 'cursor-pointer' : ''"
-                    @click="props.value && open(props.value, props.row.nama)"
-                  >
-                    <img v-if="props.value" :src="props.value" />
-                    <q-icon v-else name="person" size="28px" color="grey-5" />
-                  </q-avatar>
                 </q-td>
               </template>
               <template #body-cell-kitab="props">
@@ -186,94 +199,157 @@
                 </q-td>
               </template>
             </q-table>
+            <div v-else class="mobile-list q-pa-sm">
+              <q-card
+                v-for="(row, index) in tematikRows"
+                :key="row.id"
+                flat
+                bordered
+                class="mobile-item"
+              >
+                <div class="mobile-item__header row items-start no-wrap q-col-gutter-sm">
+                  <div class="mobile-item__number">{{ index + 1 }}</div>
+                  <div class="col min-width-0">
+                    <div class="text-subtitle2 text-weight-bold">{{ row.nama }}</div>
+                  </div>
+                </div>
+                <div class="mobile-item__body q-mt-sm">
+                  <div v-if="row.kitab" class="q-mb-sm">
+                    <div class="mobile-section-title">Kitab / Materi</div>
+                    <div v-for="k in kitabList(row.kitab)" :key="k" class="row items-start q-gutter-xs no-wrap text-caption q-mb-xs">
+                      <q-icon name="menu_book" size="14px" color="deep-orange" class="q-mt-xs" />
+                      <span>{{ k }}</span>
+                    </div>
+                  </div>
+                  <div v-if="row.keterangan" class="q-mb-sm">
+                    <div class="mobile-section-title">Keterangan</div>
+                    <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
+                  </div>
+                  <div v-if="row.youtube || row.kitabFile" class="row q-gutter-sm q-mt-sm">
+                    <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
+                      <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
+                    </a>
+                    <a v-if="row.kitabFile" :href="row.kitabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                      <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Download Kitab" size="sm" />
+                    </a>
+                  </div>
+                </div>
+              </q-card>
+            </div>
           </q-card>
         </q-tab-panel>
       </q-tab-panels>
     </div>
 
-    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
 import { computed, ref, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 import { useProfilPemateriStore } from 'src/stores/profil';
-import AppLightbox from 'components/AppLightbox.vue';
-import { useLightbox } from 'src/composables/useLightbox';
 
+const $q = useQuasar();
 const store = useProfilPemateriStore();
 onMounted(() => store.fetchPublic());
 
-const { open } = useLightbox();
-
 const tab = ref('RUTIN');
+const isMobile = computed(() => $q.screen.lt.md);
 
 const HARI_ORDER = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Ahad'];
 
-const waktuOrder = { 'Pekan 1': 1, 'Pekan 2': 2, 'Pekan 3': 3, 'Pekan 4': 4, 'Pekan 5': 5 };
-const jamOrder = { "Ba'da Shubuh - Selesai": 1, "08.30 - 11.00 WIB": 2, '09.00 - 12.00 WIB': 3, "Ba'da Maghrib - Selesai": 4 };
+const pekanOrder = { 'Pekan 1': 1, 'Pekan 2': 2, 'Pekan 3': 3, 'Pekan 4': 4, 'Pekan 5': 5 };
+const jamOrder = {
+  "Ba'da Shubuh - Selesai": 1,
+  '08.30 - 11.00 WIB': 2,
+  '09.00 - 11.00 WIB': 3,
+  '09.00 - 12.00 WIB': 4,
+  "Ba'da Maghrib - Selesai": 5,
+};
 
-function firstWaktuRank(waktu) {
-  if (!waktu) return 99;
-  return waktuOrder[waktu.split(',')[0].trim()] ?? 99;
+function splitCommaValues(value) {
+  return value ? String(value).split(',').map((item) => item.trim()).filter(Boolean) : [];
 }
 
-function sortRows(rows) {
-  return [...rows].sort((a, b) => {
-    const wA = firstWaktuRank(a.waktu);
-    const wB = firstWaktuRank(b.waktu);
-    if (wA !== wB) return wA - wB;
-    const jA = jamOrder[a.jam] ?? 99;
-    const jB = jamOrder[b.jam] ?? 99;
-    if (jA !== jB) return jA - jB;
-    return (a.urutan ?? 0) - (b.urutan ?? 0);
-  });
+function normalizePekan(value) {
+  if (!value) return null;
+  const cleaned = String(value).trim();
+  if (!cleaned) return null;
+
+  const pekanMatch = cleaned.match(/^Pekan\s*(\d+)$/i);
+  if (pekanMatch) return `Pekan ${pekanMatch[1]}`;
+
+  const numericMatch = cleaned.match(/^(\d+)$/);
+  if (numericMatch) return `Pekan ${numericMatch[1]}`;
+
+  return cleaned;
 }
 
-function splitHari(hari) {
-  return hari ? hari.split(',').map(h => h.trim()).filter(Boolean) : [];
+function splitPekanValues(value) {
+  const pekanList = splitCommaValues(value)
+    .map(normalizePekan)
+    .filter(Boolean);
+
+  return pekanList.length ? pekanList : [normalizePekan(value) || '-'];
 }
+
+function pekanRank(pekan) {
+  return pekanOrder[pekan] ?? 99;
+}
+
+function hariRank(hari) {
+  const firstHari = splitCommaValues(hari)[0];
+  if (!firstHari) return 99;
+  const index = HARI_ORDER.indexOf(firstHari);
+  return index === -1 ? 99 : index;
+}
+
+const rutinRows = computed(() =>
+  [...store.list]
+    .filter((pemateri) => pemateri.jenis === 'RUTIN')
+    .flatMap((pemateri) => {
+      const rows = splitPekanValues(pemateri.waktu);
+
+      return rows.map((pekan, index) => ({
+        ...pemateri,
+        rowKey: `${pemateri.id}-${index}-${pekan}`,
+        pekan,
+        hariDisplay: splitCommaValues(pemateri.hari).join(', ') || '-',
+      }));
+    })
+    .sort((a, b) => {
+      const pA = pekanRank(a.pekan);
+      const pB = pekanRank(b.pekan);
+      if (pA !== pB) return pA - pB;
+
+      const hA = hariRank(a.hari);
+      const hB = hariRank(b.hari);
+      if (hA !== hB) return hA - hB;
+
+      const jA = jamOrder[a.jam] ?? 99;
+      const jB = jamOrder[b.jam] ?? 99;
+      if (jA !== jB) return jA - jB;
+
+      return (a.urutan ?? 0) - (b.urutan ?? 0) || a.nama.localeCompare(b.nama);
+    })
+);
 
 const rutinGroups = computed(() => {
-  const buckets = new Map();
-  HARI_ORDER.forEach(h => buckets.set(h, []));
-  const tanpaHari = [];
+  const grouped = new Map();
 
-  for (const p of store.list) {
-    if (p.jenis !== 'RUTIN') continue;
-    const hariList = splitHari(p.hari);
-    if (hariList.length) {
-      hariList.forEach(h => {
-        if (buckets.has(h)) buckets.get(h).push(p);
-        else tanpaHari.push(p);
-      });
-    } else {
-      tanpaHari.push(p);
-    }
+  for (const row of rutinRows.value) {
+    const key = row.pekan || '-';
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(row);
   }
 
-  const result = HARI_ORDER
-    .filter(h => buckets.get(h).length)
-    .map(h => ({
-      key: h,
-      label: h,
-      icon: 'event',
-      defaultOpen: false,
-      rows: sortRows(buckets.get(h)),
+  return [...grouped.entries()]
+    .sort((a, b) => pekanRank(a[0]) - pekanRank(b[0]))
+    .map(([pekan, rows]) => ({
+      key: pekan,
+      label: pekan,
+      rows,
     }));
-
-  if (tanpaHari.length) {
-    result.push({
-      key: 'tanpa-hari',
-      label: 'Tanpa Hari',
-      icon: 'help_outline',
-      defaultOpen: false,
-      rows: sortRows(tanpaHari),
-    });
-  }
-
-  if (result.length) result[0].defaultOpen = true;
-  return result;
 });
 
 const tematikRows = computed(() =>
@@ -284,9 +360,9 @@ const tematikRows = computed(() =>
 
 const rutinColumns = [
   { name: 'no',         label: 'No',               field: 'no',         align: 'center', style: 'width: 56px' },
-  { name: 'nama',       label: 'Nama',             field: 'nama',       align: 'left',   sortable: true },
-  { name: 'waktu',      label: 'Waktu',            field: 'waktu',      align: 'center', sortable: true },
-  { name: 'jam',        label: 'Jam',              field: 'jam',        align: 'center', sortable: true },
+  { name: 'hari',       label: 'Hari',             field: 'hariDisplay', align: 'center' },
+  { name: 'waktu',      label: 'Waktu',            field: 'jam',        align: 'center', sortable: true },
+  { name: 'nama',       label: 'Nama Ustadz',      field: 'nama',       align: 'left',   sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
   { name: 'kitabFile',  label: 'PDF',              field: 'kitabFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
@@ -316,15 +392,53 @@ function kitabList(kitab) {
   border-radius: 12px;
   overflow: hidden;
 }
-.day-header {
+.group-header {
   font-size: 16px;
   color: #ffffff;
   background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
   letter-spacing: 0.3px;
-  padding: 8px 16px;
+  padding: 12px 16px;
 }
-.day-header :deep(.q-icon) {
-  color: #ffffff !important;
+.mobile-list {
+  display: grid;
+  gap: 12px;
+}
+.mobile-item {
+  border-radius: 12px;
+  padding: 14px;
+}
+.mobile-item__number {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E3F2FD;
+  color: #0D47A1;
+  font-weight: 700;
+  font-size: 13px;
+}
+.mobile-meta {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #546E7A;
+}
+.mobile-item__body {
+  padding-left: 0;
+}
+.mobile-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0D47A1;
+  margin-bottom: 6px;
+}
+.mobile-preline {
+  white-space: pre-line;
+}
+.mobile-action-link {
+  text-decoration: none;
 }
 .day-table :deep(thead th) {
   background: #E3F2FD;
@@ -338,5 +452,17 @@ function kitabList(kitab) {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
+}
+@media (max-width: 599px) {
+  .page-hero {
+    padding: 56px 0;
+  }
+  .group-header {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+  .mobile-item {
+    padding: 12px;
+  }
 }
 </style>
