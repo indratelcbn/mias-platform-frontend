@@ -100,6 +100,16 @@
                       <span v-else class="text-grey-5">-</span>
                     </q-td>
                   </template>
+                  <template #body-cell-kitabFile="props">
+                    <q-td class="text-center">
+                      <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                        <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
+                          <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                        </q-btn>
+                      </a>
+                      <span v-else class="text-grey-5">-</span>
+                    </q-td>
+                  </template>
                 </q-table>
               </q-expansion-item>
             </q-card>
@@ -161,6 +171,16 @@
                   <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" class="youtube-link">
                     <q-icon name="fab fa-youtube" color="red" size="20px" />
                     <q-tooltip>Buka YouTube</q-tooltip>
+                  </a>
+                  <span v-else class="text-grey-5">-</span>
+                </q-td>
+              </template>
+              <template #body-cell-kitabFile="props">
+                <q-td class="text-center">
+                  <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                    <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
+                      <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                    </q-btn>
                   </a>
                   <span v-else class="text-grey-5">-</span>
                 </q-td>
@@ -268,6 +288,7 @@ const rutinColumns = [
   { name: 'waktu',      label: 'Waktu',            field: 'waktu',      align: 'center', sortable: true },
   { name: 'jam',        label: 'Jam',              field: 'jam',        align: 'center', sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
+  { name: 'kitabFile',  label: 'PDF',              field: 'kitabFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
   { name: 'youtube',    label: 'Playlist YouTube', field: 'youtube',    align: 'center' },
 ];
@@ -276,6 +297,7 @@ const tematikColumns = [
   { name: 'no',         label: 'No',               field: 'no',         align: 'center', style: 'width: 56px' },
   { name: 'nama',       label: 'Nama',             field: 'nama',       align: 'left',   sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
+  { name: 'kitabFile',  label: 'PDF',              field: 'kitabFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
   { name: 'youtube',    label: 'Playlist YouTube', field: 'youtube',    align: 'center' },
 ];

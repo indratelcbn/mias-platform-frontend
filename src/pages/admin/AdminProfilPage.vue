@@ -370,6 +370,16 @@
                 {{ props.value || '-' }}
               </q-td>
             </template>
+            <template #body-cell-kitabFile="props">
+              <q-td class="text-center">
+                <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                  <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
+                    <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                  </q-btn>
+                </a>
+                <span v-else class="text-grey-5">-</span>
+              </q-td>
+            </template>
             <template #body-cell-keterangan="props">
               <q-td style="white-space: pre-line; max-width: 200px">
                 {{ props.value || '-' }}
@@ -466,6 +476,33 @@
                     @update:model-value="onPmFoto"
                   >
                     <template #prepend><q-icon name="person" /></template>
+                  </q-file>
+                </div>
+              </div>
+              <div>
+                <div class="text-caption text-grey-7 q-mb-xs">File Kitab PDF (opsional)</div>
+                <div class="column q-gutter-xs">
+                  <a
+                    v-if="!pmKitabFile && pmEdit && pmForm.kitabFileExisting"
+                    :href="pmForm.kitabFileExisting"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary text-caption row items-center q-gutter-xs"
+                  >
+                    <q-icon name="picture_as_pdf" color="red" size="16px" />
+                    <span>File PDF saat ini (klik untuk lihat)</span>
+                  </a>
+                  <q-file
+                    v-model="pmKitabFile"
+                    outlined dense
+                    label="Upload PDF Kitab..."
+                    accept=".pdf,application/pdf"
+                    style="min-width: 220px"
+                  >
+                    <template #prepend><q-icon name="picture_as_pdf" color="red-7" /></template>
+                    <template #append>
+                      <q-icon v-if="pmKitabFile" name="cancel" class="cursor-pointer" @click.stop="pmKitabFile = null" />
+                    </template>
                   </q-file>
                 </div>
               </div>
@@ -733,9 +770,10 @@ const pmDialog  = ref(false);
 const pmEdit    = ref(null);
 const pmSaving  = ref(false);
 const pmFotoFile = ref(null);
+const pmKitabFile = ref(null);
 const pmPreview  = ref('');
 const pmForm = reactive({
-  nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: ''
+  nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: '', kitabFileExisting: ''
 });
 
 const jenisPemateriOptions = [
@@ -776,6 +814,7 @@ const pemateriCols = [
   { name: 'waktu',      label: 'Waktu',      field: 'waktu',      align: 'center' },
   { name: 'jam',        label: 'Jam',        field: 'jam',        align: 'center' },
   { name: 'kitab',      label: 'Kitab',      field: 'kitab',      align: 'left' },
+  { name: 'kitabFile',  label: 'PDF Kitab',  field: 'kitabFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
   { name: 'isActive',   label: 'Status',     field: 'isActive',   align: 'center' },
   { name: 'actions',    label: 'Aksi',       field: 'id',         align: 'center' },
@@ -784,6 +823,7 @@ const pemateriCols = [
 function openPemateriDialog(row = null) {
   pmEdit.value  = row;
   pmFotoFile.value = null;
+  pmKitabFile.value = null;
   pmPreview.value  = '';
   if (row) {
     Object.assign(pmForm, {
@@ -793,11 +833,12 @@ function openPemateriDialog(row = null) {
       jam: row.jam || null,
       kitab: row.kitab || '', keterangan: row.keterangan || '', youtube: row.youtube || '',
       urutan: row.urutan || 0, isActive: row.isActive, fotoExisting: row.foto || '',
+      kitabFileExisting: row.kitabFile || '',
     });
   } else {
     Object.assign(pmForm, {
       nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '',
-      urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
+      urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '', kitabFileExisting: '',
     });
   }
   pmDialog.value = true;
@@ -826,7 +867,8 @@ async function savePemateri() {
   fd.append('youtube', pmForm.youtube);
   fd.append('urutan', pmForm.urutan);
   fd.append('isActive', pmForm.isActive);
-  if (pmFotoFile.value) fd.append('foto', pmFotoFile.value);
+  if (pmFotoFile.value)  fd.append('foto', pmFotoFile.value);
+  if (pmKitabFile.value) fd.append('kitabFile', pmKitabFile.value);
   try {
     if (pmEdit.value) {
       await pemateriStore.update(pmEdit.value.id, fd);
