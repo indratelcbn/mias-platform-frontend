@@ -127,6 +127,84 @@
               class="q-mt-sm"
             />
 
+            <!-- ── Kitab ───────────────────────────────────────────── -->
+            <!-- RUTIN: tampilkan kitab dari profil pemateri (read-only) -->
+            <div v-if="isRutinPemateri" class="q-mt-sm rounded-borders bg-blue-1 q-pa-sm">
+              <div class="row items-center justify-between q-mb-xs">
+                <div class="row items-center q-gutter-xs">
+                  <q-icon name="menu_book" color="primary" size="16px" />
+                  <span class="text-caption text-weight-medium text-primary">Kitab (dari profil pemateri)</span>
+                </div>
+                <a
+                  v-if="selectedPemateri?.kitabFile"
+                  :href="selectedPemateri.kitabFile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download
+                  @click.stop
+                >
+                  <q-btn flat dense no-caps icon="picture_as_pdf" color="red-7" size="sm" label="Unduh PDF" />
+                </a>
+              </div>
+              <template v-if="selectedPemateri?.kitab">
+                <div v-for="k in kitabList(selectedPemateri.kitab)" :key="k" class="row items-center q-gutter-xs">
+                  <q-icon name="auto_stories" size="13px" color="blue-7" />
+                  <span class="text-caption text-grey-8">{{ k }}</span>
+                </div>
+              </template>
+              <span v-else class="text-caption text-grey-6">Belum ada kitab pada profil pemateri ini.</span>
+            </div>
+
+            <!-- TEMATIK / manual: tombol opsional untuk tambah kitab -->
+            <template v-else-if="form.ustadz">
+              <div v-if="!showKitabInput" class="q-mt-sm">
+                <q-btn
+                  flat dense no-caps size="sm"
+                  icon="add_circle_outline"
+                  label="Tambah Kitab / Materi"
+                  color="primary"
+                  @click="showKitabInput = true"
+                />
+              </div>
+              <template v-else>
+                <div class="row items-center justify-between q-mt-sm q-mb-xs">
+                  <span class="text-caption text-weight-medium text-grey-8">Kitab / Materi</span>
+                  <q-btn flat dense no-caps size="xs" icon="close" color="grey-6" label="Hapus" @click="clearKitab" />
+                </div>
+                <q-input
+                  v-model="form.kitab"
+                  outlined dense
+                  label="Nama Kitab / Materi"
+                  type="textarea"
+                  rows="3"
+                  hint="Satu kitab per baris (Enter)"
+                />
+                <div class="q-mt-xs">
+                  <a
+                    v-if="!form.kitabFile && form.kitabFileExisting"
+                    :href="form.kitabFileExisting"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-primary text-caption row items-center q-gutter-xs q-mb-xs"
+                  >
+                    <q-icon name="picture_as_pdf" color="red" size="16px" />
+                    <span>File PDF saat ini (klik untuk lihat)</span>
+                  </a>
+                  <q-file
+                    v-model="form.kitabFile"
+                    outlined dense
+                    label="Upload PDF Kitab (opsional)"
+                    accept=".pdf,application/pdf"
+                  >
+                    <template #prepend><q-icon name="picture_as_pdf" color="red-7" /></template>
+                    <template #append>
+                      <q-icon v-if="form.kitabFile" name="cancel" class="cursor-pointer" @click.stop="form.kitabFile = null" />
+                    </template>
+                  </q-file>
+                </div>
+              </template>
+            </template>
+
             <!-- Thumbnail -->
             <q-file
               v-model="form.thumbnailFile"
@@ -154,7 +232,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useKajianStore } from 'src/stores/kajian';
 import { api } from 'src/boot/axios';
 import { useQuasar } from 'quasar';
@@ -171,8 +249,16 @@ const ustadzRaw = ref([]);           // raw pemateri from API
 const filteredUstadzOptions = ref([]); // filtered for q-select
 const loadingPemateri = ref(false);
 const selectedUstadz = ref(null);
+const selectedPemateri = ref(null); // full pemateri object for selected ustadz
+const showKitabInput = ref(false);
 const selectedWaktu = ref(null);
 const waktuOptions = [ '08.30-11.00 WIB','09.00-11.00 WIB','09.00-12.00 WIB', "Ba'da Maghrib - Selesai", "Ba'da Shubuh - Selesai", 'Lainnya'];
+
+const isRutinPemateri = computed(() => selectedPemateri.value?.jenis === 'RUTIN');
+
+function kitabList(kitab) {
+  return kitab ? kitab.split('\n').map(k => k.trim()).filter(Boolean) : [];
+}
 
 const buildUstadzList = () => ustadzRaw.value.map(p => p.nama).concat('Lainnya');
 
@@ -195,12 +281,31 @@ const filterUstadz = (val, update) => {
 };
 
 const onUstadzChange = (val) => {
+  showKitabInput.value = false;
+  form.kitab = '';
+  form.kitabFile = null;
+  form.kitabFileExisting = '';
   if (val !== 'Lainnya') {
     form.ustadz = val;
+    const pemateri = ustadzRaw.value.find(p => p.nama === val);
+    selectedPemateri.value = pemateri || null;
+    if (pemateri?.jenis === 'RUTIN') {
+      // RUTIN: auto-load kitab from pemateri profile; store into form for saving
+      form.kitab = pemateri.kitab || '';
+      form.kitabFileExisting = pemateri.kitabFile || '';
+    }
   } else {
     form.ustadz = '';
+    selectedPemateri.value = null;
   }
 };
+
+function clearKitab() {
+  form.kitab = '';
+  form.kitabFile = null;
+  form.kitabFileExisting = '';
+  showKitabInput.value = false;
+}
 
 const onWaktuChange = (val) => {
   if (val !== 'Lainnya') {
@@ -212,6 +317,7 @@ const onWaktuChange = (val) => {
 
 const emptyForm = () => ({
   judul: '', ustadz: '', tanggal: '', waktu: '', deskripsi: '',
+  kitab: '', kitabFile: null, kitabFileExisting: '',
   thumbnailFile: null, isPublished: true,
 });
 const form = reactive(emptyForm());
@@ -231,18 +337,28 @@ const openDialog = (row = null) => {
   if (row) {
     isEdit.value = true;
     editId.value = row.id;
+    const pemateri = ustadzRaw.value.find(p => p.nama === row.ustadz) || null;
+    selectedPemateri.value = pemateri;
+    // For RUTIN: show pemateri's current kitab; for TEMATIK/Lainnya: show stored kajian kitab
+    const isRutin = pemateri?.jenis === 'RUTIN';
+    showKitabInput.value = !isRutin && !!(row.kitab || row.kitabFile);
     Object.assign(form, {
       judul: row.judul,
       ustadz: row.ustadz,
       tanggal: row.tanggal?.slice(0, 10),
       waktu: row.waktu,
       deskripsi: row.deskripsi || '',
+      kitab: isRutin ? (pemateri.kitab || '') : (row.kitab || ''),
+      kitabFile: null,
+      kitabFileExisting: isRutin ? (pemateri.kitabFile || '') : (row.kitabFile || ''),
       thumbnailFile: null,
       isPublished: row.isPublished,
     });
   } else {
     isEdit.value = false;
     editId.value = null;
+    selectedPemateri.value = null;
+    showKitabInput.value = false;
     Object.assign(form, emptyForm());
     selectedWaktu.value = null;
     selectedUstadz.value = null;
@@ -265,8 +381,15 @@ const openDialog = (row = null) => {
 
 const saveKajian = async () => {
   saving.value = true;
-  const payload = { ...form, thumbnail: form.thumbnailFile };
+  const payload = {
+    ...form,
+    thumbnail: form.thumbnailFile,
+    kitabFile: form.kitabFile || null,
+    // Pass existing URL when no new file (covers RUTIN pemateri & edit-without-new-upload)
+    kitabFileUrl: !form.kitabFile && form.kitabFileExisting ? form.kitabFileExisting : undefined,
+  };
   delete payload.thumbnailFile;
+  delete payload.kitabFileExisting;
 
   const result = isEdit.value
     ? await kajianStore.update(editId.value, payload)

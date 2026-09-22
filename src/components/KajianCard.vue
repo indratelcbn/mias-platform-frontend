@@ -29,6 +29,27 @@
           <q-icon name="person" size="16px" color="primary" />
           <span class="text-caption text-grey-7">{{ kajian.ustadz }}</span>
         </div>
+        <div v-if="kajian.kitab || kajian.kitabFile" class="row items-start q-gutter-xs q-mb-xs">
+          <q-icon name="menu_book" size="16px" color="deep-orange" class="q-mt-xs" style="flex-shrink:0" />
+          <div class="column" style="flex: 1; min-width: 0">
+            <span
+              v-for="k in kitabList(kajian.kitab)" :key="k"
+              class="text-caption text-grey-7"
+              style="word-break: break-word; white-space: normal"
+            >{{ k }}</span>
+          </div>
+        </div>
+        <div v-if="kajian.kitabFile" class="row items-center q-gutter-xs q-mb-xs">
+          <q-icon name="picture_as_pdf" size="16px" color="red-7" />
+          <a
+            :href="kajian.kitabFile"
+            target="_blank"
+            rel="noopener noreferrer"
+            :download="kitabDownloadName(kajian)"
+            @click.stop
+            class="text-caption text-red-7"
+          >Unduh Kitab</a>
+        </div>
         <div class="row items-center q-gutter-xs q-mb-xs">
           <q-icon name="event" size="16px" color="primary" />
           <span class="text-caption text-grey-7">{{ formatDate(kajian.tanggal) }}</span>
@@ -48,6 +69,19 @@
 
 <script setup>
 defineProps({ kajian: { type: Object, required: true } });
+
+function kitabList(kitab) {
+  return kitab ? kitab.split('\n').map(k => k.trim()).filter(Boolean) : [];
+}
+
+function kitabDownloadName(kajian) {
+  const baseName = kitabList(kajian.kitab)[0] || kajian.judul || 'kitab';
+  const sanitized = baseName
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return `${sanitized || 'kitab'}.pdf`;
+}
 
 const formatDate = (dateString) =>
   new Date(dateString).toLocaleDateString('id-ID', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });

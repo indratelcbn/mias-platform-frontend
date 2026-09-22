@@ -51,6 +51,17 @@
             <q-btn v-if="hasNativeShare" round unelevated color="primary" icon="share" @click="nativeShare">
               <q-tooltip>Bagikan</q-tooltip>
             </q-btn>
+            <q-btn
+              v-if="kajianStore.current.kitabFile"
+              round unelevated color="red-7" icon="picture_as_pdf"
+              type="a"
+              :href="kajianStore.current.kitabFile"
+              target="_blank"
+              rel="noopener noreferrer"
+              :download="kitabDownloadName(kajianStore.current)"
+            >
+              <q-tooltip>Unduh Kitab</q-tooltip>
+            </q-btn>
           </div>
         </div>
       </div>
@@ -90,6 +101,19 @@ const formatDate = (dateString) => {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 };
+
+function kitabList(kitab) {
+  return kitab ? kitab.split('\n').map(k => k.trim()).filter(Boolean) : [];
+}
+
+function kitabDownloadName(kajian) {
+  const baseName = kitabList(kajian?.kitab)[0] || kajian?.judul || 'kitab';
+  const sanitized = baseName
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return `${sanitized || 'kitab'}.pdf`;
+}
 
 const shareUrl = () => `${window.location.origin}/kajian/${kajianStore.current.id}`;
 
