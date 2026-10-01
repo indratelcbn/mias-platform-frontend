@@ -142,6 +142,17 @@
               :loading="loading"
             />
           </div>
+          <div v-if="isAdmin" class="col-auto">
+            <q-btn
+              unelevated
+              color="negative"
+              icon="delete_sweep"
+              label="Hapus"
+              no-caps
+              @click="confirmBulkDelete"
+              :loading="bulkDeleting"
+            />
+          </div>
           <div class="col-auto">
             <q-btn
               flat
@@ -377,11 +388,15 @@ import { useDonasiStore } from 'src/stores/donasi';
 import { useQuasar } from 'quasar';
 import { formatCurrency, terbilang, formatDateShortUTC } from 'src/utils/format';
 import { useViewerGuard } from 'src/composables/useViewerGuard';
+import { useAuthStore } from 'src/stores/auth';
 
 const $q = useQuasar();
 const financeStore = useFinanceStore();
 const donasiStore = useDonasiStore();
+const authStore = useAuthStore();
 const isViewerBlocked = useViewerGuard();
+const isAdmin = computed(() => ['ADMIN', 'SUPERADMIN'].includes(authStore.user?.role));
+const bulkDeleting = ref(false);
 
 const dialogOpen = ref(false);
 const isEdit = ref(false);
@@ -647,6 +662,45 @@ const confirmDelete = (transaction) => {
   }).onOk(async () => {
     await financeStore.deleteTransaction(transaction.id);
     await loadTransactions();
+  });
+};
+
+const confirmBulkDelete = () => {
+  if (isViewerBlocked()) return;
+
+  const f = filters.value;
+  const hasFilter = f.accountId || f.type || f.divisi || f.programId || f.startDate || f.endDate || f.search;
+  if (!hasFilter) {
+    $q.notify({ type: 'warning', message: 'Terapkan minimal satu filter sebelum menghapus.' });
+    return;
+  }
+
+  const accountName = f.accountId
+    ? (accountOptions.value.find((a) => a.value === f.accountId)?.label || '-')
+    : 'Semua Akun';
+  const periode = f.startDate || f.endDate
+    ? `${f.startDate || '...'} s/d ${f.endDate || '...'}`
+    : 'semua tanggal';
+
+  $q.dialog({
+    title: 'Konfirmasi Hapus Massal',
+    message: `Hapus SEMUA transaksi hasil filter saat ini?<br><br><b>Akun:</b> ${accountName}<br><b>Periode:</b> ${periode}<br><br>Tindakan ini tidak dapat dibatalkan.`,
+    html: true,
+    cancel: { flat: true, label: 'Batal', color: 'grey-7', noCaps: true },
+    ok: { unelevated: true, label: 'Hapus Semua', color: 'negative', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    bulkDeleting.value = true;
+    try {
+      const payload = { ...filters.value };
+      const success = await financeStore.deleteTransactionsByFilter(payload);
+      if (success) {
+        pagination.value.page = 1;
+        await loadTransactions();
+      }
+    } finally {
+      bulkDeleting.value = false;
+    }
   });
 };
 

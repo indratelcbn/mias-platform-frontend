@@ -236,6 +236,21 @@ export const useFinanceStore = defineStore('finance', {
       }
     },
 
+    async deleteTransactionsByFilter(filters = {}) {
+      this.submitting = true;
+      try {
+        const { data } = await api.post('/finance/transactions/bulk-delete', filters);
+        Notify.create({ type: 'positive', message: data.message });
+        await this.fetchTransactions();
+        return true;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal menghapus transaksi.' });
+        return false;
+      } finally {
+        this.submitting = false;
+      }
+    },
+
     // ═══════════════════════════════════════════════════════════════════════════
     // ─── DASHBOARD & REPORTS ───────────────────────────────────────────────────
     // ═══════════════════════════════════════════════════════════════════════════
