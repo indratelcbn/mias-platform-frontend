@@ -84,11 +84,21 @@
                     <span v-else class="text-grey-5">-</span>
                   </q-td>
                 </template>
-                <template #body-cell-kitabFile="props">
+                <template #body-cell-kitabArabFile="props">
                   <q-td class="text-center">
                     <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
                       <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
-                        <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                        <q-tooltip>Unduh Kitab Arab</q-tooltip>
+                      </q-btn>
+                    </a>
+                    <span v-else class="text-grey-5">-</span>
+                  </q-td>
+                </template>
+                <template #body-cell-kitabTerjemahFile="props">
+                  <q-td class="text-center">
+                    <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                      <q-btn flat dense round color="deep-orange" icon="picture_as_pdf" size="sm">
+                        <q-tooltip>Unduh Kitab Terjemah</q-tooltip>
                       </q-btn>
                     </a>
                     <span v-else class="text-grey-5">-</span>
@@ -125,12 +135,15 @@
                       <div class="mobile-section-title">Keterangan</div>
                       <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
                     </div>
-                    <div v-if="row.youtube || row.kitabFile" class="row q-gutter-sm q-mt-sm">
+                    <div v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile" class="row q-gutter-sm q-mt-sm">
                       <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
                         <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
                       </a>
-                      <a v-if="row.kitabFile" :href="row.kitabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                        <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Download Kitab" size="sm" />
+                      <a v-if="row.kitabArabFile" :href="row.kitabArabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                        <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Kitab Arab" size="sm" />
+                      </a>
+                      <a v-if="row.kitabTerjemahFile" :href="row.kitabTerjemahFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                        <q-btn outline no-caps color="deep-orange" icon="picture_as_pdf" label="Kitab Terjemah" size="sm" />
                       </a>
                     </div>
                   </div>
@@ -188,11 +201,21 @@
                   <span v-else class="text-grey-5">-</span>
                 </q-td>
               </template>
-              <template #body-cell-kitabFile="props">
+              <template #body-cell-kitabArabFile="props">
                 <q-td class="text-center">
                   <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
                     <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
-                      <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                      <q-tooltip>Unduh Kitab Arab</q-tooltip>
+                    </q-btn>
+                  </a>
+                  <span v-else class="text-grey-5">-</span>
+                </q-td>
+              </template>
+              <template #body-cell-kitabTerjemahFile="props">
+                <q-td class="text-center">
+                  <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                    <q-btn flat dense round color="deep-orange" icon="picture_as_pdf" size="sm">
+                      <q-tooltip>Unduh Kitab Terjemah</q-tooltip>
                     </q-btn>
                   </a>
                   <span v-else class="text-grey-5">-</span>
@@ -225,12 +248,15 @@
                     <div class="mobile-section-title">Keterangan</div>
                     <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
                   </div>
-                  <div v-if="row.youtube || row.kitabFile" class="row q-gutter-sm q-mt-sm">
+                  <div v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile" class="row q-gutter-sm q-mt-sm">
                     <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
                       <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
                     </a>
-                    <a v-if="row.kitabFile" :href="row.kitabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                      <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Download Kitab" size="sm" />
+                    <a v-if="row.kitabArabFile" :href="row.kitabArabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                      <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Kitab Arab" size="sm" />
+                    </a>
+                    <a v-if="row.kitabTerjemahFile" :href="row.kitabTerjemahFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
+                      <q-btn outline no-caps color="deep-orange" icon="picture_as_pdf" label="Kitab Terjemah" size="sm" />
                     </a>
                   </div>
                 </div>
@@ -364,7 +390,8 @@ const rutinColumns = [
   { name: 'waktu',      label: 'Waktu',            field: 'jam',        align: 'center', sortable: true },
   { name: 'nama',       label: 'Nama Ustadz',      field: 'nama',       align: 'left',   sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
-  { name: 'kitabFile',  label: 'PDF',              field: 'kitabFile',  align: 'center' },
+  { name: 'kitabArabFile',      label: 'Kitab Arab',      field: 'kitabArabFile',      align: 'center' },
+  { name: 'kitabTerjemahFile',  label: 'Kitab Terjemah',  field: 'kitabTerjemahFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
   { name: 'youtube',    label: 'Playlist YouTube', field: 'youtube',    align: 'center' },
 ];
@@ -373,7 +400,8 @@ const tematikColumns = [
   { name: 'no',         label: 'No',               field: 'no',         align: 'center', style: 'width: 56px' },
   { name: 'nama',       label: 'Nama',             field: 'nama',       align: 'left',   sortable: true },
   { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
-  { name: 'kitabFile',  label: 'PDF',              field: 'kitabFile',  align: 'center' },
+  { name: 'kitabArabFile',      label: 'Kitab Arab',      field: 'kitabArabFile',      align: 'center' },
+  { name: 'kitabTerjemahFile',  label: 'Kitab Terjemah',  field: 'kitabTerjemahFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
   { name: 'youtube',    label: 'Playlist YouTube', field: 'youtube',    align: 'center' },
 ];

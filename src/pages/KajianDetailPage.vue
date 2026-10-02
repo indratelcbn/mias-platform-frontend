@@ -32,25 +32,58 @@
             </p>
           </q-card-section>
 
-          <!-- Materi Kajian — only shown when materiFile is available -->
-          <template v-if="kajianStore.current.materiFile">
+          <!-- Unduhan: Materi, Kitab Arab, Kitab Terjemahan -->
+          <template v-if="kajianStore.current.materiFile || kajianStore.current.kitabFile || kajianStore.current.kitabTerjemahFile">
             <q-separator />
             <q-card-section class="q-px-xl q-py-lg">
-              <div class="row items-center justify-between no-wrap q-gutter-sm">
-                <div>
-                  <div class="text-subtitle1 text-weight-bold text-grey-9">Materi</div>
-                  <div class="text-caption text-grey-6">Unduh materi kajian hari ini dalam format PDF</div>
+              <div class="text-subtitle1 text-weight-bold text-grey-9 q-mb-md">Unduhan</div>
+              <div class="column q-gutter-sm">
+
+                <!-- Materi Kajian -->
+                <div v-if="kajianStore.current.materiFile" class="row items-center justify-between no-wrap download-row">
+                  <div>
+                    <div class="text-body2 text-weight-medium">Materi Kajian Hari Ini</div>
+                    <div class="text-caption text-grey-6">Format PDF</div>
+                  </div>
+                  <q-btn
+                    unelevated color="deep-orange" icon="picture_as_pdf" no-caps label="Unduh"
+                    type="a"
+                    :href="kajianStore.current.materiFile"
+                    target="_blank" rel="noopener noreferrer"
+                    :download="`Materi-${kajianStore.current.judul}.pdf`"
+                  />
                 </div>
-                <q-btn
-                  unelevated color="deep-orange" icon="picture_as_pdf" no-caps
-                  label="Unduh Materi (PDF)"
-                  type="a"
-                  :href="kajianStore.current.materiFile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :download="`Materi-${kajianStore.current.judul}.pdf`"
-                  style="white-space: nowrap; flex-shrink: 0"
-                />
+
+                <!-- Kitab Arab -->
+                <div v-if="kajianStore.current.kitabFile" class="row items-center justify-between no-wrap download-row">
+                  <div>
+                    <div class="text-body2 text-weight-medium">Kitab Arab</div>
+                    <div class="text-caption text-grey-6">Format PDF</div>
+                  </div>
+                  <q-btn
+                    unelevated color="red-7" icon="picture_as_pdf" no-caps label="Unduh"
+                    type="a"
+                    :href="kajianStore.current.kitabFile"
+                    target="_blank" rel="noopener noreferrer"
+                    :download="kitabDownloadName(kajianStore.current)"
+                  />
+                </div>
+
+                <!-- Kitab Terjemahan -->
+                <div v-if="kajianStore.current.kitabTerjemahFile" class="row items-center justify-between no-wrap download-row">
+                  <div>
+                    <div class="text-body2 text-weight-medium">Kitab Terjemahan</div>
+                    <div class="text-caption text-grey-6">Format PDF</div>
+                  </div>
+                  <q-btn
+                    unelevated color="orange-8" icon="picture_as_pdf" no-caps label="Unduh"
+                    type="a"
+                    :href="kajianStore.current.kitabTerjemahFile"
+                    target="_blank" rel="noopener noreferrer"
+                    download
+                  />
+                </div>
+
               </div>
             </q-card-section>
           </template>
@@ -73,17 +106,6 @@
             </q-btn>
             <q-btn v-if="hasNativeShare" round unelevated color="primary" icon="share" @click="nativeShare">
               <q-tooltip>Bagikan</q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="kajianStore.current.kitabFile"
-              round unelevated color="red-7" icon="picture_as_pdf"
-              type="a"
-              :href="kajianStore.current.kitabFile"
-              target="_blank"
-              rel="noopener noreferrer"
-              :download="kitabDownloadName(kajianStore.current)"
-            >
-              <q-tooltip>Unduh Kitab</q-tooltip>
             </q-btn>
           </div>
         </div>
@@ -138,7 +160,7 @@ function kitabDownloadName(kajian) {
   return `${sanitized || 'kitab'}.pdf`;
 }
 
-const shareUrl = () => `${window.location.origin}/kajian/${kajianStore.current.id}`;
+const shareUrl = () => `${window.location.origin}/kajian/${kajianStore.current.slug || kajianStore.current.id}`;
 
 const shareText = () => {
   const k = kajianStore.current;
@@ -175,4 +197,13 @@ onMounted(() => {
 
 <style scoped>
 .page-hero { min-height: 300px; display: flex; align-items: flex-end; padding-bottom: 48px; }
+.download-row {
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  gap: 12px;
+}
+.download-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
 </style>

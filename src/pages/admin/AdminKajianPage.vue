@@ -164,16 +164,28 @@
                   <q-icon name="menu_book" color="primary" size="16px" />
                   <span class="text-caption text-weight-medium text-primary">Kitab (dari profil pemateri)</span>
                 </div>
-                <a
-                  v-if="selectedPemateri?.kitabFile"
-                  :href="selectedPemateri.kitabFile"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  download
-                  @click.stop
-                >
-                  <q-btn flat dense no-caps icon="picture_as_pdf" color="red-7" size="sm" label="Unduh PDF" />
-                </a>
+                <div class="row items-center q-gutter-xs">
+                  <a
+                    v-if="selectedPemateri?.kitabArabFile || selectedPemateri?.kitabFile"
+                    :href="selectedPemateri?.kitabArabFile || selectedPemateri?.kitabFile"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    @click.stop
+                  >
+                    <q-btn flat dense no-caps icon="picture_as_pdf" color="red-7" size="sm" label="Kitab Arab" />
+                  </a>
+                  <a
+                    v-if="selectedPemateri?.kitabTerjemahFile"
+                    :href="selectedPemateri.kitabTerjemahFile"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download
+                    @click.stop
+                  >
+                    <q-btn flat dense no-caps icon="picture_as_pdf" color="deep-orange" size="sm" label="Kitab Terjemah" />
+                  </a>
+                </div>
               </div>
               <template v-if="selectedPemateri?.kitab">
                 <div v-for="k in kitabList(selectedPemateri.kitab)" :key="k" class="row items-center q-gutter-xs">
@@ -321,7 +333,7 @@ const onUstadzChange = (val) => {
     if (pemateri?.jenis === 'RUTIN') {
       // RUTIN: auto-load kitab from pemateri profile; store into form for saving
       form.kitab = pemateri.kitab || '';
-      form.kitabFileExisting = pemateri.kitabFile || '';
+      form.kitabFileExisting = pemateri.kitabArabFile || pemateri.kitabFile || '';
     }
   } else {
     form.ustadz = '';
@@ -380,7 +392,7 @@ const openDialog = (row = null) => {
       deskripsi: row.deskripsi || '',
       kitab: isRutin ? (pemateri.kitab || '') : (row.kitab || ''),
       kitabFile: null,
-      kitabFileExisting: isRutin ? (pemateri.kitabFile || '') : (row.kitabFile || ''),
+      kitabFileExisting: isRutin ? (pemateri.kitabArabFile || pemateri.kitabFile || '') : (row.kitabFile || ''),
       materiHtmlFile: null,
       materiFileExisting: row.materiFile || '',
       thumbnailFile: null,

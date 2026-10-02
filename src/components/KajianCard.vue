@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/kajian/${kajian.id}`" class="no-underline">
+  <router-link :to="`/kajian/${kajian.slug || kajian.id}`" class="no-underline">
     <q-card class="kajian-card rounded-xl" flat bordered>
       <!-- Thumbnail -->
       <div class="kajian-thumb relative-position">
@@ -39,17 +39,6 @@
             >{{ k }}</span>
           </div>
         </div>
-        <div v-if="kajian.kitabFile" class="row items-center q-gutter-xs q-mb-xs">
-          <q-icon name="picture_as_pdf" size="16px" color="red-7" />
-          <a
-            :href="kajian.kitabFile"
-            target="_blank"
-            rel="noopener noreferrer"
-            :download="kitabDownloadName(kajian)"
-            @click.stop
-            class="text-caption text-red-7"
-          >Unduh Kitab</a>
-        </div>
         <div class="row items-center q-gutter-xs q-mb-xs">
           <q-icon name="event" size="16px" color="primary" />
           <span class="text-caption text-grey-7">{{ formatDate(kajian.tanggal) }}</span>
@@ -72,15 +61,6 @@ defineProps({ kajian: { type: Object, required: true } });
 
 function kitabList(kitab) {
   return kitab ? kitab.split('\n').map(k => k.trim()).filter(Boolean) : [];
-}
-
-function kitabDownloadName(kajian) {
-  const baseName = kitabList(kajian.kitab)[0] || kajian.judul || 'kitab';
-  const sanitized = baseName
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return `${sanitized || 'kitab'}.pdf`;
 }
 
 const formatDate = (dateString) =>

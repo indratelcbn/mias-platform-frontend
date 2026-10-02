@@ -128,5 +128,11 @@ export const useProfilPemateriStore = defineStore('profilPemateri', {
       await api.delete(`/profil/pemateri/${id}`);
       this.list = this.list.filter(x => x.id !== id);
     },
+    async removeKitab(id, jenis) {
+      const r = await api.delete(`/profil/pemateri/${id}/kitab/${jenis}`);
+      const i = this.list.findIndex(x => x.id === id);
+      if (i !== -1) this.list[i] = r.data.data;
+      return r.data.data;
+    },
   },
 });

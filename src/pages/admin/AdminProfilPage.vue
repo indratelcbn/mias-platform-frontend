@@ -370,11 +370,21 @@
                 {{ props.value || '-' }}
               </q-td>
             </template>
-            <template #body-cell-kitabFile="props">
+            <template #body-cell-kitabArabFile="props">
               <q-td class="text-center">
                 <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
                   <q-btn flat dense round color="red-7" icon="picture_as_pdf" size="sm">
-                    <q-tooltip>Unduh PDF Kitab</q-tooltip>
+                    <q-tooltip>Unduh Kitab Arab</q-tooltip>
+                  </q-btn>
+                </a>
+                <span v-else class="text-grey-5">-</span>
+              </q-td>
+            </template>
+            <template #body-cell-kitabTerjemahFile="props">
+              <q-td class="text-center">
+                <a v-if="props.value" :href="props.value" target="_blank" rel="noopener noreferrer" download>
+                  <q-btn flat dense round color="deep-orange" icon="picture_as_pdf" size="sm">
+                    <q-tooltip>Unduh Kitab Terjemah</q-tooltip>
                   </q-btn>
                 </a>
                 <span v-else class="text-grey-5">-</span>
@@ -480,28 +490,77 @@
                 </div>
               </div>
               <div>
-                <div class="text-caption text-grey-7 q-mb-xs">File Kitab PDF (opsional)</div>
+                <div class="text-caption text-grey-7 q-mb-xs">File Kitab Arab PDF (opsional)</div>
                 <div class="column q-gutter-xs">
-                  <a
-                    v-if="!pmKitabFile && pmEdit && pmForm.kitabFileExisting"
-                    :href="pmForm.kitabFileExisting"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary text-caption row items-center q-gutter-xs"
+                  <div
+                    v-if="!pmKitabArabFile && pmEdit && pmForm.kitabArabFileExisting"
+                    class="row items-center q-gutter-xs"
                   >
-                    <q-icon name="picture_as_pdf" color="red" size="16px" />
-                    <span>File PDF saat ini (klik untuk lihat)</span>
-                  </a>
+                    <a
+                      :href="pmForm.kitabArabFileExisting"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-primary text-caption row items-center q-gutter-xs col"
+                    >
+                      <q-icon name="picture_as_pdf" color="red" size="16px" />
+                      <span>File Kitab Arab saat ini (klik untuk lihat)</span>
+                    </a>
+                    <q-btn
+                      flat dense round icon="delete" color="negative" size="sm"
+                      :loading="pmDeletingKitabArab"
+                      @click="confirmDeletePemateriKitab('arab')"
+                    >
+                      <q-tooltip>Hapus File Kitab Arab</q-tooltip>
+                    </q-btn>
+                  </div>
                   <q-file
-                    v-model="pmKitabFile"
+                    v-model="pmKitabArabFile"
                     outlined dense
-                    label="Upload PDF Kitab..."
+                    label="Upload PDF Kitab Arab..."
                     accept=".pdf,application/pdf"
                     style="min-width: 220px"
                   >
                     <template #prepend><q-icon name="picture_as_pdf" color="red-7" /></template>
                     <template #append>
-                      <q-icon v-if="pmKitabFile" name="cancel" class="cursor-pointer" @click.stop="pmKitabFile = null" />
+                      <q-icon v-if="pmKitabArabFile" name="cancel" class="cursor-pointer" @click.stop="pmKitabArabFile = null" />
+                    </template>
+                  </q-file>
+                </div>
+              </div>
+              <div>
+                <div class="text-caption text-grey-7 q-mb-xs">File Kitab Terjemah PDF (opsional)</div>
+                <div class="column q-gutter-xs">
+                  <div
+                    v-if="!pmKitabTerjemahFile && pmEdit && pmForm.kitabTerjemahFileExisting"
+                    class="row items-center q-gutter-xs"
+                  >
+                    <a
+                      :href="pmForm.kitabTerjemahFileExisting"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-primary text-caption row items-center q-gutter-xs col"
+                    >
+                      <q-icon name="picture_as_pdf" color="deep-orange" size="16px" />
+                      <span>File Kitab Terjemah saat ini (klik untuk lihat)</span>
+                    </a>
+                    <q-btn
+                      flat dense round icon="delete" color="negative" size="sm"
+                      :loading="pmDeletingKitabTerjemah"
+                      @click="confirmDeletePemateriKitab('terjemah')"
+                    >
+                      <q-tooltip>Hapus File Kitab Terjemah</q-tooltip>
+                    </q-btn>
+                  </div>
+                  <q-file
+                    v-model="pmKitabTerjemahFile"
+                    outlined dense
+                    label="Upload PDF Kitab Terjemah..."
+                    accept=".pdf,application/pdf"
+                    style="min-width: 220px"
+                  >
+                    <template #prepend><q-icon name="picture_as_pdf" color="deep-orange" /></template>
+                    <template #append>
+                      <q-icon v-if="pmKitabTerjemahFile" name="cancel" class="cursor-pointer" @click.stop="pmKitabTerjemahFile = null" />
                     </template>
                   </q-file>
                 </div>
@@ -770,10 +829,14 @@ const pmDialog  = ref(false);
 const pmEdit    = ref(null);
 const pmSaving  = ref(false);
 const pmFotoFile = ref(null);
-const pmKitabFile = ref(null);
+const pmKitabArabFile = ref(null);
+const pmKitabTerjemahFile = ref(null);
 const pmPreview  = ref('');
+const pmDeletingKitabArab    = ref(false);
+const pmDeletingKitabTerjemah = ref(false);
 const pmForm = reactive({
-  nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true, fotoExisting: '', kitabFileExisting: ''
+  nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '', urutan: 0, isActive: true,
+  fotoExisting: '', kitabArabFileExisting: '', kitabTerjemahFileExisting: '',
 });
 
 const jenisPemateriOptions = [
@@ -814,7 +877,8 @@ const pemateriCols = [
   { name: 'waktu',      label: 'Waktu',      field: 'waktu',      align: 'center' },
   { name: 'jam',        label: 'Jam',        field: 'jam',        align: 'center' },
   { name: 'kitab',      label: 'Kitab',      field: 'kitab',      align: 'left' },
-  { name: 'kitabFile',  label: 'PDF Kitab',  field: 'kitabFile',  align: 'center' },
+  { name: 'kitabArabFile',      label: 'Kitab Arab',      field: 'kitabArabFile',      align: 'center' },
+  { name: 'kitabTerjemahFile',  label: 'Kitab Terjemah',  field: 'kitabTerjemahFile',  align: 'center' },
   { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
   { name: 'isActive',   label: 'Status',     field: 'isActive',   align: 'center' },
   { name: 'actions',    label: 'Aksi',       field: 'id',         align: 'center' },
@@ -823,7 +887,8 @@ const pemateriCols = [
 function openPemateriDialog(row = null) {
   pmEdit.value  = row;
   pmFotoFile.value = null;
-  pmKitabFile.value = null;
+  pmKitabArabFile.value = null;
+  pmKitabTerjemahFile.value = null;
   pmPreview.value  = '';
   if (row) {
     Object.assign(pmForm, {
@@ -833,12 +898,14 @@ function openPemateriDialog(row = null) {
       jam: row.jam || null,
       kitab: row.kitab || '', keterangan: row.keterangan || '', youtube: row.youtube || '',
       urutan: row.urutan || 0, isActive: row.isActive, fotoExisting: row.foto || '',
-      kitabFileExisting: row.kitabFile || '',
+      kitabArabFileExisting: row.kitabArabFile || '',
+      kitabTerjemahFileExisting: row.kitabTerjemahFile || '',
     });
   } else {
     Object.assign(pmForm, {
       nama: '', jenis: 'RUTIN', hari: [], waktu: [], jam: null, kitab: '', keterangan: '', youtube: '',
-      urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '', kitabFileExisting: '',
+      urutan: pemateriStore.list.length + 1, isActive: true, fotoExisting: '',
+      kitabArabFileExisting: '', kitabTerjemahFileExisting: '',
     });
   }
   pmDialog.value = true;
@@ -868,7 +935,8 @@ async function savePemateri() {
   fd.append('urutan', pmForm.urutan);
   fd.append('isActive', pmForm.isActive);
   if (pmFotoFile.value)  fd.append('foto', pmFotoFile.value);
-  if (pmKitabFile.value) fd.append('kitabFile', pmKitabFile.value);
+  if (pmKitabArabFile.value) fd.append('kitabArabFile', pmKitabArabFile.value);
+  if (pmKitabTerjemahFile.value) fd.append('kitabTerjemahFile', pmKitabTerjemahFile.value);
   try {
     if (pmEdit.value) {
       await pemateriStore.update(pmEdit.value.id, fd);
@@ -877,8 +945,8 @@ async function savePemateri() {
     }
     pmDialog.value = false;
     $q.notify({ type: 'positive', message: pmEdit.value ? 'Pemateri diperbarui.' : 'Pemateri ditambahkan.' });
-  } catch {
-    $q.notify({ type: 'negative', message: 'Gagal menyimpan pemateri.' });
+  } catch (err) {
+    $q.notify({ type: 'negative', message: err.response?.data?.message || 'Gagal menyimpan pemateri.' });
   } finally { pmSaving.value = false; }
 }
 
@@ -892,6 +960,32 @@ function confirmDeletePemateri(row) {
         $q.notify({ type: 'negative', message: 'Gagal menghapus.' });
       }
     });
+}
+
+function confirmDeletePemateriKitab(jenis) {
+  if (!pmEdit.value) return;
+  const label = jenis === 'arab' ? 'Kitab Arab' : 'Kitab Terjemah';
+  $q.dialog({
+    title: `Hapus File ${label}`,
+    message: `Yakin ingin menghapus file ${label} permanen? Tindakan ini tidak bisa dibatalkan.`,
+    cancel: { flat: true, label: 'Batal' },
+    ok: { unelevated: true, color: 'negative', label: 'Hapus' },
+    persistent: true,
+  }).onOk(async () => {
+    if (jenis === 'arab') pmDeletingKitabArab.value = true;
+    else pmDeletingKitabTerjemah.value = true;
+    try {
+      const updated = await pemateriStore.removeKitab(pmEdit.value.id, jenis);
+      if (jenis === 'arab') pmForm.kitabArabFileExisting = updated.kitabArabFile || '';
+      else pmForm.kitabTerjemahFileExisting = updated.kitabTerjemahFile || '';
+      $q.notify({ type: 'positive', message: `File ${label} berhasil dihapus.` });
+    } catch (err) {
+      $q.notify({ type: 'negative', message: err.response?.data?.message || `Gagal menghapus file ${label}.` });
+    } finally {
+      if (jenis === 'arab') pmDeletingKitabArab.value = false;
+      else pmDeletingKitabTerjemah.value = false;
+    }
+  });
 }
 
 onMounted(() => {
