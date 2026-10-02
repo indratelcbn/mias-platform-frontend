@@ -127,6 +127,35 @@
               class="q-mt-sm"
             />
 
+            <!-- Materi Kajian Hari Ini -->
+            <div class="q-mt-sm">
+              <div class="text-caption text-weight-medium text-grey-8 q-mb-xs">Materi Kajian Hari Ini</div>
+              <a
+                v-if="!form.materiHtmlFile && form.materiFileExisting"
+                :href="form.materiFileExisting"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary text-caption row items-center q-gutter-xs q-mb-xs"
+              >
+                <q-icon name="picture_as_pdf" color="deep-orange" size="16px" />
+                <span>Materi PDF saat ini (klik untuk lihat)</span>
+              </a>
+              <q-file
+                v-model="form.materiHtmlFile"
+                outlined dense
+                label="Upload File HTML Materi (opsional) — akan dikonversi ke PDF"
+                accept=".html,text/html"
+              >
+                <template #prepend><q-icon name="html" color="deep-orange" /></template>
+                <template #append>
+                  <q-icon v-if="form.materiHtmlFile" name="cancel" class="cursor-pointer" @click.stop="form.materiHtmlFile = null" />
+                </template>
+              </q-file>
+              <div v-if="form.materiHtmlFile" class="text-caption text-grey-6 q-mt-xs">
+                <q-icon name="info" size="12px" /> Konversi HTML → PDF dilakukan saat simpan (butuh beberapa detik)
+              </div>
+            </div>
+
             <!-- ── Kitab ───────────────────────────────────────────── -->
             <!-- RUTIN: tampilkan kitab dari profil pemateri (read-only) -->
             <div v-if="isRutinPemateri" class="q-mt-sm rounded-borders bg-blue-1 q-pa-sm">
@@ -318,6 +347,7 @@ const onWaktuChange = (val) => {
 const emptyForm = () => ({
   judul: '', ustadz: '', tanggal: '', waktu: '', deskripsi: '',
   kitab: '', kitabFile: null, kitabFileExisting: '',
+  materiHtmlFile: null, materiFileExisting: '',
   thumbnailFile: null, isPublished: true,
 });
 const form = reactive(emptyForm());
@@ -351,6 +381,8 @@ const openDialog = (row = null) => {
       kitab: isRutin ? (pemateri.kitab || '') : (row.kitab || ''),
       kitabFile: null,
       kitabFileExisting: isRutin ? (pemateri.kitabFile || '') : (row.kitabFile || ''),
+      materiHtmlFile: null,
+      materiFileExisting: row.materiFile || '',
       thumbnailFile: null,
       isPublished: row.isPublished,
     });
@@ -387,9 +419,14 @@ const saveKajian = async () => {
     kitabFile: form.kitabFile || null,
     // Pass existing URL when no new file (covers RUTIN pemateri & edit-without-new-upload)
     kitabFileUrl: !form.kitabFile && form.kitabFileExisting ? form.kitabFileExisting : undefined,
+    materiHtml: form.materiHtmlFile || null,
+    // Preserve existing materi PDF when no new HTML is uploaded
+    materiFileUrl: !form.materiHtmlFile && form.materiFileExisting ? form.materiFileExisting : undefined,
   };
   delete payload.thumbnailFile;
   delete payload.kitabFileExisting;
+  delete payload.materiHtmlFile;
+  delete payload.materiFileExisting;
 
   const result = isEdit.value
     ? await kajianStore.update(editId.value, payload)

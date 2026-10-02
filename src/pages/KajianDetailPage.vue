@@ -31,6 +31,29 @@
               {{ kajianStore.current.deskripsi || 'Tidak ada deskripsi.' }}
             </p>
           </q-card-section>
+
+          <!-- Materi Kajian — only shown when materiFile is available -->
+          <template v-if="kajianStore.current.materiFile">
+            <q-separator />
+            <q-card-section class="q-px-xl q-py-lg">
+              <div class="row items-center justify-between no-wrap q-gutter-sm">
+                <div>
+                  <div class="text-subtitle1 text-weight-bold text-grey-9">Materi</div>
+                  <div class="text-caption text-grey-6">Unduh materi kajian hari ini dalam format PDF</div>
+                </div>
+                <q-btn
+                  unelevated color="deep-orange" icon="picture_as_pdf" no-caps
+                  label="Unduh Materi (PDF)"
+                  type="a"
+                  :href="kajianStore.current.materiFile"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :download="`Materi-${kajianStore.current.judul}.pdf`"
+                  style="white-space: nowrap; flex-shrink: 0"
+                />
+              </div>
+            </q-card-section>
+          </template>
         </q-card>
 
         <!-- Share -->
