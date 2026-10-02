@@ -15,18 +15,28 @@
         </q-tabs>
       </div>
 
-      <div v-if="store.loading" class="text-center q-py-xl">
-        <q-spinner-dots color="primary" size="48px" />
+      <!-- Loading skeleton mobile-aware -->
+      <div v-if="store.loading" class="q-pa-md">
+        <template v-if="isMobile">
+          <q-skeleton type="rect" height="56px" class="rounded-borders q-mb-sm" v-for="i in 4" :key="i" />
+        </template>
+        <div v-else class="text-center q-py-xl">
+          <q-spinner-dots color="primary" size="48px" />
+        </div>
       </div>
 
       <q-tab-panels v-else v-model="tab" animated class="bg-transparent">
-        <!-- ── KAJIAN RUTIN: tabel statis ─────────────────────────── -->
+        <!-- ── KAJIAN RUTIN ─────────────────────────────────────────── -->
         <q-tab-panel name="RUTIN" class="q-pa-none">
+
+          <!-- Empty -->
           <div v-if="!rutinGroups.length" class="text-center q-py-xl text-grey-6">
             <q-icon name="person_off" size="72px" color="grey-4" />
             <div class="q-mt-md">Belum ada data pemateri kajian rutin.</div>
           </div>
-          <div v-else class="q-gutter-y-md">
+
+          <!-- ═══ DESKTOP table ════════════════════════════════════ -->
+          <div v-else-if="!isMobile" class="q-gutter-y-md">
             <q-card
               v-for="group in rutinGroups"
               :key="group.key"
@@ -38,7 +48,6 @@
                 {{ group.label }}
               </div>
               <q-table
-                v-if="!isMobile"
                 :rows="group.rows"
                 :columns="rutinColumns"
                 row-key="rowKey"
@@ -56,7 +65,7 @@
                 <template #body-cell-waktu="props">
                   <q-td class="text-center">{{ props.value || '-' }}</q-td>
                 </template>
-                <template #body-cell-hari="props">
+                <template #body-cell-pekan="props">
                   <q-td class="text-center">{{ props.value || '-' }}</q-td>
                 </template>
                 <template #body-cell-kitab="props">
@@ -105,63 +114,147 @@
                   </q-td>
                 </template>
               </q-table>
-              <div v-else class="mobile-list q-pa-sm">
-                <q-card
-                  v-for="(row, index) in group.rows"
-                  :key="row.rowKey"
-                  flat
-                  bordered
-                  class="mobile-item"
-                >
-                  <div class="mobile-item__header row items-start no-wrap q-col-gutter-sm">
-                    <div class="mobile-item__number">{{ index + 1 }}</div>
-                    <div class="col min-width-0">
-                      <div class="text-subtitle2 text-weight-bold">{{ row.nama }}</div>
-                      <div class="mobile-meta q-mt-xs">
-                        <div><strong>Hari:</strong> {{ row.hariDisplay || '-' }}</div>
-                        <div><strong>Waktu:</strong> {{ row.jam || '-' }}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="mobile-item__body q-mt-sm">
-                    <div v-if="row.kitab" class="q-mb-sm">
-                      <div class="mobile-section-title">Kitab / Materi</div>
-                      <div v-for="k in kitabList(row.kitab)" :key="k" class="row items-start q-gutter-xs no-wrap text-caption q-mb-xs">
-                        <q-icon name="menu_book" size="14px" color="primary" class="q-mt-xs" />
-                        <span>{{ k }}</span>
-                      </div>
-                    </div>
-                    <div v-if="row.keterangan" class="q-mb-sm">
-                      <div class="mobile-section-title">Keterangan</div>
-                      <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
-                    </div>
-                    <div v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile" class="row q-gutter-sm q-mt-sm">
-                      <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
-                        <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
-                      </a>
-                      <a v-if="row.kitabArabFile" :href="row.kitabArabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                        <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Kitab Arab" size="sm" />
-                      </a>
-                      <a v-if="row.kitabTerjemahFile" :href="row.kitabTerjemahFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                        <q-btn outline no-caps color="deep-orange" icon="picture_as_pdf" label="Kitab Terjemah" size="sm" />
-                      </a>
-                    </div>
-                  </div>
-                </q-card>
-              </div>
             </q-card>
           </div>
+
+          <!-- ═══ MOBILE — QExpansionItem per hari ════════════════ -->
+          <div v-else class="q-gutter-y-sm">
+            <q-expansion-item
+              v-for="(group, gi) in rutinGroups"
+              :key="group.key"
+              :label="group.label"
+              :default-opened="gi === 0"
+              expand-icon-class="text-white"
+              header-class="rutin-hari-header"
+              class="rutin-expansion rounded-borders overflow-hidden"
+              bordered
+            >
+              <q-list separator>
+                <q-item
+                  v-for="(row, index) in group.rows"
+                  :key="row.rowKey"
+                  class="q-py-sm items-start"
+                >
+                  <!-- Nomor -->
+                  <q-item-section avatar style="min-width:36px">
+                    <q-avatar size="30px" color="primary" text-color="white" font-size="12px">
+                      {{ index + 1 }}
+                    </q-avatar>
+                  </q-item-section>
+
+                  <!-- Konten -->
+                  <q-item-section>
+                    <!-- Nama ustadz -->
+                    <q-item-label class="text-weight-bold text-grey-9" style="font-size:14px">
+                      {{ row.nama }}
+                    </q-item-label>
+
+                    <!-- Pekan & jam -->
+                    <q-item-label caption class="row items-center q-gutter-x-xs q-mt-xs no-wrap">
+                      <q-icon name="date_range" size="13px" color="blue-7" />
+                      <span>{{ row.pekanDisplay || '-' }}</span>
+                      <span class="text-grey-4">&nbsp;·&nbsp;</span>
+                      <q-icon name="schedule" size="13px" color="blue-7" />
+                      <span>{{ row.jam || '-' }}</span>
+                    </q-item-label>
+
+                    <!-- Kitab -->
+                    <div v-if="row.kitab" class="q-mt-xs">
+                      <div
+                        v-for="k in kitabList(row.kitab)"
+                        :key="k"
+                        class="row items-start no-wrap q-gutter-x-xs"
+                      >
+                        <q-icon name="menu_book" size="13px" color="deep-orange" class="q-mt-xs" style="flex-shrink:0" />
+                        <q-item-label caption style="word-break:break-word;line-height:1.5">
+                          {{ k }}
+                        </q-item-label>
+                      </div>
+                    </div>
+
+                    <!-- Keterangan -->
+                    <q-item-label
+                      v-if="row.keterangan"
+                      caption
+                      class="q-mt-xs text-grey-6"
+                      style="white-space:pre-line"
+                    >
+                      {{ row.keterangan }}
+                    </q-item-label>
+
+                    <!-- Tombol aksi -->
+                    <div
+                      v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile"
+                      class="row items-center q-gutter-xs q-mt-sm"
+                    >
+                      <a
+                        v-if="row.youtube"
+                        :href="row.youtube"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="text-decoration:none"
+                        @click.stop
+                      >
+                        <q-btn
+                          outline dense no-caps size="xs"
+                          color="red-7"
+                          icon="fab fa-youtube"
+                          label="YouTube"
+                        />
+                      </a>
+                      <a
+                        v-if="row.kitabArabFile"
+                        :href="row.kitabArabFile"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        style="text-decoration:none"
+                        @click.stop
+                      >
+                        <q-btn
+                          outline dense no-caps size="xs"
+                          color="red-7"
+                          icon="picture_as_pdf"
+                          label="Kitab Arab"
+                        />
+                      </a>
+                      <a
+                        v-if="row.kitabTerjemahFile"
+                        :href="row.kitabTerjemahFile"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        style="text-decoration:none"
+                        @click.stop
+                      >
+                        <q-btn
+                          outline dense no-caps size="xs"
+                          color="deep-orange"
+                          icon="picture_as_pdf"
+                          label="Terjemah"
+                        />
+                      </a>
+                    </div>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+          </div>
+
         </q-tab-panel>
 
-        <!-- ── KAJIAN TEMATIK: tabel polos tanpa hari ─────────────── -->
+        <!-- ── KAJIAN TEMATIK ──────────────────────────────────────── -->
         <q-tab-panel name="TEMATIK" class="q-pa-none">
+
+          <!-- Empty -->
           <div v-if="!tematikRows.length" class="text-center q-py-xl text-grey-6">
             <q-icon name="person_off" size="72px" color="grey-4" />
             <div class="q-mt-md">Belum ada data pemateri kajian tematik.</div>
           </div>
-          <q-card v-else flat bordered class="day-card">
+
+          <!-- ═══ DESKTOP table ════════════════════════════════════ -->
+          <q-card v-else-if="!isMobile" flat bordered class="day-card">
             <q-table
-              v-if="!isMobile"
               :rows="tematikRows"
               :columns="tematikColumns"
               row-key="id"
@@ -222,47 +315,96 @@
                 </q-td>
               </template>
             </q-table>
-            <div v-else class="mobile-list q-pa-sm">
-              <q-card
+          </q-card>
+
+          <!-- ═══ MOBILE — QList flat ══════════════════════════════ -->
+          <q-card v-else flat bordered class="rounded-borders overflow-hidden">
+            <q-list separator>
+              <q-item
                 v-for="(row, index) in tematikRows"
                 :key="row.id"
-                flat
-                bordered
-                class="mobile-item"
+                class="q-py-sm items-start"
               >
-                <div class="mobile-item__header row items-start no-wrap q-col-gutter-sm">
-                  <div class="mobile-item__number">{{ index + 1 }}</div>
-                  <div class="col min-width-0">
-                    <div class="text-subtitle2 text-weight-bold">{{ row.nama }}</div>
-                  </div>
-                </div>
-                <div class="mobile-item__body q-mt-sm">
-                  <div v-if="row.kitab" class="q-mb-sm">
-                    <div class="mobile-section-title">Kitab / Materi</div>
-                    <div v-for="k in kitabList(row.kitab)" :key="k" class="row items-start q-gutter-xs no-wrap text-caption q-mb-xs">
-                      <q-icon name="menu_book" size="14px" color="deep-orange" class="q-mt-xs" />
-                      <span>{{ k }}</span>
+                <!-- Nomor -->
+                <q-item-section avatar style="min-width:36px">
+                  <q-avatar size="30px" color="deep-orange" text-color="white" font-size="12px">
+                    {{ index + 1 }}
+                  </q-avatar>
+                </q-item-section>
+
+                <!-- Konten -->
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-grey-9" style="font-size:14px">
+                    {{ row.nama }}
+                  </q-item-label>
+
+                  <!-- Kitab -->
+                  <div v-if="row.kitab" class="q-mt-xs">
+                    <div
+                      v-for="k in kitabList(row.kitab)"
+                      :key="k"
+                      class="row items-start no-wrap q-gutter-x-xs"
+                    >
+                      <q-icon name="menu_book" size="13px" color="deep-orange" class="q-mt-xs" style="flex-shrink:0" />
+                      <q-item-label caption style="word-break:break-word;line-height:1.5">
+                        {{ k }}
+                      </q-item-label>
                     </div>
                   </div>
-                  <div v-if="row.keterangan" class="q-mb-sm">
-                    <div class="mobile-section-title">Keterangan</div>
-                    <div class="text-caption text-grey-8 mobile-preline">{{ row.keterangan }}</div>
+
+                  <!-- Keterangan -->
+                  <q-item-label
+                    v-if="row.keterangan"
+                    caption
+                    class="q-mt-xs text-grey-6"
+                    style="white-space:pre-line"
+                  >
+                    {{ row.keterangan }}
+                  </q-item-label>
+
+                  <!-- Tombol aksi -->
+                  <div
+                    v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile"
+                    class="row items-center q-gutter-xs q-mt-sm"
+                  >
+                    <a
+                      v-if="row.youtube"
+                      :href="row.youtube"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="text-decoration:none"
+                      @click.stop
+                    >
+                      <q-btn outline dense no-caps size="xs" color="red-7" icon="fab fa-youtube" label="YouTube" />
+                    </a>
+                    <a
+                      v-if="row.kitabArabFile"
+                      :href="row.kitabArabFile"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      style="text-decoration:none"
+                      @click.stop
+                    >
+                      <q-btn outline dense no-caps size="xs" color="red-7" icon="picture_as_pdf" label="Kitab Arab" />
+                    </a>
+                    <a
+                      v-if="row.kitabTerjemahFile"
+                      :href="row.kitabTerjemahFile"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      style="text-decoration:none"
+                      @click.stop
+                    >
+                      <q-btn outline dense no-caps size="xs" color="deep-orange" icon="picture_as_pdf" label="Terjemah" />
+                    </a>
                   </div>
-                  <div v-if="row.youtube || row.kitabArabFile || row.kitabTerjemahFile" class="row q-gutter-sm q-mt-sm">
-                    <a v-if="row.youtube" :href="row.youtube" target="_blank" rel="noopener noreferrer" class="mobile-action-link">
-                      <q-btn outline no-caps color="red-7" icon="fab fa-youtube" label="YouTube" size="sm" />
-                    </a>
-                    <a v-if="row.kitabArabFile" :href="row.kitabArabFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                      <q-btn outline no-caps color="primary" icon="picture_as_pdf" label="Kitab Arab" size="sm" />
-                    </a>
-                    <a v-if="row.kitabTerjemahFile" :href="row.kitabTerjemahFile" target="_blank" rel="noopener noreferrer" download class="mobile-action-link">
-                      <q-btn outline no-caps color="deep-orange" icon="picture_as_pdf" label="Kitab Terjemah" size="sm" />
-                    </a>
-                  </div>
-                </div>
-              </q-card>
-            </div>
+                </q-item-section>
+              </q-item>
+            </q-list>
           </q-card>
+
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -323,35 +465,34 @@ function pekanRank(pekan) {
   return pekanOrder[pekan] ?? 99;
 }
 
-function hariRank(hari) {
-  const firstHari = splitCommaValues(hari)[0];
-  if (!firstHari) return 99;
-  const index = HARI_ORDER.indexOf(firstHari);
-  return index === -1 ? 99 : index;
-}
-
 const rutinRows = computed(() =>
   [...store.list]
     .filter((pemateri) => pemateri.jenis === 'RUTIN')
     .flatMap((pemateri) => {
-      const rows = splitPekanValues(pemateri.waktu);
+      // Expand by hari — one row per teaching day
+      const hariList = splitCommaValues(pemateri.hari);
+      const hariArray = hariList.length ? hariList : ['-'];
+      const pekanDisplay = splitPekanValues(pemateri.waktu).join(', ') || '-';
+      const firstPekan = splitPekanValues(pemateri.waktu)[0] || '-';
 
-      return rows.map((pekan, index) => ({
+      return hariArray.map((hari, index) => ({
         ...pemateri,
-        rowKey: `${pemateri.id}-${index}-${pekan}`,
-        pekan,
-        hariDisplay: splitCommaValues(pemateri.hari).join(', ') || '-',
+        rowKey: `${pemateri.id}-${index}-${hari}`,
+        hariSingle: hari,
+        pekanDisplay,
+        firstPekanRank: pekanRank(firstPekan),
       }));
     })
     .sort((a, b) => {
-      const pA = pekanRank(a.pekan);
-      const pB = pekanRank(b.pekan);
-      if (pA !== pB) return pA - pB;
+      // Primary sort: hari order
+      const hA = HARI_ORDER.indexOf(a.hariSingle);
+      const hB = HARI_ORDER.indexOf(b.hariSingle);
+      if (hA !== hB) return (hA === -1 ? 99 : hA) - (hB === -1 ? 99 : hB);
 
-      const hA = hariRank(a.hari);
-      const hB = hariRank(b.hari);
-      if (hA !== hB) return hA - hB;
+      // Secondary: earliest pekan they teach
+      if (a.firstPekanRank !== b.firstPekanRank) return a.firstPekanRank - b.firstPekanRank;
 
+      // Tertiary: jam
       const jA = jamOrder[a.jam] ?? 99;
       const jB = jamOrder[b.jam] ?? 99;
       if (jA !== jB) return jA - jB;
@@ -364,16 +505,21 @@ const rutinGroups = computed(() => {
   const grouped = new Map();
 
   for (const row of rutinRows.value) {
-    const key = row.pekan || '-';
+    const key = row.hariSingle || '-';
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key).push(row);
   }
 
+  // Sort groups by HARI_ORDER
   return [...grouped.entries()]
-    .sort((a, b) => pekanRank(a[0]) - pekanRank(b[0]))
-    .map(([pekan, rows]) => ({
-      key: pekan,
-      label: pekan,
+    .sort((a, b) => {
+      const iA = HARI_ORDER.indexOf(a[0]);
+      const iB = HARI_ORDER.indexOf(b[0]);
+      return (iA === -1 ? 99 : iA) - (iB === -1 ? 99 : iB);
+    })
+    .map(([hari, rows]) => ({
+      key: hari,
+      label: hari,
       rows,
     }));
 });
@@ -385,15 +531,15 @@ const tematikRows = computed(() =>
 );
 
 const rutinColumns = [
-  { name: 'no',         label: 'No',               field: 'no',         align: 'center', style: 'width: 56px' },
-  { name: 'hari',       label: 'Hari',             field: 'hariDisplay', align: 'center' },
-  { name: 'waktu',      label: 'Waktu',            field: 'jam',        align: 'center', sortable: true },
-  { name: 'nama',       label: 'Nama Ustadz',      field: 'nama',       align: 'left',   sortable: true },
-  { name: 'kitab',      label: 'Kitab / Materi',   field: 'kitab',      align: 'left' },
-  { name: 'kitabArabFile',      label: 'Kitab Arab',      field: 'kitabArabFile',      align: 'center' },
-  { name: 'kitabTerjemahFile',  label: 'Kitab Terjemah',  field: 'kitabTerjemahFile',  align: 'center' },
-  { name: 'keterangan', label: 'Keterangan',       field: 'keterangan', align: 'left' },
-  { name: 'youtube',    label: 'Playlist YouTube', field: 'youtube',    align: 'center' },
+  { name: 'no',                label: 'No',               field: 'no',              align: 'center', style: 'width: 56px' },
+  { name: 'pekan',             label: 'Pekan',            field: 'pekanDisplay',    align: 'center' },
+  { name: 'waktu',             label: 'Waktu',            field: 'jam',             align: 'center' },
+  { name: 'nama',              label: 'Nama Ustadz',      field: 'nama',            align: 'left',   sortable: true },
+  { name: 'kitab',             label: 'Kitab / Materi',   field: 'kitab',           align: 'left' },
+  { name: 'kitabArabFile',     label: 'Kitab Arab',       field: 'kitabArabFile',   align: 'center' },
+  { name: 'kitabTerjemahFile', label: 'Kitab Terjemah',  field: 'kitabTerjemahFile', align: 'center' },
+  { name: 'keterangan',        label: 'Keterangan',       field: 'keterangan',      align: 'left' },
+  { name: 'youtube',           label: 'Playlist YouTube', field: 'youtube',         align: 'center' },
 ];
 
 const tematikColumns = [
@@ -416,6 +562,8 @@ function kitabList(kitab) {
   background: linear-gradient(135deg, #BF360C 0%, #E64A19 100%);
   padding: 80px 0;
 }
+
+/* ── Desktop table ── */
 .day-card {
   border-radius: 12px;
   overflow: hidden;
@@ -426,47 +574,6 @@ function kitabList(kitab) {
   background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
   letter-spacing: 0.3px;
   padding: 12px 16px;
-}
-.mobile-list {
-  display: grid;
-  gap: 12px;
-}
-.mobile-item {
-  border-radius: 12px;
-  padding: 14px;
-}
-.mobile-item__number {
-  min-width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #E3F2FD;
-  color: #0D47A1;
-  font-weight: 700;
-  font-size: 13px;
-}
-.mobile-meta {
-  display: grid;
-  gap: 4px;
-  font-size: 12px;
-  color: #546E7A;
-}
-.mobile-item__body {
-  padding-left: 0;
-}
-.mobile-section-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #0D47A1;
-  margin-bottom: 6px;
-}
-.mobile-preline {
-  white-space: pre-line;
-}
-.mobile-action-link {
-  text-decoration: none;
 }
 .day-table :deep(thead th) {
   background: #E3F2FD;
@@ -481,16 +588,24 @@ function kitabList(kitab) {
   align-items: center;
   text-decoration: none;
 }
+
+/* ── Mobile QExpansionItem ── */
+.rutin-expansion {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+.rutin-expansion :deep(.rutin-hari-header) {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 48px;
+}
+.rutin-expansion :deep(.rutin-hari-header .q-item__label) {
+  color: #ffffff;
+}
+
 @media (max-width: 599px) {
-  .page-hero {
-    padding: 56px 0;
-  }
-  .group-header {
-    padding: 10px 14px;
-    font-size: 15px;
-  }
-  .mobile-item {
-    padding: 12px;
-  }
+  .page-hero { padding: 56px 0; }
 }
 </style>
