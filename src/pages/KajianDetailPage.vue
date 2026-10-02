@@ -50,7 +50,7 @@
                     type="a"
                     :href="kajianStore.current.materiFile"
                     target="_blank" rel="noopener noreferrer"
-                    :download="`Materi-${kajianStore.current.judul}.pdf`"
+                    :download="downloadName('Materi', kajianStore.current.ustadz)"
                   />
                 </div>
 
@@ -65,7 +65,7 @@
                     type="a"
                     :href="kajianStore.current.kitabFile"
                     target="_blank" rel="noopener noreferrer"
-                    :download="kitabDownloadName(kajianStore.current)"
+                    :download="downloadName('Kitab_Arab', kajianStore.current.ustadz)"
                   />
                 </div>
 
@@ -80,7 +80,7 @@
                     type="a"
                     :href="kajianStore.current.kitabTerjemahFile"
                     target="_blank" rel="noopener noreferrer"
-                    download
+                    :download="downloadName('Kitab_Terjemah', kajianStore.current.ustadz)"
                   />
                 </div>
 
@@ -147,17 +147,16 @@ const formatDate = (dateString) => {
   });
 };
 
-function kitabList(kitab) {
-  return kitab ? kitab.split('\n').map(k => k.trim()).filter(Boolean) : [];
+function sanitizeName(str) {
+  return (str || '')
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, '_')
+    .trim();
 }
 
-function kitabDownloadName(kajian) {
-  const baseName = kitabList(kajian?.kitab)[0] || kajian?.judul || 'kitab';
-  const sanitized = baseName
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return `${sanitized || 'kitab'}.pdf`;
+function downloadName(prefix, ustadz) {
+  const name = sanitizeName(ustadz);
+  return `${prefix}_${name || 'Ustadz'}.pdf`;
 }
 
 const shareUrl = () => `${window.location.origin}/kajian/${kajianStore.current.slug || kajianStore.current.id}`;
