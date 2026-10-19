@@ -413,41 +413,70 @@
 
     <!-- ─── Dialog: Buat Ujian ──────────────────────────────────────────── -->
     <q-dialog v-model="ujianDialog" persistent>
-      <q-card style="min-width:500px; max-width:96vw">
-        <q-card-section class="bg-primary text-white">
-          <div class="text-h6"><q-icon name="quiz" class="q-mr-xs" />Buat Ujian Baru</div>
+      <q-card style="width:560px; max-width:96vw">
+        <q-card-section class="bg-primary text-white row items-center">
+          <q-icon name="quiz" size="24px" class="q-mr-sm" />
+          <div class="text-h6">Buat Ujian Baru</div>
         </q-card-section>
-        <q-card-section class="q-gutter-sm">
-          <q-input v-model="ujianForm.judul" label="Judul Ujian *" outlined dense :rules="[v => !!v || 'Wajib']" />
-          <q-input v-model="ujianForm.deskripsi" label="Deskripsi" type="textarea" outlined dense autogrow />
+        <q-card-section>
           <div class="row q-col-gutter-md">
+            <!-- Informasi Umum -->
+            <div class="col-12">
+              <div class="text-subtitle2 text-primary text-weight-bold q-mb-xs">Informasi Umum</div>
+              <q-separator />
+            </div>
+            <div class="col-12">
+              <q-input v-model="ujianForm.judul" label="Judul Ujian *" outlined dense :rules="[v => !!v || 'Wajib']" />
+            </div>
+            <div class="col-12">
+              <q-input v-model="ujianForm.deskripsi" label="Deskripsi" type="textarea" outlined dense autogrow />
+            </div>
             <div class="col-12 col-sm-7">
               <q-input v-model="ujianForm.kodeUjian" label="Kode Ujian *" outlined dense :rules="[v => !!v || 'Wajib']" />
             </div>
             <div class="col-12 col-sm-5">
               <q-input v-model.number="ujianForm.durasi" label="Durasi (menit) *" type="number" outlined dense />
             </div>
+
+            <!-- Jadwal -->
+            <div class="col-12 q-mt-sm">
+              <div class="text-subtitle2 text-primary text-weight-bold q-mb-xs">Jadwal Pelaksanaan</div>
+              <q-separator />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model="ujianForm.tanggalMulai" label="Tanggal Mulai *" type="datetime-local" outlined dense stack-label />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model="ujianForm.tanggalSelesai" label="Tanggal Selesai *" type="datetime-local" outlined dense stack-label />
+            </div>
+
+            <!-- Penilaian -->
+            <div class="col-12 q-mt-sm">
+              <div class="text-subtitle2 text-primary text-weight-bold q-mb-xs">Penilaian</div>
+              <q-separator />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model.number="ujianForm.passingGrade" label="Nilai Kelulusan (%)" type="number" outlined dense hint="Rentang 0–100" />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model.number="ujianForm.maxPercobaan" label="Maks. Percobaan" type="number" outlined dense hint="Default 1" />
+            </div>
+
+            <!-- Petunjuk -->
+            <div class="col-12 q-mt-sm">
+              <div class="text-subtitle2 text-primary text-weight-bold q-mb-xs">Petunjuk & Opsi</div>
+              <q-separator />
+            </div>
+            <div class="col-12">
+              <q-input v-model="ujianForm.petunjuk" label="Petunjuk Ujian" type="textarea" outlined dense autogrow :input-style="{ minHeight: '60px' }" />
+            </div>
+            <div class="col-12">
+              <q-toggle v-model="ujianForm.tampilNilai" label="Tampilkan nilai kepada peserta" />
+            </div>
           </div>
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-sm-6">
-              <q-input v-model="ujianForm.tanggalMulai" label="Tanggal Mulai *" type="datetime-local" outlined dense />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model="ujianForm.tanggalSelesai" label="Tanggal Selesai *" type="datetime-local" outlined dense />
-            </div>
-          </div>
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-sm-6">
-              <q-input v-model.number="ujianForm.passingGrade" label="Nilai Kelulusan (%)" type="number" outlined dense />
-            </div>
-            <div class="col-12 col-sm-6">
-              <q-input v-model.number="ujianForm.maxPercobaan" label="Maks. Percobaan" type="number" outlined dense />
-            </div>
-          </div>
-          <q-input v-model="ujianForm.petunjuk" label="Petunjuk Ujian" type="textarea" outlined dense autogrow />
-          <q-toggle v-model="ujianForm.tampilNilai" label="Tampilkan nilai kepada peserta" />
         </q-card-section>
-        <q-card-actions align="right">
+        <q-separator />
+        <q-card-actions align="right" class="q-pa-md">
           <q-btn flat label="Batal" v-close-popup />
           <q-btn unelevated color="primary" label="Buat Ujian" icon="add" @click="saveUjianBaru" :loading="savingUjian" />
         </q-card-actions>
