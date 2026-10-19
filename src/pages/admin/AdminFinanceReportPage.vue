@@ -322,6 +322,142 @@
         </q-card-section>
       </q-card>
 
+      <!-- Laporan Per Program (detail transaksi + saldo) -->
+      <q-card flat bordered class="rounded-xl q-mb-lg">
+        <q-card-section>
+          <div class="row items-center justify-between q-mb-md">
+            <div class="text-subtitle1 text-weight-bold">
+              <q-icon name="receipt_long" color="primary" class="q-mr-sm" />
+              Laporan Per Program
+            </div>
+            <q-btn
+              v-if="programReport && programTransactions.length"
+              flat dense no-caps color="green-7" icon="download" label="Excel"
+              class="no-print q-mr-xs"
+              :loading="exportingProgramExcel"
+              @click="exportProgramReport('excel')"
+            />
+            <q-btn
+              v-if="programReport && programTransactions.length"
+              flat dense no-caps color="red-7" icon="picture_as_pdf" label="PDF"
+              class="no-print"
+              :loading="exportingProgramPdf"
+              @click="exportProgramReport('pdf')"
+            />
+          </div>
+
+          <!-- Filter program (no print) -->
+          <div class="row q-col-gutter-md items-end q-mb-md no-print">
+            <div class="col-12 col-md-7">
+              <q-select
+                v-model="selectedProgramCode"
+                :options="programOptionsFiltered"
+                label="Pilih Program (berdasarkan kode)"
+                outlined dense emit-value map-options clearable
+                use-input
+                input-debounce="200"
+                @filter="filterProgram"
+              >
+                <template #no-option>
+                  <q-item><q-item-section class="text-grey-6">Tidak ada program</q-item-section></q-item>
+                </template>
+              </q-select>
+            </div>
+            <div class="col-12 col-md-5">
+              <q-btn
+                unelevated color="primary" icon="search" label="Tampilkan Laporan Program"
+                no-caps class="full-width" :loading="loadingProgram"
+                @click="loadProgramReport"
+              />
+            </div>
+          </div>
+
+          <!-- Hasil laporan program -->
+          <template v-if="programReport">
+            <div class="text-caption text-grey-7 q-mb-sm">
+              Program: <span class="text-weight-bold text-grey-9">{{ programReport.programName || `Kode ${programReport.programCode}` }}</span>
+              <q-badge v-if="programReport.programType" class="q-ml-sm" :color="programReport.programType === 'INFAQ' ? 'blue' : 'purple'" :label="programReport.programType" />
+              <q-badge class="q-ml-xs" color="grey-7" :label="`Kode ${programReport.programCode}`" />
+              <span class="q-ml-sm">— Periode {{ periodLabel }}</span>
+            </div>
+
+            <!-- Ringkasan saldo -->
+            <div class="row q-col-gutter-sm q-mb-md">
+              <div class="col-6 col-md-3">
+                <div class="prog-stat bg-blue-1">
+                  <div class="text-caption text-blue-9">Saldo Awal</div>
+                  <div class="text-subtitle1 text-weight-bold text-blue-9">{{ formatCurrency(programSummary.openingBalance) }}</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="prog-stat bg-green-1">
+                  <div class="text-caption text-green-9">Transaksi Masuk</div>
+                  <div class="text-subtitle1 text-weight-bold text-green-9">{{ formatCurrency(programSummary.totalIn) }}</div>
+                  <div class="text-caption text-grey-7">{{ programSummary.countIn }} transaksi</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="prog-stat bg-red-1">
+                  <div class="text-caption text-red-9">Transaksi Keluar</div>
+                  <div class="text-subtitle1 text-weight-bold text-red-9">{{ formatCurrency(programSummary.totalOut) }}</div>
+                  <div class="text-caption text-grey-7">{{ programSummary.countOut }} transaksi</div>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="prog-stat" :class="programSummary.closingBalance >= 0 ? 'bg-teal-1' : 'bg-orange-1'">
+                  <div class="text-caption" :class="programSummary.closingBalance >= 0 ? 'text-teal-9' : 'text-orange-9'">Total Saldo</div>
+                  <div class="text-subtitle1 text-weight-bold" :class="programSummary.closingBalance >= 0 ? 'text-teal-9' : 'text-orange-9'">{{ formatCurrency(programSummary.closingBalance) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabel transaksi -->
+            <div v-if="!programTransactions.length" class="text-center text-grey-6 q-pa-lg">
+              Tidak ada transaksi untuk program ini pada periode {{ periodLabel }}.
+            </div>
+            <q-markup-table v-else flat dense bordered class="report-table">
+              <thead>
+                <tr class="bg-grey-2">
+                  <th class="text-left">Tanggal</th>
+                  <th class="text-left">Deskripsi</th>
+                  <th class="text-left">Akun</th>
+                  <th class="text-right">Masuk</th>
+                  <th class="text-right">Keluar</th>
+                  <th class="text-right">Saldo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="bg-blue-1 text-weight-medium">
+                  <td colspan="5">Saldo Awal</td>
+                  <td class="text-right text-blue-9">{{ formatCurrency(programSummary.openingBalance) }}</td>
+                </tr>
+                <tr v-for="t in programTransactions" :key="t.id">
+                  <td>{{ formatDateShort(t.transactionDate) }}</td>
+                  <td>{{ t.description || '-' }}</td>
+                  <td>{{ t.accountName }}</td>
+                  <td class="text-right text-green-7 text-weight-medium">
+                    {{ t.type === 'IN' ? formatCurrency(t.amount) : '-' }}
+                  </td>
+                  <td class="text-right text-red-7 text-weight-medium">
+                    {{ t.type === 'OUT' ? formatCurrency(t.amount) : '-' }}
+                  </td>
+                  <td class="text-right text-weight-bold">{{ formatCurrency(t.runningBalance) }}</td>
+                </tr>
+                <tr class="bg-grey-1 text-weight-bold">
+                  <td colspan="3">TOTAL</td>
+                  <td class="text-right text-green-9">{{ formatCurrency(programSummary.totalIn) }}</td>
+                  <td class="text-right text-red-9">{{ formatCurrency(programSummary.totalOut) }}</td>
+                  <td class="text-right text-primary">{{ formatCurrency(programSummary.closingBalance) }}</td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </template>
+          <div v-else class="text-center text-grey-6 q-pa-md no-print">
+            Pilih program lalu klik "Tampilkan Laporan Program" untuk melihat rincian transaksi masuk, keluar, dan saldo.
+          </div>
+        </q-card-section>
+      </q-card>
+
       <!-- Category Breakdown -->
       <q-card v-if="categoryBreakdown.length" flat bordered class="rounded-xl q-mb-lg">
         <q-card-section>
@@ -472,6 +608,95 @@ const periodLabel = computed(
   () => `${monthNames[filters.month - 1]} ${filters.year}`
 );
 
+// ─── Laporan Per Program ──────────────────────────────────────────────────────
+const selectedProgramCode = ref(null);
+const loadingProgram = ref(false);
+const exportingProgramExcel = ref(false);
+const exportingProgramPdf = ref(false);
+
+const programOptions = computed(() =>
+  (financeStore.programs || [])
+    .filter((p) => p.code)
+    .map((p) => ({ label: p.name, value: String(p.code) }))
+    .sort((a, b) => a.value.localeCompare(b.value))
+);
+
+const programOptionsFiltered = ref([]);
+
+const filterProgram = (val, update) => {
+  update(() => {
+    const needle = String(val || '').toLowerCase();
+    programOptionsFiltered.value = needle
+      ? programOptions.value.filter((o) => o.label.toLowerCase().includes(needle) || o.value.includes(needle))
+      : programOptions.value.slice();
+  });
+};
+
+const programReport = computed(() => financeStore.programReport);
+const programSummary = computed(() => programReport.value?.summary || {
+  openingBalance: 0, totalIn: 0, totalOut: 0, closingBalance: 0,
+  netCashflow: 0, countIn: 0, countOut: 0, totalTransactions: 0,
+});
+const programTransactions = computed(() => programReport.value?.transactions || []);
+
+const loadProgramReport = async () => {
+  if (!selectedProgramCode.value) {
+    $q.notify({ type: 'warning', message: 'Pilih program terlebih dahulu.' });
+    return;
+  }
+  loadingProgram.value = true;
+  await financeStore.fetchProgramReport({
+    year: filters.year,
+    month: filters.month,
+    programCode: selectedProgramCode.value,
+  });
+  loadingProgram.value = false;
+};
+
+const exportProgramReport = async (format) => {
+  if (!selectedProgramCode.value) {
+    $q.notify({ type: 'warning', message: 'Pilih program terlebih dahulu.' });
+    return;
+  }
+  if (!programTransactions.value.length) {
+    $q.notify({ type: 'warning', message: 'Tidak ada transaksi untuk diexport.' });
+    return;
+  }
+  const isExcel = format === 'excel';
+  const loadingRef = isExcel ? exportingProgramExcel : exportingProgramPdf;
+  loadingRef.value = true;
+  try {
+    const url = isExcel ? '/finance/reports/program/excel' : '/finance/reports/program/pdf';
+    const response = await api.get(url, {
+      params: {
+        year: filters.year,
+        month: filters.month,
+        programCode: selectedProgramCode.value,
+      },
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], {
+      type: isExcel
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf',
+    });
+    const code = programReport.value?.programCode || selectedProgramCode.value;
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Laporan-Program-${code}-${filters.year}-${String(filters.month).padStart(2, '0')}.${isExcel ? 'xlsx' : 'pdf'}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    $q.notify({ type: 'positive', message: `Laporan ${isExcel ? 'Excel' : 'PDF'} berhasil diunduh.` });
+  } catch (err) {
+    console.error(err);
+    $q.notify({ type: 'negative', message: `Gagal mengunduh laporan ${isExcel ? 'Excel' : 'PDF'}.` });
+  } finally {
+    loadingRef.value = false;
+  }
+};
+
 const divisiColor = (divisiNama) => {
   const key = String(divisiNama || '').trim().toLowerCase();
   const map = {
@@ -569,6 +794,7 @@ const exportPDF = async () => {
 
 onMounted(async () => {
   await financeStore.fetchAccountsWithBalance();
+  await financeStore.fetchPrograms();
   await loadReport();
 });
 </script>
@@ -605,6 +831,12 @@ onMounted(async () => {
 
 .print-only {
   display: none;
+}
+
+.prog-stat {
+  border-radius: 10px;
+  padding: 10px 12px;
+  height: 100%;
 }
 
 @media print {

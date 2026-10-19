@@ -18,6 +18,7 @@ export const useFinanceStore = defineStore('finance', {
     dashboardSummary: null,
     fundTracking: [],
     monthlyReport: null,
+    programReport: null,
     trendsData: null,
 
     // Programs
@@ -292,6 +293,20 @@ export const useFinanceStore = defineStore('finance', {
       } catch (err) {
         Notify.create({ type: 'negative', message: 'Gagal memuat laporan bulanan.' });
         return false;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchProgramReport(params = {}) {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/finance/reports/program', { params });
+        this.programReport = data.data;
+        return data.data;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal memuat laporan per program.' });
+        return null;
       } finally {
         this.loading = false;
       }
