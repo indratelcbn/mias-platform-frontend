@@ -30,6 +30,10 @@ const routes = [
       { path: 'donasi/program-donasi', component: () => import('pages/ProgramDonasiPage.vue'), name: 'program-donasi' },
       { path: 'donasi/program-wakaf', component: () => import('pages/ProgramWakafPage.vue'), name: 'program-wakaf' },
       { path: 'kontak', component: () => import('pages/KontakPage.vue'), name: 'kontak' },
+      // Ujian Online (publik, tanpa login)
+      { path: 'ujian', component: () => import('pages/UjianPage.vue'), name: 'ujian' },
+      { path: 'ujian/sesi/:pesertaId', component: () => import('pages/UjianSesiPage.vue'), name: 'ujian-sesi' },
+      { path: 'ujian/hasil/:pesertaId', component: () => import('pages/UjianHasilPage.vue'), name: 'ujian-hasil' },
     ],
   },
 
@@ -72,6 +76,9 @@ const routes = [
       { path: 'finance/reconciliation', component: () => import('pages/admin/AdminFinanceReconciliationPage.vue'), name: 'admin-finance-reconciliation', meta: { menuKey: 'admin-finance-reconciliation' } },
       { path: 'finance/report', component: () => import('pages/admin/AdminFinanceReportPage.vue'), name: 'admin-finance-report', meta: { menuKey: 'admin-finance-report' } },
       { path: 'finance/submissions', component: () => import('pages/admin/AdminFinanceSubmissionPage.vue'), name: 'admin-finance-submissions', meta: { menuKey: 'admin-finance-submissions' } },
+      // Ujian Routes (admin)
+      { path: 'ujian/:id', component: () => import('pages/admin/AdminUjianDetailPage.vue'), name: 'admin-ujian-detail', meta: { menuKey: 'admin-pendidikan', requiresAuth: true } },
+      { path: 'ujian/:id/import', component: () => import('pages/admin/AdminUjianImportPage.vue'), name: 'admin-ujian-import', meta: { menuKey: 'admin-pendidikan', requiresAuth: true } },
     ],
   },
 

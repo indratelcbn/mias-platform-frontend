@@ -52,3 +52,22 @@ $typography-font-family: 'Roboto', 'Segoe UI', sans-serif;
 .shadow-card {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
+
+// ─── Teks Arab (diperbesar untuk kejelasan) ────────────────────────────────
+.arabic-text {
+  font-family: 'Amiri', 'Scheherazade New', 'Traditional Arabic',
+    'Noto Naskh Arabic', 'Geeza Pro', serif;
+  font-size: 1.9em;
+  line-height: 2.1;
+  direction: rtl;
+  unicode-bidi: plaintext;
+  font-weight: 500;
+}
+
+// Ukuran teks Arab yang lebih besar di layar HP agar jelas
+@media (max-width: 599px) {
+  .arabic-text {
+    font-size: 2.05em;
+    line-height: 2.2;
+  }
+}

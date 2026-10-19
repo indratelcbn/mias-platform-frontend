@@ -19,6 +19,7 @@
     >
       <q-tab name="info" icon="info" label="Info Kelas" />
       <q-tab name="foto" icon="photo_library" label="Dokumentasi Foto" />
+      <q-tab name="ujian" icon="quiz" label="Ujian" />
     </q-tabs>
 
     <q-tab-panels v-model="mainTab" animated keep-alive>
@@ -175,6 +176,68 @@
             :max="store.meta.totalPages"
             boundary-numbers
             @update:model-value="onFotoPageChange"
+          />
+        </div>
+      </q-tab-panel>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           TAB: UJIAN
+      ════════════════════════════════════════════════════════════════════ -->
+      <q-tab-panel name="ujian" class="q-pa-none">
+        <div class="row items-center q-mb-md q-gutter-sm">
+          <q-btn unelevated color="primary" icon="add" label="Buat Ujian" @click="openUjianDialog()" />
+          <q-space />
+          <q-select
+            v-model="ujianFilterStatus"
+            :options="ujianStatusOpts"
+            emit-value map-options clearable
+            label="Filter status"
+            outlined dense style="min-width:160px"
+            @update:model-value="loadUjian"
+          />
+        </div>
+
+        <q-card flat bordered>
+          <q-table
+            :rows="ujianStore.daftarUjian"
+            :columns="ujianColumns"
+            row-key="id"
+            flat
+            :loading="ujianStore.loading"
+            hide-bottom
+            :rows-per-page-options="[0]"
+          >
+            <template #body-cell-status="{ row }">
+              <q-td class="text-center">
+                <q-badge :color="ujianStatusColor(row.status)" :label="row.status" />
+              </q-td>
+            </template>
+            <template #body-cell-jadwal="{ row }">
+              <q-td>
+                <div class="text-caption">{{ fmtDate(row.tanggalMulai) }}</div>
+                <div class="text-caption text-grey-6">s.d. {{ fmtDate(row.tanggalSelesai) }}</div>
+              </q-td>
+            </template>
+            <template #body-cell-soal="{ row }">
+              <q-td class="text-center">{{ row._count?.soal ?? 0 }}</q-td>
+            </template>
+            <template #body-cell-peserta="{ row }">
+              <q-td class="text-center">{{ row._count?.peserta ?? 0 }}</q-td>
+            </template>
+            <template #body-cell-actions="{ row }">
+              <q-td class="text-center">
+                <q-btn flat round dense icon="open_in_new" color="primary" size="sm" :to="{ name: 'admin-ujian-detail', params: { id: row.id } }" />
+                <q-btn flat round dense icon="delete" color="negative" size="sm" @click="confirmDeleteUjian(row)" />
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
+        <div class="row justify-end q-mt-sm">
+          <q-pagination
+            v-if="ujianStore.metaUjian.totalPages > 1"
+            v-model="ujianPage"
+            :max="ujianStore.metaUjian.totalPages"
+            @update:model-value="loadUjian"
           />
         </div>
       </q-tab-panel>
@@ -347,16 +410,63 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- ─── Dialog: Buat Ujian ──────────────────────────────────────────── -->
+    <q-dialog v-model="ujianDialog" persistent>
+      <q-card style="min-width:500px; max-width:96vw">
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6"><q-icon name="quiz" class="q-mr-xs" />Buat Ujian Baru</div>
+        </q-card-section>
+        <q-card-section class="q-gutter-sm">
+          <q-input v-model="ujianForm.judul" label="Judul Ujian *" outlined dense :rules="[v => !!v || 'Wajib']" />
+          <q-input v-model="ujianForm.deskripsi" label="Deskripsi" type="textarea" outlined dense autogrow />
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-7">
+              <q-input v-model="ujianForm.kodeUjian" label="Kode Ujian *" outlined dense :rules="[v => !!v || 'Wajib']" />
+            </div>
+            <div class="col-12 col-sm-5">
+              <q-input v-model.number="ujianForm.durasi" label="Durasi (menit) *" type="number" outlined dense />
+            </div>
+          </div>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <q-input v-model="ujianForm.tanggalMulai" label="Tanggal Mulai *" type="datetime-local" outlined dense />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model="ujianForm.tanggalSelesai" label="Tanggal Selesai *" type="datetime-local" outlined dense />
+            </div>
+          </div>
+          <div class="row q-col-gutter-md">
+            <div class="col-12 col-sm-6">
+              <q-input v-model.number="ujianForm.passingGrade" label="Nilai Kelulusan (%)" type="number" outlined dense />
+            </div>
+            <div class="col-12 col-sm-6">
+              <q-input v-model.number="ujianForm.maxPercobaan" label="Maks. Percobaan" type="number" outlined dense />
+            </div>
+          </div>
+          <q-input v-model="ujianForm.petunjuk" label="Petunjuk Ujian" type="textarea" outlined dense autogrow />
+          <q-toggle v-model="ujianForm.tampilNilai" label="Tampilkan nilai kepada peserta" />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Batal" v-close-popup />
+          <q-btn unelevated color="primary" label="Buat Ujian" icon="add" @click="saveUjianBaru" :loading="savingUjian" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { usePendidikanStore } from 'src/stores/pendidikan';
+import { useUjianStore } from 'src/stores/ujian';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
+const router = useRouter();
 const store = usePendidikanStore();
+const ujianStore = useUjianStore();
 
 const mainTab = ref('info');
 
@@ -549,9 +659,83 @@ const confirmDeleteFoto = (row) => {
   });
 };
 
+// ── Ujian Section ─────────────────────────────────────────────────────────────
+const ujianPage = ref(1);
+const ujianFilterStatus = ref(null);
+const ujianDialog = ref(false);
+const savingUjian = ref(false);
+
+const ujianStatusOpts = [
+  { label: 'Draft', value: 'DRAFT' },
+  { label: 'Published', value: 'PUBLISHED' },
+  { label: 'Closed', value: 'CLOSED' },
+  { label: 'Archived', value: 'ARCHIVED' },
+];
+
+const ujianColumns = [
+  { name: 'judul', label: 'Judul', field: 'judul', align: 'left' },
+  { name: 'kodeUjian', label: 'Kode', field: 'kodeUjian', align: 'left' },
+  { name: 'jadwal', label: 'Jadwal', field: 'tanggalMulai', align: 'left' },
+  { name: 'durasi', label: 'Durasi', field: 'durasi', align: 'center', format: v => `${v} mnt` },
+  { name: 'soal', label: 'Soal', field: '_count', align: 'center' },
+  { name: 'peserta', label: 'Peserta', field: '_count', align: 'center' },
+  { name: 'status', label: 'Status', field: 'status', align: 'center' },
+  { name: 'actions', label: '', field: 'actions', align: 'center' },
+];
+
+const ujianStatusColor = (s) => ({ DRAFT: 'grey', PUBLISHED: 'positive', CLOSED: 'warning', ARCHIVED: 'negative' }[s] || 'grey');
+
+const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '–';
+
+const loadUjian = () => {
+  ujianStore.fetchDaftar({ page: ujianPage.value, status: ujianFilterStatus.value || undefined });
+};
+
+const emptyUjianForm = () => ({
+  judul: '', deskripsi: '', kodeUjian: '',
+  tanggalMulai: '', tanggalSelesai: '',
+  durasi: 60, passingGrade: 70, maxPercobaan: 1,
+  petunjuk: '', tampilNilai: false,
+});
+const ujianForm = reactive(emptyUjianForm());
+
+const openUjianDialog = () => {
+  Object.assign(ujianForm, emptyUjianForm());
+  ujianDialog.value = true;
+};
+
+const saveUjianBaru = async () => {
+  savingUjian.value = true;
+  const result = await ujianStore.createUjian({
+    ...ujianForm,
+    tanggalMulai: new Date(ujianForm.tanggalMulai).toISOString(),
+    tanggalSelesai: new Date(ujianForm.tanggalSelesai).toISOString(),
+  });
+  savingUjian.value = false;
+  if (result) {
+    ujianDialog.value = false;
+    loadUjian();
+    router.push({ name: 'admin-ujian-detail', params: { id: result.id } });
+  }
+};
+
+const confirmDeleteUjian = (row) => {
+  $q.dialog({
+    title: 'Hapus Ujian',
+    message: `Hapus ujian "${row.judul}"? Semua soal dan data peserta akan ikut terhapus.`,
+    cancel: { flat: true, label: 'Batal' },
+    ok: { unelevated: true, color: 'negative', label: 'Hapus' },
+    persistent: true,
+  }).onOk(async () => {
+    const ok = await ujianStore.deleteUjian(row.id);
+    if (ok) loadUjian();
+  });
+};
+
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 onMounted(() => {
   store.fetchAllInfo();
   loadFotos();
+  loadUjian();
 });
 </script>
