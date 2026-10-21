@@ -220,7 +220,9 @@
                     <q-img
                       :src="qrisRekening.qrisImage"
                       fit="contain"
-                      style="width:100%;height:100%"
+                      style="width:100%;height:100%;cursor:zoom-in"
+                      title="Klik untuk memperbesar"
+                      @click="openLightbox(qrisRekening.qrisImage, 'QRIS – Scan untuk bayar via semua e-wallet & m-banking')"
                     />
                   </template>
                   <template v-else>
@@ -261,6 +263,7 @@
       </div>
 
     </div>
+    <AppLightbox />
   </q-page>
 </template>
 
@@ -268,6 +271,10 @@
 import { ref, computed, onMounted } from 'vue';
 import { useDonasiStore } from 'src/stores/donasi';
 import { copyToClipboard } from 'quasar';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
+
+const { open: openLightbox } = useLightbox();
 
 const donasiStore = useDonasiStore();
 const copied = ref(null);

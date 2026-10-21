@@ -97,7 +97,13 @@
               <div class="text-weight-bold q-mb-sm text-primary">
                 <q-icon name="qr_code_2" class="q-mr-xs" />QRIS
               </div>
-              <q-img :src="qrisRekening.qrisImage" fit="contain" style="max-height: 200px; max-width: 200px; margin: 0 auto" />
+              <q-img
+                :src="qrisRekening.qrisImage"
+                fit="contain"
+                style="max-height: 200px; max-width: 200px; margin: 0 auto; cursor: zoom-in"
+                title="Klik untuk memperbesar"
+                @click="openLightbox(qrisRekening.qrisImage, 'QRIS – Scan untuk infaq via semua e-wallet')"
+              />
               <div class="text-caption text-grey-6 q-mt-sm">Scan untuk infaq via semua e-wallet</div>
             </q-card>
           </div>
@@ -242,13 +248,17 @@
         </div>
       </div>
     </div>
+    <AppLightbox />
   </q-page>
 </template>
 
 <script setup>
 import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { useDonasiStore } from 'src/stores/donasi';
+import AppLightbox from 'components/AppLightbox.vue';
+import { useLightbox } from 'src/composables/useLightbox';
 
+const { open: openLightbox } = useLightbox();
 const donasiStore = useDonasiStore();
 const copied = ref(null);
 const inputJumlah = ref(''); // Raw input dari user

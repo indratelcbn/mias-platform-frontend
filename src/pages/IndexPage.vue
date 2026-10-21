@@ -80,6 +80,7 @@
 
     <!-- ─── Infaq CTA ──────────────────────────────────────────────────── -->
     <DonasiSection />
+    <AppLightbox />
   </q-page>
 </template>
 
@@ -94,6 +95,7 @@ import KajianCard from 'src/components/KajianCard.vue';
 import ArtikelCard from 'src/components/ArtikelCard.vue';
 import DonasiSection from 'src/components/DonasiSection.vue';
 import SectionTitle from 'src/components/SectionTitle.vue';
+import AppLightbox from 'components/AppLightbox.vue';
 
 const kajianStore = useKajianStore();
 const artikelStore = useArtikelStore();
