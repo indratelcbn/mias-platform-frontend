@@ -161,6 +161,7 @@ const allMenuOptions = [
   { value: 'admin-analytics', label: 'Analytics' },
   { value: 'admin-profil', label: 'Profil Masjid' },
   { value: 'admin-kajian', label: 'Kajian Ilmiyyah' },
+  { value: 'admin-murojaah', label: "Muroja'ah" },
   { value: 'admin-streaming', label: 'Mias TV' },
   { value: 'admin-galeri', label: 'Ied Mubarok' },
   { value: 'admin-sosial', label: 'Program Sosial' },

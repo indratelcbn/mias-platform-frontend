@@ -34,6 +34,9 @@ const routes = [
       { path: 'ujian', component: () => import('pages/UjianPage.vue'), name: 'ujian' },
       { path: 'ujian/sesi/:pesertaId', component: () => import('pages/UjianSesiPage.vue'), name: 'ujian-sesi' },
       { path: 'ujian/hasil/:pesertaId', component: () => import('pages/UjianHasilPage.vue'), name: 'ujian-hasil' },
+      // Muroja'ah (publik, tanpa login)
+      { path: 'murojaah', component: () => import('pages/MurojaahPage.vue'), name: 'murojaah' },
+      { path: 'murojaah/:slug', component: () => import('pages/MurojaahDetailPage.vue'), name: 'murojaah-detail' },
     ],
   },
 
@@ -53,6 +56,8 @@ const routes = [
       { path: 'dashboard', component: () => import('pages/admin/DashboardPage.vue'), name: 'admin-dashboard', meta: { menuKey: 'admin-dashboard' } },
       { path: 'analytics', component: () => import('pages/admin/Analytics.vue'), name: 'admin-analytics', meta: { menuKey: 'admin-analytics' } },
       { path: 'kajian', component: () => import('pages/admin/AdminKajianPage.vue'), name: 'admin-kajian', meta: { menuKey: 'admin-kajian' } },
+      { path: 'murojaah', component: () => import('pages/admin/AdminMurojaahPage.vue'), name: 'admin-murojaah', meta: { menuKey: 'admin-murojaah' } },
+      { path: 'murojaah/:id', component: () => import('pages/admin/AdminMurojaahDetailPage.vue'), name: 'admin-murojaah-detail', meta: { menuKey: 'admin-murojaah' } },
       { path: 'artikel', component: () => import('pages/admin/AdminArtikelPage.vue'), name: 'admin-artikel', meta: { menuKey: 'admin-artikel' } },
       { path: 'donasi', component: () => import('pages/admin/AdminDonasiPage.vue'), name: 'admin-donasi', meta: { menuKey: 'admin-donasi' } },
       { path: 'pesan', component: () => import('pages/admin/AdminPesanPage.vue'), name: 'admin-pesan', meta: { menuKey: 'admin-pesan' } },

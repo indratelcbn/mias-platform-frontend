@@ -243,6 +243,7 @@ const allMenuItems = [
   { name: 'admin-analytics', label: 'Analytics', to: '/admin/analytics', icon: 'query_stats' },
   { name: 'admin-profil', label: 'Profil Masjid', to: '/admin/profil', icon: 'account_balance' },
   { name: 'admin-kajian', label: 'Kajian Ilmiyyah', to: '/admin/kajian', icon: 'menu_book' },
+  { name: 'admin-murojaah', label: "Muroja'ah", to: '/admin/murojaah', icon: 'auto_stories' },
   { name: 'admin-streaming', label: 'Mias TV', to: '/admin/streaming', icon: 'live_tv' },
   { name: 'admin-galeri', label: 'Ied Mubarok', to: '/admin/galeri', icon: 'celebration' },
   { name: 'admin-sosial', label: 'Program Sosial', to: '/admin/sosial', icon: 'diversity_3' },

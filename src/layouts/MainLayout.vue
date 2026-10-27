@@ -617,6 +617,7 @@ const simpleNavItems = [
 const dakwahSubMenu = [
   { name: 'profil-pemateri', label: 'Pemateri', to: '/profil/pemateri', icon: 'auto_stories' },
   { name: 'kajian', label: 'Kajian Ilmiyyah', to: '/kajian', icon: 'menu_book' },
+  { name: 'murojaah', label: "Muroja'ah", to: '/murojaah', icon: 'auto_stories' },
   { name: 'mias-tv', label: 'Mias TV', to: '/dakwah/mias-tv', icon: 'live_tv' },
   { name: 'kegiatan-ramadhan', label: 'Kegiatan Ramadhan', to: '/dakwah/kegiatan-ramadhan', icon: 'auto_awesome' },
   { name: 'kegiatan-qurban', label: 'Kegiatan Pemotongan Hewan Qurban', to: '/dakwah/kegiatan-qurban', icon: 'pets' },
@@ -653,7 +654,7 @@ const profilSubMenu = [
   { label: 'Struktur Organisasi', to: '/profil/struktur',  icon: 'account_tree', color: 'purple-8' },
 ];
 
-const dakwahRouteNames = ['profil-pemateri', 'kajian', 'kajian-detail', 'mias-tv', 'kegiatan-ramadhan', 'kegiatan-qurban', 'sholat-ied'];
+const dakwahRouteNames = ['profil-pemateri', 'kajian', 'kajian-detail', 'murojaah', 'murojaah-detail', 'mias-tv', 'kegiatan-ramadhan', 'kegiatan-qurban', 'sholat-ied'];
 const isDakwahActive = computed(() => dakwahRouteNames.includes(route.name));
 const isPendidikanActive = computed(() => ['pendidikan', 'ujian', 'ujian-sesi', 'ujian-hasil'].includes(route.name));
 const isUsahaActive   = computed(() => ['umroh', 'mias-mart'].includes(route.name));
