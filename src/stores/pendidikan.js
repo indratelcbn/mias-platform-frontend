@@ -9,9 +9,12 @@ export const usePendidikanStore = defineStore('pendidikan', {
     infoByKategori: {},   // { TAHSIN_IKHWAN: {...} }
     fotosByKategori: {},  // { TAHSIN_IKHWAN: [...] }
     yearsByKategori: {},  // { TAHSIN_IKHWAN: [2026, 2025] }
+    jadwalByKategori: {}, // { TAHSIN_IKHWAN: [...] }
+    jadwalAll: [],        // semua jadwal aktif (halaman Jadwal Pendidikan)
     // Admin
     allInfo: [],
     listFotoAdmin: [],
+    jadwalAdmin: [],
     meta: { total: 0, page: 1, limit: 20, totalPages: 1 },
     loading: false,
   }),
@@ -25,6 +28,7 @@ export const usePendidikanStore = defineStore('pendidikan', {
         this.infoByKategori[kategori] = data.info;
         this.fotosByKategori[kategori] = data.fotos || [];
         this.yearsByKategori[kategori] = data.availableYears || [];
+        this.jadwalByKategori[kategori] = data.jadwal || [];
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal memuat data pendidikan.' });
       } finally {
@@ -101,6 +105,65 @@ export const usePendidikanStore = defineStore('pendidikan', {
         return true;
       } catch {
         Notify.create({ type: 'negative', message: 'Gagal menghapus foto.' });
+        return false;
+      }
+    },
+
+    // ── Public: Jadwal ───────────────────────────────────────────────────────
+    async fetchJadwalPublic() {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/pendidikan/jadwal');
+        this.jadwalAll = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat jadwal pendidikan.' });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // ── Admin: Jadwal ────────────────────────────────────────────────────────
+    async fetchJadwalAdmin() {
+      this.loading = true;
+      try {
+        const { data } = await api.get('/pendidikan/admin/jadwal');
+        this.jadwalAdmin = data.data;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal memuat jadwal pendidikan.' });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async createJadwal(payload) {
+      try {
+        const { data } = await api.post('/pendidikan/jadwal', payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return data.data;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal menambah jadwal.' });
+        return null;
+      }
+    },
+
+    async updateJadwal(id, payload) {
+      try {
+        const { data } = await api.put(`/pendidikan/jadwal/${id}`, payload);
+        Notify.create({ type: 'positive', message: data.message });
+        return data.data;
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.response?.data?.message || 'Gagal memperbarui jadwal.' });
+        return null;
+      }
+    },
+
+    async removeJadwal(id) {
+      try {
+        await api.delete(`/pendidikan/jadwal/${id}`);
+        Notify.create({ type: 'positive', message: 'Jadwal berhasil dihapus.' });
+        return true;
+      } catch {
+        Notify.create({ type: 'negative', message: 'Gagal menghapus jadwal.' });
         return false;
       }
     },

@@ -634,10 +634,11 @@ const sosialSubMenu = [
 ];
 
 const pendidikanSubMenu = [
+  { label: 'Jadwal Pendidikan', to: '/pendidikan/jadwal',             icon: 'mdi-calendar-clock', color: 'indigo-8'  },
   { label: 'Tahsin Ikhwan',      to: '/pendidikan/tahsin-ikhwan',      icon: 'auto_stories', color: 'blue-9'   },
   { label: 'Tahsin Akhwat',      to: '/pendidikan/tahsin-akhwat',      icon: 'auto_stories', color: 'purple-9' },
-  { label: 'Bahasa Arab Ikhwan', to: '/pendidikan/bahasa-arab-ikhwan', icon: 'translate',    color: 'green-8'  },
-  { label: 'Bahasa Arab Akhwat', to: '/pendidikan/bahasa-arab-akhwat', icon: 'translate',    color: 'red-8'    },
+  { label: 'Bahasa Arab Ikhwan', to: '/pendidikan/bahasa-arab-ikhwan', icon: 'mdi-abjad-arabic', color: 'green-8'  },
+  { label: 'Bahasa Arab Akhwat', to: '/pendidikan/bahasa-arab-akhwat', icon: 'mdi-abjad-arabic', color: 'red-8'    },
   { label: 'Taman Pendidikan Qur\'an', to: '/pendidikan/tpq', icon: 'menu_book', color: 'orange-9' },
   { label: 'Ujian Online',       to: '/ujian',                         icon: 'quiz',         color: 'teal-8'   },
 ];
@@ -656,7 +657,7 @@ const profilSubMenu = [
 
 const dakwahRouteNames = ['profil-pemateri', 'kajian', 'kajian-detail', 'murojaah', 'murojaah-detail', 'mias-tv', 'kegiatan-ramadhan', 'kegiatan-qurban', 'sholat-ied'];
 const isDakwahActive = computed(() => dakwahRouteNames.includes(route.name));
-const isPendidikanActive = computed(() => ['pendidikan', 'ujian', 'ujian-sesi', 'ujian-hasil'].includes(route.name));
+const isPendidikanActive = computed(() => ['pendidikan', 'pendidikan-jadwal', 'ujian', 'ujian-sesi', 'ujian-hasil'].includes(route.name));
 const isUsahaActive   = computed(() => ['umroh', 'mias-mart'].includes(route.name));
 const isSosialActive  = computed(() => route.name === 'sosial-program');
 const isInfaqActive   = computed(() => ['program-donasi', 'program-wakaf', 'donasi'].includes(route.name));

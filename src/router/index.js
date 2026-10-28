@@ -16,6 +16,7 @@ const routes = [
       { path: 'dakwah/kegiatan-qurban', component: () => import('pages/KegiatanQurbanPage.vue'), name: 'kegiatan-qurban' },
       { path: 'dakwah/sholat-ied', component: () => import('pages/SholatIedPage.vue'), name: 'sholat-ied' },
       { path: 'sosial/:slug', component: () => import('pages/ProgramSosialPage.vue'), name: 'sosial-program' },
+      { path: 'pendidikan/jadwal', component: () => import('pages/JadwalPendidikanPage.vue'), name: 'pendidikan-jadwal' },
       { path: 'pendidikan/:slug', component: () => import('pages/PendidikanPage.vue'), name: 'pendidikan' },
       { path: 'usaha/umroh', component: () => import('pages/UmrohPage.vue'), name: 'umroh' },
       { path: 'usaha/mias-mart', component: () => import('pages/MiasMartPage.vue'), name: 'mias-mart' },

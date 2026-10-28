@@ -18,17 +18,6 @@
 
       <!-- Info Cards Row -->
       <div class="info-cards-row q-mt-xl q-mb-xl">
-        <!-- Jumlah Penuntut Ilmu -->
-        <div class="info-card">
-          <div class="info-card-icon-wrap" :style="{ background: program.lightColor }">
-            <q-icon name="groups" :style="{ color: program.accentColor }" size="30px" />
-          </div>
-          <div class="info-card-body">
-            <div class="info-card-value">{{ info?.jumlahPenuntutIlmu ?? '–' }}</div>
-            <div class="info-card-label">Penuntut Ilmu</div>
-          </div>
-        </div>
-
         <!-- Kitab yang Digunakan -->
         <div class="info-card info-card--wide">
           <div class="info-card-icon-wrap" :style="{ background: program.lightColor }">
@@ -76,6 +65,53 @@
         <q-icon name="info_outline" :style="{ color: program.accentColor }" size="22px" class="q-mr-sm" />
         <span class="text-body1 text-grey-8">{{ info.deskripsi }}</span>
       </div>
+
+      <!-- ─── Jadwal Kelas ─────────────────────────────────────────────── -->
+      <template v-if="jadwal.length">
+        <div class="text-h5 text-weight-bold q-mb-lg section-title">
+          <span class="title-line" :style="{ background: program.accentColor }"></span>
+          Jadwal Kelas
+        </div>
+        <q-card flat bordered class="q-mb-xl" style="border-radius: 12px; overflow: hidden">
+          <q-table
+            :rows="jadwal"
+            :columns="jadwalColumns"
+            row-key="id"
+            flat
+            hide-pagination
+            :rows-per-page-options="[0]"
+            :pagination="{ rowsPerPage: 0 }"
+            :grid="$q.screen.lt.sm"
+            class="jadwal-table"
+          >
+            <template #body-cell-no="props">
+              <q-td class="text-center text-weight-medium text-grey-8">{{ props.rowIndex + 1 }}</q-td>
+            </template>
+            <template #body-cell-namaKelas="props">
+              <q-td>
+                <q-badge :style="{ background: program.accentColor }" class="text-white" style="font-size:12px; padding:4px 10px; border-radius:8px">
+                  {{ props.value }}
+                </q-badge>
+              </q-td>
+            </template>
+            <template #body-cell-keterangan="props">
+              <q-td style="white-space: pre-line; max-width: 220px">{{ props.value || '-' }}</q-td>
+            </template>
+            <template #item="props">
+              <div class="col-12 q-pa-xs">
+                <q-card flat bordered class="q-pa-md">
+                  <div class="text-weight-bold q-mb-xs" :style="{ color: program.accentColor }">{{ props.row.namaKelas }}</div>
+                  <div class="text-caption"><q-icon name="event" size="14px" /> {{ props.row.hari || '-' }} · <q-icon name="schedule" size="14px" /> {{ props.row.jam || '-' }}</div>
+                  <div v-if="props.row.pengajar" class="text-caption"><q-icon name="person" size="14px" /> {{ props.row.pengajar }}</div>
+                  <div v-if="props.row.tempat" class="text-caption"><q-icon name="place" size="14px" /> {{ props.row.tempat }}</div>
+                  <div v-if="props.row.kitab" class="text-caption"><q-icon name="menu_book" size="14px" /> {{ props.row.kitab }}</div>
+                  <div v-if="props.row.keterangan" class="text-caption text-grey-7 q-mt-xs" style="white-space: pre-line">{{ props.row.keterangan }}</div>
+                </q-card>
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+      </template>
 
       <!-- ─── Dokumentasi Foto ─────────────────────────────────────────── -->
       <div class="text-h5 text-weight-bold q-mb-lg section-title">
@@ -214,9 +250,11 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useQuasar } from 'quasar';
 import { usePendidikanStore } from 'src/stores/pendidikan';
 
 const route = useRoute();
+const $q = useQuasar();
 const store = usePendidikanStore();
 
 // ── Slug → config map ─────────────────────────────────────────────────────────
@@ -243,7 +281,7 @@ const PROGRAM_MAP = {
     key: 'BAHASA_ARAB_IKHWAN',
     label: 'Bahasa Arab Ikhwan',
     tagline: 'Belajar Bahasa Arab sebagai kunci memahami Al-Qur\'an dan Sunnah',
-    icon: 'translate',
+    icon: 'mdi-abjad-arabic',
     gradient: 'linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)',
     accentColor: '#2E7D32',
     lightColor: '#E8F5E9',
@@ -252,7 +290,7 @@ const PROGRAM_MAP = {
     key: 'BAHASA_ARAB_AKHWAT',
     label: 'Bahasa Arab Akhwat',
     tagline: 'Belajar Bahasa Arab sebagai kunci memahami Al-Qur\'an dan Sunnah',
-    icon: 'translate',
+    icon: 'mdi-abjad-arabic',
     gradient: 'linear-gradient(135deg, #BF360C 0%, #870000 100%)',
     accentColor: '#BF360C',
     lightColor: '#FBE9E7',
@@ -276,6 +314,18 @@ const kategori = computed(() => program.value.key);
 const info = computed(() => store.infoByKategori[kategori.value] || null);
 const fotos = computed(() => store.fotosByKategori[kategori.value] || []);
 const availableYears = computed(() => store.yearsByKategori[kategori.value] || []);
+const jadwal = computed(() => store.jadwalByKategori[kategori.value] || []);
+
+const jadwalColumns = [
+  { name: 'no', label: 'No', field: 'no', align: 'center', style: 'width: 56px' },
+  { name: 'namaKelas', label: 'Kelas', field: 'namaKelas', align: 'left' },
+  { name: 'hari', label: 'Hari', field: 'hari', align: 'left', format: v => v || '-' },
+  { name: 'jam', label: 'Waktu', field: 'jam', align: 'left', format: v => v || '-' },
+  { name: 'pengajar', label: 'Pengajar', field: 'pengajar', align: 'left', format: v => v || '-' },
+  { name: 'tempat', label: 'Tempat', field: 'tempat', align: 'left', format: v => v || '-' },
+  { name: 'kitab', label: 'Kitab / Materi', field: 'kitab', align: 'left', format: v => v || '-' },
+  { name: 'keterangan', label: 'Keterangan', field: 'keterangan', align: 'left' },
+];
 
 const pengajarList = computed(() => {
   try { return JSON.parse(info.value?.pengajar || '[]'); } catch { return []; }

@@ -18,6 +18,7 @@
       indicator-color="primary"
     >
       <q-tab name="info" icon="info" label="Info Kelas" />
+      <q-tab name="jadwal" icon="mdi-calendar-clock" label="Jadwal Kelas" />
       <q-tab name="foto" icon="photo_library" label="Dokumentasi Foto" />
       <q-tab name="ujian" icon="quiz" label="Ujian" />
     </q-tabs>
@@ -96,6 +97,51 @@
             </q-card>
           </div>
         </div>
+      </q-tab-panel>
+
+      <!-- ═══════════════════════════════════════════════════════════════════
+           TAB: JADWAL KELAS
+      ════════════════════════════════════════════════════════════════════ -->
+      <q-tab-panel name="jadwal" class="q-pa-none">
+        <div class="row items-center q-mb-md q-gutter-sm">
+          <q-btn unelevated color="primary" icon="add" label="Tambah Jadwal" no-caps @click="openJadwalDialog()" />
+          <q-space />
+          <q-select
+            v-model="jadwalFilterKategori"
+            :options="kategoriOpts"
+            option-value="value" option-label="label"
+            emit-value map-options clearable
+            label="Filter kategori"
+            outlined dense style="min-width:200px"
+          />
+        </div>
+
+        <q-card flat bordered>
+          <q-table
+            :rows="jadwalRows"
+            :columns="jadwalColumns"
+            row-key="id"
+            flat
+            :loading="store.loading"
+            hide-bottom
+            :rows-per-page-options="[0]"
+          >
+            <template #body-cell-kategori="{ row }">
+              <q-td><q-badge :color="kategoriColor(row.kategori)" :label="kategoriLabel(row.kategori)" /></q-td>
+            </template>
+            <template #body-cell-isActive="{ row }">
+              <q-td class="text-center">
+                <q-badge :color="row.isActive ? 'positive' : 'grey'" :label="row.isActive ? 'Aktif' : 'Nonaktif'" />
+              </q-td>
+            </template>
+            <template #body-cell-actions="{ row }">
+              <q-td class="text-center">
+                <q-btn flat round dense icon="edit" color="primary" size="sm" @click="openJadwalDialog(row)" />
+                <q-btn flat round dense icon="delete" color="negative" size="sm" @click="confirmDeleteJadwal(row)" />
+              </q-td>
+            </template>
+          </q-table>
+        </q-card>
       </q-tab-panel>
 
       <!-- ═══════════════════════════════════════════════════════════════════
@@ -321,6 +367,119 @@
       </q-card>
     </q-dialog>
 
+    <!-- ─── Dialog: Jadwal ────────────────────────────────────────────────── -->
+    <q-dialog v-model="jadwalDialog" persistent>
+      <q-card style="width: 560px; max-width: 96vw">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">{{ isJadwalEdit ? 'Edit Jadwal' : 'Tambah Jadwal' }}</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pt-md">
+          <q-form @submit="saveJadwal" class="q-gutter-md">
+            <q-select
+              v-model="jadwalForm.kategori"
+              :options="kategoriOpts"
+              option-value="value" option-label="label"
+              emit-value map-options
+              outlined dense
+              label="Kategori / Kelas *"
+              :rules="[v => !!v || 'Wajib dipilih']"
+            />
+            <q-input
+              v-model="jadwalForm.namaKelas"
+              outlined dense
+              label="Nama Kelas *"
+              hint="mis. Kelas Intensif, Kelas Reguler, atau Baca Kitab"
+              :rules="[v => !!v || 'Wajib diisi']"
+            />
+            <div class="row q-col-gutter-sm">
+              <q-select
+                class="col-12 col-sm-6"
+                v-model="hariSelected"
+                :options="HARI_OPTIONS"
+                multiple
+                use-chips
+                outlined dense
+                label="Hari"
+                hint="Klik untuk pilih satu/lebih hari"
+              />
+              <q-select
+                class="col-12 col-sm-6"
+                v-model="jamChoice"
+                :options="WAKTU_OPTIONS"
+                outlined dense clearable
+                label="Waktu"
+                hint="Pilih dari daftar"
+              />
+            </div>
+            <q-input
+              v-if="jamChoice === 'Lainnya'"
+              v-model="jamManual"
+              outlined dense
+              label="Waktu (input manual)"
+              placeholder="mis. 13.00 - 15.00"
+            />
+            <div class="row q-col-gutter-sm">
+              <q-select
+                class="col-12 col-sm-6"
+                v-model="jadwalForm.pengajar"
+                :options="pengajarOptions"
+                use-input
+                input-debounce="0"
+                new-value-mode="add-unique"
+                clearable
+                outlined dense
+                label="Pengajar"
+                hint="Ambil dari Info Kelas atau ketik manual"
+              />
+              <q-select
+                class="col-12 col-sm-6"
+                v-model="tempatChoice"
+                :options="TEMPAT_OPTIONS"
+                outlined dense clearable
+                label="Tempat"
+                hint="Pilih ruang / lokasi"
+              />
+            </div>
+            <q-input
+              v-if="tempatChoice === 'Lainnya'"
+              v-model="tempatManual"
+              outlined dense
+              label="Tempat (input manual)"
+              placeholder="mis. Aula lantai 2"
+            />
+            <q-select
+              v-model="jadwalForm.kitab"
+              :options="kitabOptions"
+              use-input
+              input-debounce="0"
+              new-value-mode="add-unique"
+              clearable
+              outlined dense
+              label="Kitab / Materi"
+              hint="Ambil dari Info Kelas atau ketik manual"
+            />
+            <q-input v-model="jadwalForm.keterangan" outlined dense type="textarea" rows="2" label="Keterangan (opsional)" />
+            <div class="row q-col-gutter-sm items-center">
+              <q-input class="col-6" v-model.number="jadwalForm.urutan" type="number" outlined dense label="Urutan Tampil" />
+              <q-toggle class="col-6" v-model="jadwalForm.isActive" label="Aktif / tampil ke publik" />
+            </div>
+
+            <div class="row justify-end q-gutter-sm q-mt-sm">
+              <q-btn flat no-caps label="Batal" v-close-popup />
+              <q-btn
+                unelevated color="primary" no-caps type="submit"
+                :label="isJadwalEdit ? 'Simpan' : 'Tambah'"
+                :loading="savingJadwal"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
     <!-- ─── Dialog: Foto ──────────────────────────────────────────────────── -->
     <q-dialog v-model="fotoDialog" persistent>
       <q-card style="width: 540px; max-width: 96vw">
@@ -513,12 +672,12 @@ const kategoriOpts = [
   },
   {
     value: 'BAHASA_ARAB_IKHWAN', label: 'Bahasa Arab Ikhwan',
-    icon: 'translate',
+    icon: 'mdi-abjad-arabic',
     gradient: 'linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%)',
   },
   {
     value: 'BAHASA_ARAB_AKHWAT', label: 'Bahasa Arab Akhwat',
-    icon: 'translate',
+    icon: 'mdi-abjad-arabic',
     gradient: 'linear-gradient(135deg, #BF360C 0%, #870000 100%)',
   },
   {
@@ -580,6 +739,143 @@ const saveInfo = async () => {
     infoDialog.value = false;
     store.fetchAllInfo();
   }
+};
+
+// ── Jadwal Section ─────────────────────────────────────────────────────────────
+const jadwalFilterKategori = ref(null);
+const jadwalDialog = ref(false);
+const isJadwalEdit = ref(false);
+const savingJadwal = ref(false);
+const editJadwalId = ref(null);
+
+const HARI_OPTIONS = ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Ahad'];
+const WAKTU_OPTIONS = [
+  "Ba'da Maghrib - Isya",
+  "Ba'da Isya - Selesai",
+  '09.00 - 12.00',
+  '09.00 - 11.00',
+  "Ba'da Ashar - Selesai",
+  'Lainnya',
+];
+const TEMPAT_OPTIONS = ['Ruang Utama/Ikhwan', 'Ruang Akhwat', 'Ruang Sekretariat Remaja', 'Lainnya'];
+
+const KATEGORI_COLOR = {
+  TAHSIN_IKHWAN: 'blue-8',
+  TAHSIN_AKHWAT: 'purple-7',
+  BAHASA_ARAB_IKHWAN: 'green-8',
+  BAHASA_ARAB_AKHWAT: 'deep-orange-8',
+  TPQ: 'orange-9',
+};
+const kategoriColor = (k) => KATEGORI_COLOR[k] || 'indigo-6';
+
+// Helper UI state untuk select Hari / Waktu / Tempat
+const hariSelected = ref([]);
+const jamChoice = ref(null);
+const jamManual = ref('');
+const tempatChoice = ref(null);
+const tempatManual = ref('');
+
+// Opsi Pengajar & Kitab di-get dari Info Kelas kategori terpilih
+const pengajarOptions = computed(() => parseJson(infoMap.value[jadwalForm.kategori]?.pengajar));
+const kitabOptions = computed(() => parseJson(infoMap.value[jadwalForm.kategori]?.kitab));
+
+const jadwalColumns = [
+  { name: 'kategori', label: 'Kategori', field: 'kategori', align: 'left' },
+  { name: 'namaKelas', label: 'Kelas', field: 'namaKelas', align: 'left' },
+  { name: 'hari', label: 'Hari', field: 'hari', align: 'left', format: v => v || '-' },
+  { name: 'jam', label: 'Waktu', field: 'jam', align: 'left', format: v => v || '-' },
+  { name: 'pengajar', label: 'Pengajar', field: 'pengajar', align: 'left', format: v => v || '-' },
+  { name: 'tempat', label: 'Tempat', field: 'tempat', align: 'left', format: v => v || '-' },
+  { name: 'kitab', label: 'Kitab / Materi', field: 'kitab', align: 'left', format: v => v || '-' },
+  { name: 'isActive', label: 'Status', field: 'isActive', align: 'center' },
+  { name: 'actions', label: '', field: 'actions', align: 'center' },
+];
+
+const jadwalRows = computed(() => {
+  const list = store.jadwalAdmin;
+  return jadwalFilterKategori.value
+    ? list.filter(j => j.kategori === jadwalFilterKategori.value)
+    : list;
+});
+
+const emptyJadwalForm = () => ({
+  kategori: null, namaKelas: '', hari: '', jam: '',
+  pengajar: '', tempat: '', kitab: '', keterangan: '',
+  urutan: 0, isActive: true,
+});
+const jadwalForm = reactive(emptyJadwalForm());
+
+const openJadwalDialog = (row = null) => {
+  if (row) {
+    isJadwalEdit.value = true;
+    editJadwalId.value = row.id;
+    Object.assign(jadwalForm, {
+      kategori: row.kategori,
+      namaKelas: row.namaKelas,
+      pengajar: row.pengajar || '',
+      kitab: row.kitab || '',
+      keterangan: row.keterangan || '',
+      urutan: row.urutan ?? 0,
+      isActive: row.isActive,
+    });
+    hariSelected.value = row.hari ? row.hari.split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (row.jam && WAKTU_OPTIONS.includes(row.jam) && row.jam !== 'Lainnya') {
+      jamChoice.value = row.jam; jamManual.value = '';
+    } else if (row.jam) {
+      jamChoice.value = 'Lainnya'; jamManual.value = row.jam;
+    } else { jamChoice.value = null; jamManual.value = ''; }
+    if (row.tempat && TEMPAT_OPTIONS.includes(row.tempat) && row.tempat !== 'Lainnya') {
+      tempatChoice.value = row.tempat; tempatManual.value = '';
+    } else if (row.tempat) {
+      tempatChoice.value = 'Lainnya'; tempatManual.value = row.tempat;
+    } else { tempatChoice.value = null; tempatManual.value = ''; }
+  } else {
+    isJadwalEdit.value = false;
+    editJadwalId.value = null;
+    Object.assign(jadwalForm, emptyJadwalForm());
+    if (jadwalFilterKategori.value) jadwalForm.kategori = jadwalFilterKategori.value;
+    hariSelected.value = [];
+    jamChoice.value = null; jamManual.value = '';
+    tempatChoice.value = null; tempatManual.value = '';
+  }
+  jadwalDialog.value = true;
+};
+
+const saveJadwal = async () => {
+  savingJadwal.value = true;
+  const payload = {
+    kategori: jadwalForm.kategori,
+    namaKelas: jadwalForm.namaKelas,
+    hari: hariSelected.value.join(', '),
+    jam: jamChoice.value === 'Lainnya' ? (jamManual.value || '').trim() : (jamChoice.value || ''),
+    pengajar: jadwalForm.pengajar || '',
+    tempat: tempatChoice.value === 'Lainnya' ? (tempatManual.value || '').trim() : (tempatChoice.value || ''),
+    kitab: jadwalForm.kitab || '',
+    keterangan: jadwalForm.keterangan || '',
+    urutan: Number(jadwalForm.urutan) || 0,
+    isActive: jadwalForm.isActive,
+  };
+  const result = isJadwalEdit.value
+    ? await store.updateJadwal(editJadwalId.value, payload)
+    : await store.createJadwal(payload);
+  savingJadwal.value = false;
+  if (result) {
+    jadwalDialog.value = false;
+    store.fetchJadwalAdmin();
+  }
+};
+
+const confirmDeleteJadwal = (row) => {
+  $q.dialog({
+    title: 'Hapus Jadwal',
+    message: `Hapus jadwal "${row.namaKelas}" (${kategoriLabel(row.kategori)})?`,
+    cancel: { flat: true, label: 'Batal' },
+    ok: { unelevated: true, color: 'negative', label: 'Hapus' },
+    persistent: true,
+  }).onOk(async () => {
+    const ok = await store.removeJadwal(row.id);
+    if (ok) store.fetchJadwalAdmin();
+  });
 };
 
 // ── Foto Section ──────────────────────────────────────────────────────────────
@@ -764,6 +1060,7 @@ const confirmDeleteUjian = (row) => {
 // ── Lifecycle ─────────────────────────────────────────────────────────────────
 onMounted(() => {
   store.fetchAllInfo();
+  store.fetchJadwalAdmin();
   loadFotos();
   loadUjian();
 });

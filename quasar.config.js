@@ -19,7 +19,7 @@ module.exports = configure(function (ctx) {
 
     css: ['app.scss'],
 
-    extras: ['material-icons', 'fontawesome-v6', 'roboto-font'],
+    extras: ['material-icons', 'fontawesome-v6', 'mdi-v7', 'roboto-font'],
 
     build: {
       target: {
