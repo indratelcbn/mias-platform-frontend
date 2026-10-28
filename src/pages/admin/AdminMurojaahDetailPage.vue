@@ -205,12 +205,14 @@
 
     <!-- ══════════ Dialog Sesi ══════════ -->
     <q-dialog v-model="sesiDialog" persistent>
-      <q-card style="min-width:340px; max-width:520px; width:90vw">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">{{ sesiForm.id ? 'Edit' : 'Tambah' }} Sesi</div><q-space /><q-btn icon="close" flat round dense v-close-popup />
+      <q-card class="sesi-dialog-card" style="min-width:340px; max-width:520px; width:90vw">
+        <q-card-section class="row items-center q-pb-sm sesi-dialog-header">
+          <div class="text-h6 text-weight-bold">{{ sesiForm.id ? 'Edit' : 'Tambah' }} Sesi</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
         <q-card-section>
-          <q-form @submit="submitSesi" class="q-gutter-md">
+          <q-form @submit="submitSesi" class="sesi-dialog-form">
             <q-input v-model="sesiForm.judul" outlined dense label="Judul Sesi *" placeholder="Muroja'ah 1" :rules="[v => !!v || 'Judul wajib diisi']" />
             <q-input v-model="sesiForm.deskripsi" outlined dense type="textarea" rows="2" label="Deskripsi" />
             <div class="row q-col-gutter-md">
@@ -222,7 +224,7 @@
               </div>
             </div>
             <q-input v-model="sesiForm.jadwalBuka" outlined dense type="datetime-local" label="Jadwal Pembukaan (opsional)" stack-label hint="Kosongkan untuk langsung terbuka" />
-            <div class="row justify-end q-gutter-sm">
+            <div class="row justify-end q-gutter-sm sesi-dialog-actions">
               <q-btn flat no-caps label="Batal" v-close-popup />
               <q-btn unelevated color="primary" no-caps :label="sesiForm.id ? 'Simpan' : 'Tambah'" type="submit" :loading="savingSesi" />
             </div>
@@ -648,6 +650,81 @@ onMounted(async () => {
   if (sesiList.value.length) selectSesi(sesiList.value[0].id);
 });
 </script>
+
+<style scoped>
+.sesi-dialog-card {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.12);
+}
+
+.sesi-dialog-card .q-card__section {
+  padding: 20px 22px;
+}
+
+.sesi-dialog-header {
+  padding-bottom: 12px !important;
+}
+
+.sesi-dialog-header .text-h6 {
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.sesi-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sesi-dialog-form :deep(.q-field--outlined .q-field__control) {
+  min-height: 52px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.62);
+}
+
+.sesi-dialog-form :deep(.q-field--outlined .q-field__control:before) {
+  border-color: rgba(148, 163, 184, 0.7);
+  border-width: 1.2px;
+}
+
+.sesi-dialog-form :deep(.q-field--outlined .q-field__control:hover:before) {
+  border-color: rgba(100, 116, 139, 0.9);
+}
+
+.sesi-dialog-form :deep(.q-field--outlined.q-field--focused .q-field__control:after) {
+  border-width: 2px;
+  border-color: #1976d2;
+}
+
+.sesi-dialog-form :deep(.q-field__label) {
+  font-size: 14px;
+}
+
+.sesi-dialog-form :deep(.q-field__hint) {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.sesi-dialog-form :deep(.q-input--with-bottom) {
+  padding-bottom: 0;
+}
+
+.sesi-dialog-form :deep(.q-btn) {
+  min-height: 42px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.sesi-dialog-form :deep(.q-btn--flat) {
+  color: #374151;
+}
+
+.sesi-dialog-actions {
+  margin-top: 4px;
+}
+</style>
 
 <style scoped>
 .arabic-text {
