@@ -9,32 +9,42 @@
       </div>
 
       <q-card-section class="q-pa-lg">
-        <!-- Step 1: masukkan kode & identitas -->
+        <!-- Step 1: masukkan kode & data peserta -->
         <template v-if="!ujianInfo">
-          <div class="text-subtitle1 text-weight-medium q-mb-md">Masukkan Kode Ujian</div>
+          <div class="text-subtitle1 text-weight-medium q-mb-xs">Masukkan Data Peserta</div>
+          <div class="text-caption text-grey-6 q-mb-md">Lengkapi data di bawah ini untuk memulai ujian.</div>
           <q-form @submit.prevent="cariUjian" class="q-gutter-md">
             <q-input
               v-model="kodeUjian"
               label="Kode Ujian *"
+              hint="Kode unik ujian yang dibagikan oleh panitia/pengajar (mis. lewat WhatsApp atau grup kelas)."
               outlined
               dense
               autofocus
-              :rules="[v => !!v || 'Wajib diisi']"
+              :rules="[v => !!v || 'Kode ujian wajib diisi']"
               @keyup.enter="cariUjian"
             />
             <q-input
               v-model="namaLengkap"
               label="Nama Lengkap *"
+              hint="Tulis nama lengkap sesuai identitas — akan tampil di daftar nilai."
               outlined
               dense
-              :rules="[v => !!v || 'Wajib diisi']"
+              :rules="[v => !!v || 'Nama lengkap wajib diisi']"
             />
             <q-input
-              v-model="identitas"
-              label="Identitas (NIM / No. Peserta / dll) *"
+              v-model="whatsapp"
+              label="Nomor WhatsApp *"
+              hint="Nomor WhatsApp aktif (mis. 08123456789). Dipakai sebagai identitas utama peserta."
               outlined
               dense
-              :rules="[v => !!v || 'Wajib diisi']"
+              type="tel"
+              inputmode="tel"
+              :rules="[
+                v => !!v || 'Nomor WhatsApp wajib diisi',
+                v => /^[0-9+]{8,15}$/.test(v.replace(/[\s-]/g, '')) || 'Nomor WhatsApp tidak valid',
+              ]"
+              @keyup.enter="cariUjian"
             />
             <q-banner v-if="errorMsg" dense rounded class="bg-red-1 text-negative">
               <template #avatar><q-icon name="error" /></template>
@@ -102,7 +112,7 @@ const router = useRouter();
 
 const kodeUjian = ref('');
 const namaLengkap = ref('');
-const identitas = ref('');
+const whatsapp = ref('');
 const errorMsg = ref('');
 const loading = ref(false);
 const starting = ref(false);
@@ -112,7 +122,7 @@ const pesertaId = ref(null);
 
 const cariUjian = async () => {
   errorMsg.value = '';
-  if (!kodeUjian.value.trim() || !namaLengkap.value.trim() || !identitas.value.trim()) {
+  if (!kodeUjian.value.trim() || !namaLengkap.value.trim() || !whatsapp.value.trim()) {
     errorMsg.value = 'Semua field wajib diisi.';
     return;
   }
@@ -121,7 +131,7 @@ const cariUjian = async () => {
     const { data } = await api.post('/ujian/masuk', {
       kodeUjian: kodeUjian.value.trim(),
       namaLengkap: namaLengkap.value.trim(),
-      identitas: identitas.value.trim(),
+      whatsapp: whatsapp.value.trim(),
     });
     if (data.success) {
       pesertaId.value = data.pesertaId;

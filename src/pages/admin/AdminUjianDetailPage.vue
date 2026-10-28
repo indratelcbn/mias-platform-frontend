@@ -347,7 +347,7 @@ const confirmDeleteSoal = (row) => {
 // ─── Peserta ─────────────────────────────────────────────────────────────────
 const pesertaColumns = [
   { name: 'namaLengkap', label: 'Nama', field: 'namaLengkap', align: 'left' },
-  { name: 'identitas', label: 'Identitas', field: 'identitas', align: 'left' },
+  { name: 'whatsapp', label: 'WhatsApp', field: 'whatsapp', align: 'left' },
   { name: 'percobaan', label: 'Ke-', field: 'percobaan', align: 'center', style: 'width:50px' },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
   { name: 'score', label: 'Nilai', field: 'score', align: 'center' },
@@ -366,9 +366,9 @@ const downloadRekap = async () => {
   if (!rekap) return;
 
   const rows = rekap.peserta.map((p, i) => [
-    i + 1, p.namaLengkap, p.identitas, p.percobaan, p.score?.toFixed(1) ?? '', p.isPassed ? 'Lulus' : 'Tidak Lulus', p.status
+    i + 1, p.namaLengkap, p.whatsapp, p.percobaan, p.score?.toFixed(1) ?? '', p.isPassed ? 'Lulus' : 'Tidak Lulus', p.status
   ]);
-  const header = ['No', 'Nama', 'Identitas', 'Percobaan', 'Nilai', 'Kelulusan', 'Status'];
+  const header = ['No', 'Nama', 'WhatsApp', 'Percobaan', 'Nilai', 'Kelulusan', 'Status'];
   const csv = [header, ...rows].map(r => r.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);

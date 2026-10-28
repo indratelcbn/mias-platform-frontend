@@ -114,6 +114,7 @@ const kategori = ref('');
 
 const kategoriOptions = [
   { label: 'Semua', value: '' },
+  { label: 'Laporan', value: 'Laporan' },
   { label: 'Berita', value: 'Berita' },
   { label: 'Kajian', value: 'Kajian' },
   { label: 'Pengumuman', value: 'Pengumuman' },

@@ -280,7 +280,7 @@ const statusOptions = [
   { label: 'Published', value: 'published' },
   { label: 'Draft', value: 'draft' },
 ];
-const kategoriOptions = ['Berita', 'Himbauan', 'Pengumuman', 'Kegiatan', 'Edukasi'];
+const kategoriOptions = ['Laporan', 'Berita', 'Himbauan', 'Pengumuman', 'Kegiatan', 'Edukasi'];
 
 const emptyForm = () => ({
   judul: '',
