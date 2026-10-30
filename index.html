@@ -5,8 +5,23 @@
 
     <meta charset="utf-8" />
     <meta name="description" content="<%= productDescription %>" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#1a6e3c" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- Open Graph / Social (default — dioverride per-rute saat build SEO) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Masjid Imam Asy-Syafi'i Depok" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:title" content="Masjid Imam Asy Syafi'i Depok" />
+    <meta property="og:description" content="<%= productDescription %>" />
+    <meta property="og:image" content="/logo-mias.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Masjid Imam Asy Syafi'i Depok" />
+    <meta name="twitter:description" content="<%= productDescription %>" />
+    <meta name="twitter:image" content="/logo-mias.png" />
+
     <meta
       name="viewport"
       content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<%= ctx.mode.cordova || ctx.mode.capacitor ? ', viewport-fit=cover' : '' %>"

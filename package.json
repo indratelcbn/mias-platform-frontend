@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "quasar dev",
     "build": "quasar build",
+    "postbuild": "node scripts/seo-postbuild.js",
+    "seo": "node scripts/seo-postbuild.js",
     "lint": "eslint --ext .js,.vue ./",
     "format": "prettier --write \"**/*.{js,vue,scss,html,md}\""
   },
