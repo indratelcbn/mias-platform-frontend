@@ -424,15 +424,17 @@
             <div class="row q-col-gutter-sm">
               <q-select
                 class="col-12 col-sm-6"
-                v-model="jadwalForm.pengajar"
+                v-model="pengajarSelected"
                 :options="pengajarOptions"
+                multiple
+                use-chips
                 use-input
                 input-debounce="0"
                 new-value-mode="add-unique"
                 clearable
                 outlined dense
                 label="Pengajar"
-                hint="Ambil dari Info Kelas atau ketik manual"
+                hint="Pilih satu/lebih pengajar atau ketik manual"
               />
               <q-select
                 class="col-12 col-sm-6"
@@ -451,15 +453,17 @@
               placeholder="mis. Aula lantai 2"
             />
             <q-select
-              v-model="jadwalForm.kitab"
+              v-model="kitabSelected"
               :options="kitabOptions"
+              multiple
+              use-chips
               use-input
               input-debounce="0"
               new-value-mode="add-unique"
               clearable
               outlined dense
               label="Kitab / Materi"
-              hint="Ambil dari Info Kelas atau ketik manual"
+              hint="Pilih satu/lebih kitab/materi atau ketik manual"
             />
             <q-input v-model="jadwalForm.keterangan" outlined dense type="textarea" rows="2" label="Keterangan (opsional)" />
             <div class="row q-col-gutter-sm items-center">
@@ -757,7 +761,7 @@ const WAKTU_OPTIONS = [
   "Ba'da Ashar - Selesai",
   'Lainnya',
 ];
-const TEMPAT_OPTIONS = ['Ruang Utama/Ikhwan', 'Ruang Akhwat', 'Ruang Sekretariat Remaja', 'Lainnya'];
+const TEMPAT_OPTIONS = ['Ruang Utama/Ikhwan', 'Ruang Kelas Bagian Akhwat', 'Ruang Sekretariat Remaja', 'Lainnya'];
 
 const KATEGORI_COLOR = {
   TAHSIN_IKHWAN: 'blue-8',
@@ -770,6 +774,8 @@ const kategoriColor = (k) => KATEGORI_COLOR[k] || 'indigo-6';
 
 // Helper UI state untuk select Hari / Waktu / Tempat
 const hariSelected = ref([]);
+const pengajarSelected = ref([]);
+const kitabSelected = ref([]);
 const jamChoice = ref(null);
 const jamManual = ref('');
 const tempatChoice = ref(null);
@@ -819,6 +825,8 @@ const openJadwalDialog = (row = null) => {
       isActive: row.isActive,
     });
     hariSelected.value = row.hari ? row.hari.split(',').map(s => s.trim()).filter(Boolean) : [];
+    pengajarSelected.value = row.pengajar ? row.pengajar.split(',').map(s => s.trim()).filter(Boolean) : [];
+    kitabSelected.value = row.kitab ? row.kitab.split(',').map(s => s.trim()).filter(Boolean) : [];
     if (row.jam && WAKTU_OPTIONS.includes(row.jam) && row.jam !== 'Lainnya') {
       jamChoice.value = row.jam; jamManual.value = '';
     } else if (row.jam) {
@@ -835,6 +843,8 @@ const openJadwalDialog = (row = null) => {
     Object.assign(jadwalForm, emptyJadwalForm());
     if (jadwalFilterKategori.value) jadwalForm.kategori = jadwalFilterKategori.value;
     hariSelected.value = [];
+    pengajarSelected.value = [];
+    kitabSelected.value = [];
     jamChoice.value = null; jamManual.value = '';
     tempatChoice.value = null; tempatManual.value = '';
   }
@@ -848,9 +858,9 @@ const saveJadwal = async () => {
     namaKelas: jadwalForm.namaKelas,
     hari: hariSelected.value.join(', '),
     jam: jamChoice.value === 'Lainnya' ? (jamManual.value || '').trim() : (jamChoice.value || ''),
-    pengajar: jadwalForm.pengajar || '',
+    pengajar: pengajarSelected.value.map(v => String(v || '').trim()).filter(Boolean).join(', '),
     tempat: tempatChoice.value === 'Lainnya' ? (tempatManual.value || '').trim() : (tempatChoice.value || ''),
-    kitab: jadwalForm.kitab || '',
+    kitab: kitabSelected.value.map(v => String(v || '').trim()).filter(Boolean).join(', '),
     keterangan: jadwalForm.keterangan || '',
     urutan: Number(jadwalForm.urutan) || 0,
     isActive: jadwalForm.isActive,

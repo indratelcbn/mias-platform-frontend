@@ -145,7 +145,7 @@ const KATEGORI_META = {
     gradient: 'linear-gradient(135deg, #D84315 0%, #870000 100%)',
   },
   TPQ: {
-    label: 'Taman Pendidikan Qur\'an', icon: 'child_care', accent: '#E65100',
+    label: 'Taman Pendidikan Qur\'an', icon: 'menu_book', accent: '#E65100',
     gradient: 'linear-gradient(135deg, #F57C00 0%, #BF360C 100%)',
   },
 };
